@@ -1,2 +1,2 @@
 # Boarding-Bee
-Boarding-Bee frontend & backennd
+Boarding-Bee frontend & backend
