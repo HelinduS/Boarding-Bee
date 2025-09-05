@@ -19,6 +19,14 @@
 .DS_Store
 *.pem
 
+# .NET backend
+bin/
+obj/
+*.user
+*.suo
+*.db
+appsettings.*.json
+
 # debug
 npm-debug.log*
 yarn-debug.log*
