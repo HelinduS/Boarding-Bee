@@ -166,3 +166,7 @@
 /Users/helindusenadheera/Documents/Boarding-Bee/BoardingBee_backend/obj/Debug/net9.0/BoardingBee_backend.pdb
 /Users/helindusenadheera/Documents/Boarding-Bee/BoardingBee_backend/obj/Debug/net9.0/BoardingBee_backend.genruntimeconfig.cache
 /Users/helindusenadheera/Documents/Boarding-Bee/BoardingBee_backend/obj/Debug/net9.0/ref/BoardingBee_backend.dll
+/Users/helindusenadheera/Documents/Boarding-Bee/BoardingBee_backend/bin/Debug/net9.0/DotNetEnv.dll
+/Users/helindusenadheera/Documents/Boarding-Bee/BoardingBee_backend/bin/Debug/net9.0/MySqlConnector.dll
+/Users/helindusenadheera/Documents/Boarding-Bee/BoardingBee_backend/bin/Debug/net9.0/Pomelo.EntityFrameworkCore.MySql.dll
+/Users/helindusenadheera/Documents/Boarding-Bee/BoardingBee_backend/bin/Debug/net9.0/Sprache.dll

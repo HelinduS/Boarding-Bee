@@ -1,0 +1,55 @@
+name: BoardingBee .NET CI/CD
+
+on:
+  push:
+    branches: [ workflows, main ]   # runs on pushes to workflows (for testing) and main
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore ./BoardingBee_backend/BoardingBee_backend.csproj
+
+      - name: Build
+        run: dotnet build ./BoardingBee_backend/BoardingBee_backend.csproj --configuration Release --no-restore
+
+      - name: Run tests
+        run: dotnet test ./BoardingBee_backend/BoardingBee_backend.csproj --no-build --verbosity normal
+
+      - name: Apply EF Core migrations
+        env:
+          env:
+            MYSQL_CONNECTION_STRING: ${{ secrets.MYSQL_CONNECTION_STRING }}
+        run: |
+          dotnet ef database update --project ./BoardingBee_backend --startup-project ./BoardingBee_backend
+
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'   # deploy only from main branch
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 7.0.x
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'BoardingBee'       # replace with your app name
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: './BoardingBee_backend'
