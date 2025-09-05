@@ -1,0 +1,6 @@
+@BoardingBee_backend_HostAddress = http://localhost:5116
+
+GET {{BoardingBee_backend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
