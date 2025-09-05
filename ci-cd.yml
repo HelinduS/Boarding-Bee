@@ -16,7 +16,9 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: 7.0.x
+
+         dotnet-version: 9.0.x
+
 
       - name: Restore dependencies
         run: dotnet restore ./BoardingBee_backend/BoardingBee_backend.csproj
@@ -29,7 +31,10 @@ jobs:
 
       - name: Apply EF Core migrations
         env:
-          ConnectionStrings__DefaultConnection: ${{ secrets.AZURE_SQL_CONNECTION_STRING }}
+
+          env:
+            MYSQL_CONNECTION_STRING: ${{ secrets.MYSQL_CONNECTION_STRING }}
+
         run: |
           dotnet ef database update --project ./BoardingBee_backend --startup-project ./BoardingBee_backend
 
