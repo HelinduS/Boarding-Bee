@@ -42,16 +42,16 @@ interface SettingsData {
 export function UserProfile() {
 
   const [userData, setUserData] = useState<UserData>({
-    firstName: "Kasun",
-    lastName: "Perera",
-    permanentAddress: "123 Galle Road, Colombo 03, Sri Lanka",
+    firstName: "Vidath",
+    lastName: "Theekshana",
+    permanentAddress: "49C Maharagama Road, Piliyandala",
     gender: "male",
     mobileNumber: "+94 77 123 4567",
-    emailAddress: "kasun.perera@email.com",
+    emailAddress: "vidaththeekshana@email.com",
     emergencyContact: "+94 71 987 6543",
     userType: "student",
-    institutionCompany: "University of Colombo",
-    location: "Colombo",
+    institutionCompany: "Sri Lanka Institute of Information Technology",
+    location: "Malabe",
     profileImage: "",
   })
 
