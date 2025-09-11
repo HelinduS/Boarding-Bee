@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using BoardingBee_backend.Auth.Models;
-using BoardingBee_backend.Models;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;         
+using BoardingBee_backend.Models;             
+using BoardingBee_backend.Auth;              
 
 namespace BoardingBee_backend.Controllers
 {

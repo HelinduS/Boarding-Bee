@@ -1,9 +1,10 @@
-using System.ComponentModel.DataAnnotations;
+// auth/Owner.cs
+using BoardingBee_backend.Models;   // <-- add this
 
-namespace BoardingBee_backend.Auth.Models
+namespace BoardingBee_backend.Auth
 {
-    public class Owner : User
+    public class Owner : User   // or uses User somewhere
     {
-        // Additional properties for Owners can be added here
+        // ...
     }
 }

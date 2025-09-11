@@ -1,35 +1,53 @@
-using BoardingBee_backend.Auth.Models;
-using BoardingBee_backend.Auth.Services;
+// auth/AuthController.cs
+using System.ComponentModel.DataAnnotations;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using BoardingBee_backend.Auth;
+using BoardingBee_backend.Models;
 
-namespace BoardingBee_backend.Auth.Controllers
+namespace BoardingBee_backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
-        private readonly IAuthService _authService;
+        private readonly IAuthService _auth;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService auth)
         {
-            _authService = authService;
+            _auth = auth;
+        }
+
+        public class LoginRequest
+        {
+            [Required]
+            public string Username { get; set; } = string.Empty; // can be email or username
+
+            [Required]
+            public string Password { get; set; } = string.Empty;
         }
 
         [HttpPost("login")]
-        public IActionResult Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> Login([FromBody] LoginRequest req)
         {
-            var user = _authService.Authenticate(request.Username, request.Password);
-            if (user == null)
-                return Unauthorized();
+            if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var token = _authService.GenerateJwtToken(user);
-            return Ok(new { token, role = user.Role });
+            var user = await _auth.AuthenticateAsync(req.Username, req.Password);
+            if (user == null) return Unauthorized();
+
+            var token = await _auth.GenerateJwtAsync(user);
+
+            return Ok(new
+            {
+                token,
+                user = new
+                {
+                    user.Id,
+                    user.Username,
+                    user.Email,
+                    user.Role
+                }
+            });
         }
-    }
-
-    public class LoginRequest
-    {
-        public string Username { get; set; }
-        public string Password { get; set; }
     }
 }

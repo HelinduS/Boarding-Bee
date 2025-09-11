@@ -1,9 +1,10 @@
-using System.ComponentModel.DataAnnotations;
+// auth/Admin.cs
+using BoardingBee_backend.Models;   // <-- add this
 
-namespace BoardingBee_backend.Auth.Models
+namespace BoardingBee_backend.Auth
 {
-    public class Admin : User
+    public class Admin : User    // <-- now resolves to Models.User
     {
-        // Additional properties for Admins can be added here
+        // ... keep your properties/methods as-is
     }
 }

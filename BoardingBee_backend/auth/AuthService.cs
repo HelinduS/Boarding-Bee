@@ -1,56 +1,50 @@
-using BoardingBee_backend.Auth.Models;
+// auth/AuthService.cs
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using BoardingBee_backend.Models;
 
-namespace BoardingBee_backend.Auth.Services
+namespace BoardingBee_backend.Auth
 {
     public class AuthService : IAuthService
     {
-        // Example: Azure SQL connection string (replace with your actual connection string)
-        // private readonly string _connectionString = "<Your Azure SQL Connection String Here>";
+        private readonly AppDbContext _db;
 
-        public string HashPassword(string password)
+        public AuthService(AppDbContext db)
         {
-            // TODO: Implement real hashing
-            return "hashed" + password;
+            _db = db;
         }
 
-        public bool VerifyPassword(string password, string passwordHash)
+        // Accepts either email or username for convenience
+        public async Task<User?> AuthenticateAsync(string usernameOrEmail, string password)
         {
-            // TODO: Implement real verification
-            return HashPassword(password) == passwordHash;
+            // Try email first, then username
+            var user = await _db.Users.FirstOrDefaultAsync(u =>
+                u.Email == usernameOrEmail || u.Username == usernameOrEmail);
+
+            if (user == null) return null;
+
+            // TODO: replace with your real password hasher/validator
+            if (!VerifyPassword(password, user.PasswordHash))
+                return null;
+
+            return user;
         }
 
-        public string GenerateJwtToken(User user)
+        public Task<string> GenerateJwtAsync(User user)
         {
-            // TODO: Implement JWT generation
-            return "mock-jwt-token-for-" + user.Username;
+            // TODO: replace with your actual JWT issuing logic (signing key, claims, expiry)
+            // This is a placeholder token so you can unblock the build and wire the flow end-to-end.
+            var fakeToken = $"FAKE-JWT-{user.Id}-{Guid.NewGuid()}";
+            return Task.FromResult(fakeToken);
         }
 
-        public User Authenticate(string username, string password)
+        // ==== Helpers (replace with PBKDF2/BCrypt/Argon2) ====
+        private bool VerifyPassword(string plain, string storedHash)
         {
-            // TODO: Replace with actual Azure SQL database logic
-            // Example (pseudo-code):
-            // using (var connection = new SqlConnection(_connectionString))
-            // {
-            //     connection.Open();
-            //     var command = new SqlCommand("SELECT * FROM Users WHERE Username = @username", connection);
-            //     command.Parameters.AddWithValue("@username", username);
-            //     using (var reader = command.ExecuteReader())
-            //     {
-            //         if (reader.Read())
-            //         {
-            //             var passwordHash = reader["PasswordHash"].ToString();
-            //             if (VerifyPassword(password, passwordHash))
-            //             {
-            //                 // Map user data from DB to User/Admin/Owner object
-            //                 return new User { /* ... */ };
-            //             }
-            //         }
-            //     }
-            // }
-            return null;
+            // Must match your hashing strategy used when creating users
+            // Placeholder: "hashed" + plain
+            return storedHash == "hashed" + plain;
         }
     }
 }
