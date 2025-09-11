@@ -58,8 +58,29 @@ export function UserProfile() {
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
+  // ---- NEW: simple email validation + error state ----
+  const [errors, setErrors] = useState<{ email?: string }>({})
+
+  const isValidEmail = (email: string) => {
+    // Simple RFC5322-ish check: covers common formats without being too strict
+    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)
+  }
+  // ----------------------------------------------------
+
   const handleInputChange = (field: keyof UserData, value: string) => {
     setUserData((prev) => ({ ...prev, [field]: value }))
+
+    // Live-validate email while editing (only touches email field)
+    if (field === "emailAddress") {
+      if (!value.trim()) {
+        setErrors((e) => ({ ...e, email: "Email is required." }))
+      } else if (!isValidEmail(value.trim())) {
+        setErrors((e) => ({ ...e, email: "Please enter a valid email address (e.g., name@example.com)." }))
+      } else {
+        // clear email error
+        setErrors((e) => ({ ...e, email: undefined }))
+      }
+    }
   }
 
   const handleSettingChange = (setting: keyof SettingsData, value: boolean) => {
@@ -67,6 +88,17 @@ export function UserProfile() {
   }
 
   const handleSave = async () => {
+    // Block save on invalid email
+    const email = userData.emailAddress?.trim() ?? ""
+    if (!email || !isValidEmail(email)) {
+      setErrors((e) => ({
+        ...e,
+        email: !email ? "Email is required." : "Please enter a valid email address (e.g., name@example.com).",
+      }))
+      toast.error("Invalid email format. Please correct it before saving.")
+      return
+    }
+
     setIsSaving(true)
     await new Promise((resolve) => setTimeout(resolve, 1000))
     setIsEditing(false)
@@ -96,7 +128,7 @@ export function UserProfile() {
                   <Button variant="outline" onClick={() => setIsEditing(false)} className="border-[#BCCCDC] text-[#334155]">
                     Cancel
                   </Button>
-                  <Button onClick={handleSave} disabled={isSaving}>
+                  <Button onClick={handleSave} disabled={isSaving || !!errors.email}>
                     {isSaving ? "Saving..." : "Save Changes"}
                   </Button>
                 </>
@@ -248,8 +280,12 @@ export function UserProfile() {
                       value={userData.emailAddress}
                       onChange={(e) => handleInputChange("emailAddress", e.target.value)}
                       disabled={!isEditing}
-                      className="border-[#BCCCDC] focus-visible:ring-[#9AA6B2]"
+                      aria-invalid={!!errors.email}
+                      className={`border-[#BCCCDC] focus-visible:ring-[#9AA6B2] ${errors.email ? "border-destructive" : ""}`}
                     />
+                    {errors.email && (
+                      <p className="text-destructive text-xs mt-1">{errors.email}</p>
+                    )}
                   </div>
                 </div>
 
