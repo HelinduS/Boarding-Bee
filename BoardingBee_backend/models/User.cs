@@ -11,5 +11,8 @@ namespace BoardingBee_backend.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public string? PhoneNumber { get; set; }// optional column
         public string Role { get; set; } = "User"; // Default role is User
+
+        public UserProfile? UserProfile { get; set; } // Navigation property
+        public UserSettings? UserSettings { get; set; } // Navigation property
     }
 }

@@ -8,15 +8,9 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
-// Update the import path if the file exists elsewhere, for example:
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-// Or create the file "@/components/ui/avatar.tsx" if missing.
 import { AlertTriangle, Bell, Eye, Mail, MessageSquare, Shield, Upload, Phone, MapPin } from "lucide-react"
-// If your toast hook is located at 'app/hooks/use-toast.ts', create it as below:
-// Or update the import path to the correct location, e.g.:
 import { toast } from "sonner"
-// If you use a library like 'sonner', you might use:
-// import { useToast } from "sonner"
 
 interface UserData {
   firstName: string
@@ -40,7 +34,6 @@ interface SettingsData {
 }
 
 export function UserProfile() {
-
   const [userData, setUserData] = useState<UserData>({
     firstName: "Vidath",
     lastName: "Theekshana",
@@ -75,18 +68,13 @@ export function UserProfile() {
 
   const handleSave = async () => {
     setIsSaving(true)
-
-    // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1000))
-
     setIsEditing(false)
     setIsSaving(false)
-
     toast("Profile Updated: Your profile information has been successfully updated.")
   }
 
   const handleDeleteAccount = () => {
-    // This would typically show a confirmation dialog
     toast(
       <div className="text-destructive">
         <strong>Account Deletion</strong>
@@ -96,16 +84,16 @@ export function UserProfile() {
   }
 
   return (
-    <div className=" bg-secondary w-full">
-      {/* Profile Header with user info that updates automatically */}
-      <div className="bg-card border-b shadow-sm w-full">
+    <div className="w-full min-h-screen bg-[#F8FAFC]">
+      {/* Header */}
+      <div className="w-full bg-[#D9EAFD] border-b border-[#BCCCDC] shadow-sm">
         <div className="container mx-auto px-6 py-8 w-full">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold text-balance">Profile Settings</h1>
+            <h1 className="text-3xl font-bold text-[#334155]">Profile Settings</h1>
             <div className="flex gap-3">
               {isEditing ? (
                 <>
-                  <Button variant="outline" onClick={() => setIsEditing(false)}>
+                  <Button variant="outline" onClick={() => setIsEditing(false)} className="border-[#BCCCDC] text-[#334155]">
                     Cancel
                   </Button>
                   <Button onClick={handleSave} disabled={isSaving}>
@@ -119,18 +107,18 @@ export function UserProfile() {
           </div>
 
           <div className="flex items-center gap-6">
-            <Avatar className="h-24 w-24">
+            <Avatar className="h-24 w-24 ring-2 ring-[#BCCCDC]">
               <AvatarImage src={userData.profileImage || "/placeholder.svg"} />
-              <AvatarFallback className="text-lg bg-primary text-primary-foreground">
+              <AvatarFallback className="text-lg bg-[#BCCCDC] text-[#334155]">
                 {userData.firstName[0]}
                 {userData.lastName[0]}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <h2 className="text-2xl font-semibold text-card-foreground">
+              <h2 className="text-2xl font-semibold text-[#334155]">
                 {userData.firstName} {userData.lastName}
               </h2>
-              <div className="flex items-center gap-4 mt-2 text-muted-foreground">
+              <div className="flex items-center gap-4 mt-2 text-[#9AA6B2]">
                 <div className="flex items-center gap-1">
                   <Mail className="h-4 w-4" />
                   <span>{userData.emailAddress}</span>
@@ -146,7 +134,11 @@ export function UserProfile() {
               </div>
               <div className="mt-3">
                 {isEditing && (
-                  <Button variant="outline" size="sm" className="flex items-center gap-2 bg-transparent">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-2 bg-transparent border-[#BCCCDC] text-[#334155]"
+                  >
                     <Upload className="h-4 w-4" />
                     Change Photo
                   </Button>
@@ -157,60 +149,66 @@ export function UserProfile() {
         </div>
       </div>
 
+      {/* Body */}
       <div className="container mx-auto px-6 py-8 max-w-6xl">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left Column */}
           <div className="space-y-6">
             {/* Personal Information */}
-            <Card className="shadow-md">
+            <Card className="shadow-md bg-[#F8FAFC] border border-[#BCCCDC]">
               <CardHeader>
-                <CardTitle>Personal Information</CardTitle>
-                <CardDescription>Your basic personal details and identification information</CardDescription>
+                <CardTitle className="text-[#334155]">Personal Information</CardTitle>
+                <CardDescription className="text-[#9AA6B2]">
+                  Your basic personal details and identification information
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name</Label>
+                    <Label htmlFor="firstName" className="text-[#334155]">First Name</Label>
                     <Input
                       id="firstName"
                       value={userData.firstName}
                       onChange={(e) => handleInputChange("firstName", e.target.value)}
                       disabled={!isEditing}
+                      className="border-[#BCCCDC] focus-visible:ring-[#9AA6B2]"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name</Label>
+                    <Label htmlFor="lastName" className="text-[#334155]">Last Name</Label>
                     <Input
                       id="lastName"
                       value={userData.lastName}
                       onChange={(e) => handleInputChange("lastName", e.target.value)}
                       disabled={!isEditing}
+                      className="border-[#BCCCDC] focus-visible:ring-[#9AA6B2]"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="permanentAddress">Permanent Address</Label>
+                  <Label htmlFor="permanentAddress" className="text-[#334155]">Permanent Address</Label>
                   <Textarea
                     id="permanentAddress"
                     value={userData.permanentAddress}
                     onChange={(e) => handleInputChange("permanentAddress", e.target.value)}
                     disabled={!isEditing}
                     rows={3}
+                    className="border-[#BCCCDC] focus-visible:ring-[#9AA6B2]"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="gender">Gender</Label>
+                  <Label htmlFor="gender" className="text-[#334155]">Gender</Label>
                   <Select
                     value={userData.gender}
                     onValueChange={(value: string) => handleInputChange("gender", value)}
                     disabled={!isEditing}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="border-[#BCCCDC] focus:ring-0">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-[#F8FAFC] border border-[#BCCCDC] text-[#334155]">
                       <SelectItem value="male">Male</SelectItem>
                       <SelectItem value="female">Female</SelectItem>
                       <SelectItem value="other">Other</SelectItem>
@@ -222,43 +220,48 @@ export function UserProfile() {
             </Card>
 
             {/* Contact Information */}
-            <Card className="shadow-md">
+            <Card className="shadow-md bg-[#F8FAFC] border border-[#BCCCDC]">
               <CardHeader>
-                <CardTitle>Contact Information</CardTitle>
-                <CardDescription>How boarding owners and other users can reach you</CardDescription>
+                <CardTitle className="text-[#334155]">Contact Information</CardTitle>
+                <CardDescription className="text-[#9AA6B2]">
+                  How boarding owners and other users can reach you
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="mobileNumber">Mobile Number</Label>
+                    <Label htmlFor="mobileNumber" className="text-[#334155]">Mobile Number</Label>
                     <Input
                       id="mobileNumber"
                       value={userData.mobileNumber}
                       onChange={(e) => handleInputChange("mobileNumber", e.target.value)}
                       disabled={!isEditing}
                       placeholder="+94 77 123 4567"
+                      className="border-[#BCCCDC] focus-visible:ring-[#9AA6B2]"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="emailAddress">Email Address</Label>
+                    <Label htmlFor="emailAddress" className="text-[#334155]">Email Address</Label>
                     <Input
                       id="emailAddress"
                       type="email"
                       value={userData.emailAddress}
                       onChange={(e) => handleInputChange("emailAddress", e.target.value)}
                       disabled={!isEditing}
+                      className="border-[#BCCCDC] focus-visible:ring-[#9AA6B2]"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="emergencyContact">Emergency Contact</Label>
+                  <Label htmlFor="emergencyContact" className="text-[#334155]">Emergency Contact</Label>
                   <Input
                     id="emergencyContact"
                     value={userData.emergencyContact}
                     onChange={(e) => handleInputChange("emergencyContact", e.target.value)}
                     disabled={!isEditing}
                     placeholder="+94 71 987 6543"
+                    className="border-[#BCCCDC] focus-visible:ring-[#9AA6B2]"
                   />
                 </div>
               </CardContent>
@@ -267,24 +270,26 @@ export function UserProfile() {
 
           {/* Right Column */}
           <div className="space-y-6">
-            {/* Academic & Professional Information */}
-            <Card className="shadow-md">
+            {/* Academic & Professional */}
+            <Card className="shadow-md bg-[#F8FAFC] border border-[#BCCCDC]">
               <CardHeader>
-                <CardTitle>Academic & Professional Information</CardTitle>
-                <CardDescription>Your current status and institutional affiliations</CardDescription>
+                <CardTitle className="text-[#334155]">Academic & Professional Information</CardTitle>
+                <CardDescription className="text-[#9AA6B2]">
+                  Your current status and institutional affiliations
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="userType">Status</Label>
+                  <Label htmlFor="userType" className="text-[#334155]">Status</Label>
                   <Select
                     value={userData.userType}
                     onValueChange={(value: string) => handleInputChange("userType", value)}
                     disabled={!isEditing}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="border-[#BCCCDC] focus:ring-0">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-[#F8FAFC] border border-[#BCCCDC] text-[#334155]">
                       <SelectItem value="student">Student</SelectItem>
                       <SelectItem value="working-professional">Working Professional</SelectItem>
                       <SelectItem value="job-seeker">Job Seeker</SelectItem>
@@ -295,7 +300,7 @@ export function UserProfile() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="institutionCompany">
+                    <Label htmlFor="institutionCompany" className="text-[#334155]">
                       {userData.userType === "student" ? "Institution" : "Company"}
                     </Label>
                     <Input
@@ -304,16 +309,18 @@ export function UserProfile() {
                       onChange={(e) => handleInputChange("institutionCompany", e.target.value)}
                       disabled={!isEditing}
                       placeholder={userData.userType === "student" ? "University of Colombo" : "Company Name"}
+                      className="border-[#BCCCDC] focus-visible:ring-[#9AA6B2]"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="location">Location</Label>
+                    <Label htmlFor="location" className="text-[#334155]">Location</Label>
                     <Input
                       id="location"
                       value={userData.location}
                       onChange={(e) => handleInputChange("location", e.target.value)}
                       disabled={!isEditing}
                       placeholder="Colombo"
+                      className="border-[#BCCCDC] focus-visible:ring-[#9AA6B2]"
                     />
                   </div>
                 </div>
@@ -321,21 +328,23 @@ export function UserProfile() {
             </Card>
 
             {/* Notification Preferences */}
-            <Card className="shadow-md">
+            <Card className="shadow-md bg-[#F8FAFC] border border-[#BCCCDC]">
               <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-lg">
+                <CardTitle className="flex items-center gap-2 text-lg text-[#334155]">
                   <Bell className="h-4 w-4" />
                   Notification Preferences
                 </CardTitle>
-                <CardDescription className="text-sm">Choose how you want to be notified</CardDescription>
+                <CardDescription className="text-sm text-[#9AA6B2]">
+                  Choose how you want to be notified
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <Mail className="h-4 w-4 text-[#9AA6B2]" />
                     <div>
-                      <p className="font-medium text-sm">Email Notifications</p>
-                      <p className="text-xs text-muted-foreground">Receive updates about new listings and inquiries</p>
+                      <p className="font-medium text-sm text-[#334155]">Email Notifications</p>
+                      <p className="text-xs text-[#9AA6B2]">Receive updates about new listings and inquiries</p>
                     </div>
                   </div>
                   <Switch
@@ -346,10 +355,10 @@ export function UserProfile() {
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                    <MessageSquare className="h-4 w-4 text-[#9AA6B2]" />
                     <div>
-                      <p className="font-medium text-sm">SMS Notifications</p>
-                      <p className="text-xs text-muted-foreground">Get text messages for urgent updates</p>
+                      <p className="font-medium text-sm text-[#334155]">SMS Notifications</p>
+                      <p className="text-xs text-[#9AA6B2]">Get text messages for urgent updates</p>
                     </div>
                   </div>
                   <Switch
@@ -361,21 +370,23 @@ export function UserProfile() {
             </Card>
 
             {/* Privacy Settings */}
-            <Card className="shadow-md">
+            <Card className="shadow-md bg-[#F8FAFC] border border-[#BCCCDC]">
               <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-lg">
+                <CardTitle className="flex items-center gap-2 text-lg text-[#334155]">
                   <Shield className="h-4 w-4" />
                   Privacy Settings
                 </CardTitle>
-                <CardDescription className="text-sm">Control who can see your information</CardDescription>
+                <CardDescription className="text-sm text-[#9AA6B2]">
+                  Control who can see your information
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Eye className="h-4 w-4 text-muted-foreground" />
+                    <Eye className="h-4 w-4 text-[#9AA6B2]" />
                     <div>
-                      <p className="font-medium text-sm">Profile Visibility</p>
-                      <p className="text-xs text-muted-foreground">Allow boarding owners to view your profile</p>
+                      <p className="font-medium text-sm text-[#334155]">Profile Visibility</p>
+                      <p className="text-xs text-[#9AA6B2]">Allow boarding owners to view your profile</p>
                     </div>
                   </div>
                   <Switch
@@ -386,10 +397,10 @@ export function UserProfile() {
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <Mail className="h-4 w-4 text-[#9AA6B2]" />
                     <div>
-                      <p className="font-medium text-sm">Show Contact Information</p>
-                      <p className="text-xs text-muted-foreground">Display your phone and email to verified owners</p>
+                      <p className="font-medium text-sm text-[#334155]">Show Contact Information</p>
+                      <p className="text-xs text-[#9AA6B2]">Display your phone and email to verified owners</p>
                     </div>
                   </div>
                   <Switch
@@ -404,19 +415,21 @@ export function UserProfile() {
 
         <div className="mt-8">
           {/* Danger Zone */}
-          <Card className="border-destructive/50 shadow-md">
+          <Card className="border-destructive/50 shadow-md bg-[#F8FAFC] border">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-destructive">
                 <AlertTriangle className="h-5 w-5" />
                 Danger Zone
               </CardTitle>
-              <CardDescription className="text-sm">Irreversible account actions</CardDescription>
+              <CardDescription className="text-sm text-[#9AA6B2]">
+                Irreversible account actions
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between p-4 border border-destructive/20 rounded-lg bg-destructive/5">
                 <div>
                   <p className="font-medium text-destructive">Delete Account</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-[#9AA6B2]">
                     Permanently delete your account and all associated data
                   </p>
                 </div>
