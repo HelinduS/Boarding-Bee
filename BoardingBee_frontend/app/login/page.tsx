@@ -1,145 +1,184 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import Image from "next/image";
-import { jwtDecode } from "jwt-decode"; // Import jwt-decode
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import type React from "react"
+import { useState } from "react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { jwtDecode } from "jwt-decode"
+import Image from "next/image"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AlertCircle } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox"
 
-// Define a type for the decoded JWT payload
 interface JwtPayload {
-  sub: string;
-  role: string; // Expecting "USER" or "ADMIN"
-  iat?: number;
-  exp?: number;
+  sub: string
+  role: string
+  iat?: number
+  exp?: number
 }
 
 export default function LoginPage() {
-  const router = useRouter();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const router = useRouter()
+  const [username, setUsername] = useState("")
+  const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const [rememberMe, setRememberMe] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
+    e.preventDefault()
+    setLoading(true)
+    setError("")
 
     try {
       const response = await fetch("http://localhost:8080/api/auth/authenticate", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
-      });
+      })
 
-      const data = await response.json();
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.message || "Authentication failed")
 
-      if (!response.ok) {
-        throw new Error(data.message || "Authentication failed");
-      }
+      const accessToken = data.access_token
+      localStorage.setItem("token", accessToken)
 
-      // Store the access token
-      const accessToken = data.access_token;
-      localStorage.setItem("token", accessToken);
+      const decodedToken = jwtDecode<JwtPayload>(accessToken)
+      const userRole = decodedToken.role
 
-      // Decode the JWT to get the role
-      const decodedToken = jwtDecode<JwtPayload>(accessToken);
-      const userRole = decodedToken.role;
-
-      // Route based on role
-      if (userRole === "ADMIN") {
-        router.push("/admindas/dashboard");
-      } else if (userRole === "USER") {
-        router.push("/customer-dash");
-      } else {
-        throw new Error("Unknown role");
-      }
+      if (userRole === "ADMIN") router.push("/admindas/dashboard")
+      else if (userRole === "USER") router.push("/customer-dash")
+      else throw new Error("Unknown role")
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed. Please try again.");
+      setError(err instanceof Error ? err.message : "Login failed. Please try again.")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
-    <div className="flex min-h-screen">
-      <div className="flex w-full items-center justify-center p-8 md:w-1/2">
-        <Card className="w-full max-w-md border-none shadow-none">
-          <CardHeader className="space-y-1 p-0 pb-6">
-            <CardTitle className="text-3xl font-bold">Welcome back</CardTitle>
-            <CardDescription>Enter your credentials to access your account</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
+    <div className="min-h-screen flex bg-gradient-to-br from-purple-200 to-blue-200 relative">
+      {/* Glass effect overlay */}
+      <div className="absolute inset-0 backdrop-blur-xl bg-white/30" />
+
+      <div className="relative flex w-full max-w-7xl mx-auto overflow-hidden rounded-3xl m-4 border border-white/30 shadow-2xl bg-white/20 backdrop-blur-xl">
+        {/* Left side - Login Form */}
+        <div className="flex w-full items-center justify-center p-12 md:w-1/2">
+          <div className="w-full max-w-md">
+            <div className="mb-8 text-center">
+              <h1 className="text-3xl font-bold text-blue-600 mb-4">Boarding Bee</h1>
+              <p className="text-gray-700">Welcome Back, Please Sign in to your account</p>
+            </div>
+
             {error && (
-              <Alert variant="destructive" className="mb-4">
+              <Alert variant="destructive" className="mb-6">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            <form onSubmit={handleSubmit} className="space-y-4">
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Email */}
               <div className="space-y-2">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="username">Email Address</Label>
                 <Input
                   id="username"
-                  type="text"
+                  type="email"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
-                  placeholder="Enter your username or email"
+                  placeholder="Enter Your Email"
+                  className="h-12 rounded-lg border-gray-300 px-4 
+                             outline-none focus:outline-none 
+                             focus:border-blue-600 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
+
+              {/* Password */}
               <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
-                  <Link href="/forgot-password" className="text-sm text-primary hover:underline">
-                    Forgot password?
-                  </Link>
-                </div>
+                <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  placeholder="Enter your password"
+                  placeholder="Enter Your Password"
+                  className="h-12 rounded-lg border-gray-300 px-4 
+                             outline-none focus:outline-none 
+                             focus:border-blue-600 focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Logging in..." : "Login"}
-              </Button>
-            </form>
-          </CardContent>
-          <CardFooter className="flex justify-center p-0 pt-4">
-            <p className="text-sm text-gray-600">
-              Don&apos;t have an account?{" "}
-              <Link href="/register" className="text-primary hover:underline">
-                Register
-              </Link>
-            </p>
-          </CardFooter>
-        </Card>
-      </div>
 
-      <div className="hidden bg-muted md:block md:w-1/2">
-        <div className="relative h-full w-full">
-          <Image
-            src="/images/login-background.jpg"
-            alt="Login illustration"
-            fill
-            className="object-cover"
-            priority
-          />
+              {/* Remember me + Forgot password */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="remember"
+                    checked={rememberMe}
+                    onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                  />
+                  <Label htmlFor="remember" className="text-sm text-gray-700">
+                    Remember me
+                  </Label>
+                </div>
+                <Link href="/forgot-password" className="text-sm text-blue-600 hover:underline">
+                  Forgot Password?
+                </Link>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex space-x-4">
+                <Button
+                  type="submit"
+                  className="flex-1 h-12 rounded-lg bg-blue-600 text-white 
+                             hover:bg-blue-700 focus:ring-2 focus:ring-blue-500"
+                  disabled={loading}
+                >
+                  {loading ? "Logging in..." : "Login"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1 h-12 rounded-lg border-blue-600 text-blue-600 
+                             hover:bg-blue-50 bg-transparent"
+                  onClick={() => router.push("/register")}
+                >
+                  Sign Up
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        {/* Right side - Illustration */}
+        <div className="hidden md:flex md:w-1/2 md:items-center md:justify-center 
+                        relative overflow-hidden bg-gradient-to-br from-purple-400 via-blue-500 to-indigo-600 
+                        backdrop-blur-xl bg-white/10 border-l border-white/20">
+          <div className="relative z-10 text-center text-white px-8">
+            {/* Centered logo */}
+            <div className="flex justify-center mb-8">
+              <Image
+                src="/images/dcd8b9a7-3418-48ae-b4d4-0bd8b038ab47.png"
+                alt="Boarding Bee Logo"
+                width={180}
+                height={180}
+                priority
+              />
+            </div>
+
+            <div className="mb-8">
+              <h2 className="text-4xl font-bold mb-4">Explore the World</h2>
+              <p className="text-xl opacity-90">
+                Discover Endless Boarding Possibilities in One Platform
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  );
+  )
 }
