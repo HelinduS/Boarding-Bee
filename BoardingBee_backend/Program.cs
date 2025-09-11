@@ -1,12 +1,14 @@
 using Microsoft.EntityFrameworkCore;
 using BoardingBee_backend.Models;
 using DotNetEnv;
+using BoardingBee_backend.Auth.Services;
 
 DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 // DB connection (SQL Server). Set DB_CONNECTION_STRING env var.
 var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
