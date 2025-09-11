@@ -1,4 +1,4 @@
-using BoardingBee_backend.Auth.Models;
+using BoardingBee_backend.Models;
 using BoardingBee_backend.Models;
 using Microsoft.EntityFrameworkCore;
 using BoardingBee_backend.Auth.Services;

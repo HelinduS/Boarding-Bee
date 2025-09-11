@@ -8,6 +8,9 @@ namespace BoardingBee_backend.Models
 
     public DbSet<User> Users => Set<User>();
     public DbSet<UserSettings> UserSettings => Set<UserSettings>();
+    public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
+    public DbSet<TestTable> TestTables => Set<TestTable>();
+    public DbSet<PasswordResetTestToken> PasswordResetTestTokens => Set<PasswordResetTestToken>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

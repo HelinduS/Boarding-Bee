@@ -81,35 +81,36 @@ namespace BoardingBee_backend.controllers
                 return Ok(new { message = "If that email exists, a reset link has been sent." });
 
             // Revoke existing open tokens
-            var openTokens = await _db.PasswordResetTokens
+
+            var openTokens = await _db.PasswordResetTestTokens
                 .Where(t => t.UserId == user.Id && t.UsedAt == null && !t.IsRevoked)
                 .ToListAsync();
             foreach (var t in openTokens) t.IsRevoked = true;
 
-            var (raw, hash) = GenerateToken();
+            // Generate a 4-digit OTP code
+            var rng = new Random();
+            var rawCode = rng.Next(1000, 10000).ToString();
+            var hash = Hash(rawCode);
 
-            _db.PasswordResetTokens.Add(new PasswordResetToken
+            _db.PasswordResetTestTokens.Add(new PasswordResetTestToken
             {
                 UserId = user.Id,
                 TokenHash = hash,
-                ExpiresAt = DateTime.UtcNow.AddHours(2),
+                ExpiresAt = DateTime.UtcNow.AddMinutes(10),
                 CreatedAt = DateTime.UtcNow,
                 CreatedByIp = HttpContext.Connection?.RemoteIpAddress?.ToString(),
-                UserAgent = Request.Headers.UserAgent.ToString()
+                UserAgent = Request.Headers.UserAgent.ToString(),
+                User = user
             });
             await _db.SaveChangesAsync();
 
-            var baseUrl = _cfg["Frontend:BaseUrl"] ?? Environment.GetEnvironmentVariable("FRONTEND_URL") ?? "http://localhost:3000";
-            var link = $"{baseUrl}/reset-password?email={HttpUtility.UrlEncode(user.Email)}&token={HttpUtility.UrlEncode(raw)}";
-
             var html = $@"
                 <p>Hello {WebUtility.HtmlEncode(user.Username)},</p>
-                <p>Click the link below to reset your Boarding Bee password (valid for 2 hours):</p>
-                <p><a href=""{link}"">Reset your password</a></p>
-                <p>If you didn’t request this, you can ignore this email.</p>";
+                <p>Your password reset code is: <b>{rawCode}</b></p>
+                <p>This code is valid for 10 minutes. If you didn’t request this, you can ignore this email.</p>";
 
-            await SendEmailAsync(user.Email, "Reset your Boarding Bee password", html);
-            return Ok(new { message = "If that email exists, a reset link has been sent." });
+            await SendEmailAsync(user.Email, "Your Boarding Bee password reset code", html);
+            return Ok(new { message = "If that email exists, a reset code has been sent." });
         }
 
         [HttpPost("verify")]
@@ -118,8 +119,9 @@ namespace BoardingBee_backend.controllers
             var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == req.Email);
             if (user is null) return Ok(new { valid = false });
 
+
             var tokenHash = Hash(req.Token);
-            var token = await _db.PasswordResetTokens
+            var token = await _db.PasswordResetTestTokens
                 .FirstOrDefaultAsync(t => t.UserId == user.Id && t.TokenHash == tokenHash);
 
             var valid = token is not null && token.UsedAt == null && !token.IsRevoked && token.ExpiresAt > DateTime.UtcNow;
@@ -136,7 +138,7 @@ namespace BoardingBee_backend.controllers
             if (user is null) return BadRequest("Invalid token or user.");
 
             var tokenHash = Hash(req.Token);
-            var token = await _db.PasswordResetTokens
+            var token = await _db.PasswordResetTestTokens
                 .FirstOrDefaultAsync(t => t.UserId == user.Id && t.TokenHash == tokenHash);
 
             if (token is null || token.UsedAt != null || token.IsRevoked || token.ExpiresAt <= DateTime.UtcNow)
@@ -145,7 +147,7 @@ namespace BoardingBee_backend.controllers
             user.PasswordHash = HashPassword(req.NewPassword);
 
             token.UsedAt = DateTime.UtcNow;
-            var others = await _db.PasswordResetTokens
+            var others = await _db.PasswordResetTestTokens
                 .Where(t => t.UserId == user.Id && t.Id != token.Id && t.UsedAt == null && !t.IsRevoked)
                 .ToListAsync();
             foreach (var t in others) t.IsRevoked = true;

@@ -34,7 +34,8 @@ export default function LoginPage() {
     setError("")
 
     try {
-      const response = await fetch("http://localhost:8080/api/auth/authenticate", {
+      const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const response = await fetch(`${API}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -43,14 +44,14 @@ export default function LoginPage() {
       const data = await response.json()
       if (!response.ok) throw new Error(data.message || "Authentication failed")
 
-      const accessToken = data.access_token
+      const accessToken = data.token || data.access_token;
       localStorage.setItem("token", accessToken)
 
       const decodedToken = jwtDecode<JwtPayload>(accessToken)
       const userRole = decodedToken.role
 
       if (userRole === "ADMIN") router.push("/admindas/dashboard")
-      else if (userRole === "USER") router.push("/customer-dash")
+      else if (userRole === "USER") router.push("/user-profile")
       else throw new Error("Unknown role")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed. Please try again.")
@@ -62,7 +63,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-purple-200 to-blue-200 relative">
       {/* Glass effect overlay */}
-      <div className="absolute inset-0 backdrop-blur-xl bg-white/30" />
+      <div className="absolute inset-0 backdrop-blur-xl bg-white/50" />
 
       <div className="relative flex w-full max-w-7xl mx-auto overflow-hidden rounded-3xl m-4 border border-white/30 shadow-2xl bg-white/20 backdrop-blur-xl">
         {/* Left side - Login Form */}
