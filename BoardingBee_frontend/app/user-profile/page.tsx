@@ -118,10 +118,10 @@ export function UserProfile() {
   return (
     <div className="w-full min-h-screen bg-[#F8FAFC]">
       {/* Header */}
-      <div className="w-full bg-[#D9EAFD] border-b border-[#BCCCDC] shadow-sm">
+      <div className="w-full border-b border-[#BCCCDC] shadow-sm">
         <div className="container mx-auto px-6 py-8 w-full">
           <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold text-[#334155]">Profile Settings</h1>
+            <h1 className="text-4xl font-bold text-[#3C00FF]">Profile Settings</h1>
             <div className="flex gap-3">
               {isEditing ? (
                 <>
@@ -138,9 +138,9 @@ export function UserProfile() {
             </div>
           </div>
 
-          <div className="flex items-center gap-6">
-            <Avatar className="h-24 w-24 ring-2 ring-[#BCCCDC]">
-              <AvatarImage src={userData.profileImage || "/placeholder.svg"} />
+          <div className="flex items-center gap-10">
+            <Avatar className="h-26 w-26  border-2 border-[#BCCCDC]">
+              <AvatarImage src={userData.profileImage || "https://photoslist.org/wp-content/uploads/2024/07/boy-dp-for-Instagram21.jpg"} />
               <AvatarFallback className="text-lg bg-[#BCCCDC] text-[#334155]">
                 {userData.firstName[0]}
                 {userData.lastName[0]}
@@ -189,7 +189,7 @@ export function UserProfile() {
             {/* Personal Information */}
             <Card className="shadow-md bg-[#F8FAFC] border border-[#BCCCDC]">
               <CardHeader>
-                <CardTitle className="text-[#334155]">Personal Information</CardTitle>
+                <CardTitle className="text-lg text-[#2E00CC]">Personal Information</CardTitle>
                 <CardDescription className="text-[#9AA6B2]">
                   Your basic personal details and identification information
                 </CardDescription>
@@ -254,7 +254,7 @@ export function UserProfile() {
             {/* Contact Information */}
             <Card className="shadow-md bg-[#F8FAFC] border border-[#BCCCDC]">
               <CardHeader>
-                <CardTitle className="text-[#334155]">Contact Information</CardTitle>
+                <CardTitle className="text-lg text-[#2E00CC]">Contact Information</CardTitle>
                 <CardDescription className="text-[#9AA6B2]">
                   How boarding owners and other users can reach you
                 </CardDescription>
@@ -309,7 +309,7 @@ export function UserProfile() {
             {/* Academic & Professional */}
             <Card className="shadow-md bg-[#F8FAFC] border border-[#BCCCDC]">
               <CardHeader>
-                <CardTitle className="text-[#334155]">Academic & Professional Information</CardTitle>
+                <CardTitle className=" text-lg text-[#2E00CC]">Academic & Professional Information</CardTitle>
                 <CardDescription className="text-[#9AA6B2]">
                   Your current status and institutional affiliations
                 </CardDescription>
@@ -366,7 +366,7 @@ export function UserProfile() {
             {/* Notification Preferences */}
             <Card className="shadow-md bg-[#F8FAFC] border border-[#BCCCDC]">
               <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-lg text-[#334155]">
+                <CardTitle className="flex items-center gap-2 text-lg text-[#2E00CC]">
                   <Bell className="h-4 w-4" />
                   Notification Preferences
                 </CardTitle>
@@ -408,7 +408,7 @@ export function UserProfile() {
             {/* Privacy Settings */}
             <Card className="shadow-md bg-[#F8FAFC] border border-[#BCCCDC]">
               <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-lg text-[#334155]">
+                <CardTitle className="flex items-center gap-2 text-lg text-[#2E00CC]">
                   <Shield className="h-4 w-4" />
                   Privacy Settings
                 </CardTitle>
