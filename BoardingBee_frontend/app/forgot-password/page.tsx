@@ -4,14 +4,13 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useRouter } from "next/navigation";
-import { AuthCard } from "@/components/auth/AuthCard";
+import { AuthCard } from "../../components/auth/AuthCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { emailSchema } from "@/lib/validators";
+import { emailSchema } from "../../lib/validators";
 import { toast } from "sonner";
 import { Lock } from "lucide-react";
-import { authApi } from "@/lib/authApi";
-
+import { authApi } from "../../lib/authApi";
 type ForgotPasswordFormValues = z.infer<typeof emailSchema>;
 
 export default function ForgotPasswordPage() {
