@@ -5,6 +5,10 @@ import "./globals.css";
 import { usePathname } from "next/navigation";
 import Sidebar from "@/components/ui/sidebar";
 import { CartProvider } from "@/context/cartContext"; 
+import { Toaster } from "sonner";
+
+
+
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -27,22 +31,24 @@ export default function RootLayout({
     const pathname = usePathname();
     const isAdminDashboard = pathname.startsWith("/admindas");
 
-    return (
-        <html lang="en">
-            <body className={`${geistSans.variable} ${geistMono.variable} ${caveat.variable} antialiased`}>
-                <CartProvider> {}
-                    <div className="flex min-h-screen">
-                        {isAdminDashboard && (
-                            <div className="hidden md:flex md:w-64">
-                                <Sidebar />
-                            </div>
-                        )}
-                        <main className="flex-1 h-screen p-6">
-                            {children}
-                        </main>
-                    </div>
-                </CartProvider>
-            </body>
-        </html>
-    );
+   return (
+  <html lang="en">
+    <body className={`${geistSans.variable} ${geistMono.variable} ${caveat.variable} antialiased`}>
+      <CartProvider>
+        <div className="flex min-h-screen">
+          {isAdminDashboard && (
+            <div className="hidden md:flex md:w-64">
+              <Sidebar />
+            </div>
+          )}
+          <main className="flex-1 h-screen p-6">{children}</main>
+        </div>
+      </CartProvider>
+
+      {/* 👇 Add this line for toast notifications */}
+      <Toaster richColors position="top-center" />
+    </body>
+  </html>
+);
+
 }
