@@ -146,7 +146,7 @@ export function UserProfile() {
                     </Button>
                   </>
                 ) : (
-                  <Button onClick={() => setIsEditing(true)} className="bg-white text-indigo-600">Edit Profile</Button>
+                  <Button onClick={() => setIsEditing(true)} className="bg-white text-indigo-600  hover:bg-gray-200">Edit Profile</Button>
                 )}
               </div>
             </div>
