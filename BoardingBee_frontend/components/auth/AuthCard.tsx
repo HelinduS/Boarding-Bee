@@ -1,16 +1,10 @@
 'use client';
 import React from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"; // make sure this exists (shadcn utils)
 
 interface AuthCardProps {
   title: string;
@@ -19,7 +13,7 @@ interface AuthCardProps {
   showBackButton?: boolean;
   backTo?: string;
   illustration?: React.ReactNode;
-  className?: string; // optional extra classes for Card
+  className?: string; // extra classes for Card
 }
 
 export function AuthCard({
@@ -33,12 +27,7 @@ export function AuthCard({
 }: AuthCardProps) {
   return (
     <div className="bb-gradient-border bb-glow w-full max-w-md">
-      <Card
-        className={cn(
-          "relative w-full mx-auto bb-card-glass", // ✅ glass by default
-          className
-        )}
-      >
+      <Card className={cn("relative w-full mx-auto bb-card-glass", className)}>
         <CardHeader className="pb-2">
           {showBackButton && (
             <Link

@@ -3,14 +3,14 @@ import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AuthCard } from "@/components/auth/AuthCard";
+import { AuthCard } from "../../components/auth/AuthCard";
 import { Button } from "@/components/ui/button";
 import { PasswordField } from "@/components/auth/PasswordField";
-import { passwordSchema } from "@/lib/validators";
+import { passwordSchema } from "../../lib/validators";
 import { z } from "zod";
 import { toast } from "sonner";
 import { ShieldCheck, CheckCircle2, XCircle } from "lucide-react";
-import { authApi } from "@/lib/authApi";
+import { authApi } from "../../lib/authApi";
 
 type ResetPasswordFormValues = z.infer<typeof passwordSchema>;
 
