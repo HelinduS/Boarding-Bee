@@ -46,7 +46,7 @@ Boarding owners can post and maintain listings, tenants can search and review, a
 
 ### 1. Clone repo
 ```bash
-git clone https://github.com/your-username/boarding-bee.git
+git clone https://github.com/HelinduS/Boarding-Bee.git
 cd boarding-bee
 
 cd BoardingBee_frontend
