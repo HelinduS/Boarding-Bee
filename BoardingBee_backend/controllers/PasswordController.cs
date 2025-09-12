@@ -125,7 +125,8 @@ namespace BoardingBee_backend.controllers
                 .FirstOrDefaultAsync(t => t.UserId == user.Id && t.TokenHash == tokenHash);
 
             var valid = token is not null && token.UsedAt == null && !token.IsRevoked && token.ExpiresAt > DateTime.UtcNow;
-            return Ok(new { valid });
+            // Return the raw token (code) if valid, otherwise null
+            return Ok(new { valid, token = valid ? req.Token : null });
         }
 
         [HttpPost("reset")]

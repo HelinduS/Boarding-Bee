@@ -5,7 +5,7 @@ const USE_MOCK =
 
 type OkResp = { ok: true };
 type ErrResp = { ok: false; error?: string };
-type ResetReqResp = OkResp | ErrResp & { code?: string };
+type ResetReqResp = (OkResp & { code?: string }) | ErrResp;
 type VerifyResp = (OkResp & { token?: string }) | ErrResp;
 type ResetResp = OkResp | ErrResp;
 
@@ -84,7 +84,7 @@ const realApi = {
       const res = await fetch(`${API}/api/password/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, code }), // use "code" as param name
+        body: JSON.stringify({ email, token: code }), // use "token" as param name
       });
       const { ok, data, error } = await handleRes(res);
       if (!ok) return { ok: false, error };
