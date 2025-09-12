@@ -39,7 +39,7 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="bb-bg bb-grid bb-noise flex items-center justify-center px-4 py-16">
+      <div className="bb-bg bb-grid bb-noise min-h-screen flex items-center justify-center px-4">
       {/* floating blobs */}
       <div className="bb-blob" />
       <div className="bb-blob2" />
@@ -73,7 +73,7 @@ export default function ForgotPasswordPage() {
 
             <Button
               type="submit"
-              className="w-full btn-shine btn-press"
+              className="w-full btn-send btn-shine btn-press"
               disabled={isLoading}
             >
               {isLoading ? "Sending..." : "Send Reset Code"}

@@ -4,12 +4,12 @@ import { cn } from "@/lib/utils";
 
 interface OtpInputProps {
   length?: number;
-  value: string;
-  onChange: (value: string) => void;
-  onComplete?: (value: string) => void;
+  value: string;                           // controlled string, e.g., "12__" or "1234"
+  onChange: (value: string) => void;       // send full OTP string (padded to length)
+  onComplete?: (value: string) => void;    // called when all digits filled
   disabled?: boolean;
-  className?: string;        // optional: container extra classes
-  inputClassName?: string;   // optional: per-digit extra classes
+  className?: string;                      // container classes
+  inputClassName?: string;                 // per-digit classes
 }
 
 export function OtpInput({
@@ -24,44 +24,59 @@ export function OtpInput({
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [activeInput, setActiveInput] = useState(0);
 
+  // Keep refs array sized to length
   useEffect(() => {
-    inputRefs.current = Array(length).fill(null);
+    inputRefs.current = Array.from({ length }, (_, i) => inputRefs.current[i] || null);
   }, [length]);
 
+  // Auto-focus first box on mount/when enabled and empty
   useEffect(() => {
-    if (!disabled && inputRefs.current[0]) inputRefs.current[0].focus();
-  }, [disabled]);
+    if (!disabled && value.replace(/\D/g, "").length === 0) {
+      inputRefs.current[0]?.focus();
+      setActiveInput(0);
+    }
+  }, [disabled, value]);
 
-  useEffect(() => {
-    const valueArray = value.split("");
-    inputRefs.current.forEach((input, i) => {
-      if (input) input.value = valueArray[i] || "";
-    });
-  }, [value]);
+  const setDigitAt = (idx: number, digit: string) => {
+    const arr = value.split("");
+    arr[idx] = digit;
+    // ensure fixed length string (missing indices become empty)
+    for (let i = 0; i < length; i++) if (arr[i] == null) arr[i] = "";
+    return arr.join("").slice(0, length);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-    const newValue = e.target.value;
-    const digit = newValue.slice(-1);
-    if (!/^\d*$/.test(digit)) return;
+    const input = e.target.value;
+    const digit = input.slice(-1); // last char typed
+    if (!/^\d?$/.test(digit)) return; // allow empty or single digit
 
-    const newOtp = value.split("");
-    newOtp[index] = digit;
-    const updated = newOtp.join("");
+    const updated = setDigitAt(index, digit || "");
     onChange(updated);
 
+    // Move focus forward on valid digit
     if (digit && index < length - 1) {
       inputRefs.current[index + 1]?.focus();
       setActiveInput(index + 1);
     }
-    if (updated.length === length) onComplete?.(updated);
+
+    // Completed?
+    if (updated.replace(/\D/g, "").length === length) {
+      onComplete?.(updated);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
     if (e.key === "Backspace") {
-      if (!value[index] && index > 0) {
-        const newOtp = value.split("");
-        newOtp[index - 1] = "";
-        onChange(newOtp.join(""));
+      e.preventDefault();
+      const currentVal = value[index] || "";
+      if (currentVal) {
+        // clear current digit
+        const updated = setDigitAt(index, "");
+        onChange(updated);
+      } else if (index > 0) {
+        // move left and clear
+        const updated = setDigitAt(index - 1, "");
+        onChange(updated);
         inputRefs.current[index - 1]?.focus();
         setActiveInput(index - 1);
       }
@@ -76,17 +91,22 @@ export function OtpInput({
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
-    const pasted = e.clipboardData.getData("text/plain").trim();
-    const digits = pasted.replace(/\D/g, "").slice(0, length);
-    if (digits) {
-      onChange(digits.padEnd(length, "").slice(0, length));
-      const last = Math.min(digits.length - 1, length - 1);
-      if (last >= 0) {
-        inputRefs.current[last]?.focus();
-        setActiveInput(last);
-      }
-      if (digits.length === length) onComplete?.(digits);
+    const digits = e.clipboardData.getData("text/plain").replace(/\D/g, "").slice(0, length);
+    if (!digits) return;
+
+    // Fill from start
+    let filled = Array.from({ length }, (_, i) => digits[i] ?? "");
+    const finalValue = filled.join("");
+    onChange(finalValue);
+
+    // Focus last filled cell
+    const last = Math.min(digits.length - 1, length - 1);
+    if (last >= 0) {
+      inputRefs.current[last]?.focus();
+      setActiveInput(last);
     }
+
+    if (digits.length === length) onComplete?.(finalValue);
   };
 
   return (
@@ -105,11 +125,8 @@ export function OtpInput({
           onFocus={() => setActiveInput(index)}
           disabled={disabled}
           className={cn(
-            // 🔥 premium focus/hover from globals.css
-            "otp-digit",
-            // keep sensible base + accessibility
-            "focus:outline-none",
-            // compatibility with your theme tokens
+            "otp-digit",               // your base style (e.g., width/height/border/radius)
+            "focus:outline-none",      // keep a11y
             activeInput === index && "border-primary",
             disabled && "bg-gray-100 cursor-not-allowed opacity-70",
             inputClassName
