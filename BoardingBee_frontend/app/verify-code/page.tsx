@@ -56,17 +56,20 @@ export default function VerifyCodePage() {
 
   useEffect(() => {
     if (code.length === 4 && !isLoading) handleVerify();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [code]);
 
   return (
-    <div className="bb-bg bb-grid bb-noise flex items-center justify-center px-4 py-16">
+    <div className="bb-bg bb-grid bb-noise min-h-screen flex items-center justify-center px-4 py-16">
       {/* floating blobs */}
       <div className="bb-blob" />
       <div className="bb-blob2" />
 
       {/* gradient glow frame around the card */}
       <div className="bb-gradient-border bb-glow w-full max-w-md">
+        {/* If AuthCard supports className, this adds the glass styling inside the frame */}
         <AuthCard
+          className="bb-card-glass"
           title="Verify Your Email"
           subtitle={`Please enter the 4 digit code sent to your email ${email}`}
           showBackButton
@@ -78,12 +81,12 @@ export default function VerifyCodePage() {
           }
         >
           <div className="space-y-6">
-            {/* OtpInput will use the upgraded digit style (see tweak below) */}
+            {/* This component must render inputs with class="otp-digit input-hero" */}
             <OtpInput length={4} value={code} onChange={setCode} />
 
             <Button
               type="button"
-              className="w-full btn-shine btn-press"
+              className="w-full btn-verify btn-shine btn-press"
               onClick={handleVerify}
               disabled={isLoading}
             >

@@ -116,7 +116,7 @@ export default function ResetPasswordPage() {
               <p className="text-xs text-red-500">{errors.confirmPassword.message}</p>
             )}
 
-            <Button type="submit" className="w-full btn-shine btn-press" disabled={isLoading}>
+            <Button type="submit" className="w-full   btn-submit btn-shine btn-press" disabled={isLoading}>
               {isLoading ? "Submitting..." : "Submit"}
             </Button>
           </form>
