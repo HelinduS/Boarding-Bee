@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
+import { useAuth } from "@/context/authContext"
 
 interface JwtPayload {
   sub: string
@@ -21,6 +22,7 @@ interface JwtPayload {
 }
 
 export default function LoginPage() {
+  const { login } = useAuth()
   const router = useRouter()
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
@@ -49,9 +51,19 @@ export default function LoginPage() {
 
       const decodedToken = jwtDecode<JwtPayload>(accessToken)
       const userRole = decodedToken.role
+      const userId = decodedToken.sub
+      // You may want to fetch user details from backend if needed
+      login({
+        id: userId,
+        username,
+        email: username,
+        role: userRole,
+        token: accessToken,
+      })
 
       if (userRole === "ADMIN") router.push("/admindas/dashboard")
       else if (userRole === "USER") router.push("/user-profile")
+      else if (userRole === "OWNER") router.push("/owner-dashboard")
       else throw new Error("Unknown role")
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed. Please try again.")
