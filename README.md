@@ -56,4 +56,4 @@ npm run dev
 cd BoardingBee_backend
 dotnet restore
 dotnet build
-dotnet ru
+dotnet run
