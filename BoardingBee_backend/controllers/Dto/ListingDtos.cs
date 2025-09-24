@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using BoardingBee_backend.Models;
+using BoardingBee_backend.models;
 
 namespace BoardingBee_backend.Controllers.Dto
 {
@@ -59,25 +60,25 @@ namespace BoardingBee_backend.Controllers.Dto
     {
         public static ListingListItemDto ToListItemDto(Listing l) => new()
         {
-            Id = l.Id,
+            Id = Guid.NewGuid(),
             Title = l.Title,
             Location = l.Location,
-            Price = l.Price,
-            Availability = l.Availability.ToString(),
+            Price = (int)l.Price,
+            Availability = l.AvailabilityStatus.ToString(),
             Status = l.Status.ToString(),
             LastUpdated = l.LastUpdated.ToString("yyyy-MM-dd"),
             ExpiresAt = l.ExpiresAt.ToString("yyyy-MM-dd"),
-            OwnerId = l.OwnerId
+            OwnerId = l.OwnerId ?? 0
         };
 
         public static ListingDetailDto ToDetailDto(Listing l) => new()
         {
-            Id = l.Id,
+            Id = Guid.NewGuid(),
             Title = l.Title,
-            Description = l.Description,
+            Description = l.Description ?? "",
             Location = l.Location,
-            Price = l.Price,
-            Availability = l.Availability.ToString(),
+            Price = (int)l.Price,
+            Availability = l.AvailabilityStatus.ToString(),
             Status = l.Status.ToString(),
             Amenities = (l.AmenitiesCsv ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
             Images = (l.ImagesCsv ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
@@ -85,9 +86,9 @@ namespace BoardingBee_backend.Controllers.Dto
             ContactEmail = l.ContactEmail,
             CreatedAt = l.CreatedAt.ToString("yyyy-MM-dd"),
             LastUpdated = l.LastUpdated.ToString("yyyy-MM-dd"),
-            OwnerName = l.Owner?.Username ?? "Owner",
-            OwnerAvatar = "/sri-lankan-woman.jpg", // placeholder to match your UI seed
-            OwnerJoinedDate = (l.Owner?.CreatedAt ?? DateTime.UtcNow).ToString("yyyy-MM-dd"),
+            OwnerName = "Owner",
+            OwnerAvatar = "/sri-lankan-woman.jpg",
+            OwnerJoinedDate = DateTime.UtcNow.ToString("yyyy-MM-dd"),
             OwnerRating = 4.8,
             OwnerTotalReviews = 24
         };
