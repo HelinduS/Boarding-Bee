@@ -18,5 +18,29 @@ namespace BoardingBee_backend.models
         public double? Rating { get; set; }
         public string? Description { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        // Moderation/status & lifecycle
+        public ListingStatus Status { get; set; } = ListingStatus.Pending; // Pending/Approved/Expired
+        public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
+        public DateTime ExpiresAt { get; set; } = DateTime.UtcNow.AddMonths(6);
+
+        // Owner linkage (nullable so existing data still works)
+        public int? OwnerId { get; set; }
+
+        // Convenience availability enum alongside IsAvailable (UI maps to "Available"/"Occupied")
+        public Availability AvailabilityStatus { get; set; } = Availability.Available;
+
+        // Optional details used by your details page
+        public string? ContactPhone { get; set; }
+        public string? ContactEmail { get; set; }
+        public string? AmenitiesCsv { get; set; }   // e.g. "WiFi,AC,Meals"
+        public string? ImagesCsv { get; set; }      // e.g. "/img1.jpg,/img2.jpg"
     }
 }
+
+// ===== Added enums (same namespace) =====
+namespace BoardingBee_backend.models
+{
+    public enum ListingStatus { Pending, Approved, Expired }
+    public enum Availability { Available, Occupied }
+}
+
