@@ -46,9 +46,8 @@ export default function ForgotPasswordPage() {
 
       {/* gradient glow frame around the card */}
       <div className="bb-gradient-border bb-glow w-full max-w-md">
-        {/* keep your AuthCard as-is inside the frame */}
         <AuthCard
-          title="Forget Password"
+          title="Forgot Password"
           subtitle="Please enter your email address to receive a verification code."
           showBackButton
           backTo="/login"

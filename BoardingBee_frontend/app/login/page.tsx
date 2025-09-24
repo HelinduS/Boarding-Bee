@@ -54,7 +54,7 @@ export default function LoginPage() {
       const userId = decodedToken.sub
       // You may want to fetch user details from backend if needed
       login({
-        id: userId,
+        id: Number(userId),
         username,
         email: username,
         role: userRole,
@@ -62,7 +62,7 @@ export default function LoginPage() {
       })
 
       if (userRole === "ADMIN") router.push("/admindas/dashboard")
-      else if (userRole === "USER") router.push("/user-profile")
+      else if (userRole === "USER") router.push("/")
       else if (userRole === "OWNER") router.push("/owner-dashboard")
       else throw new Error("Unknown role")
     } catch (err) {
@@ -161,6 +161,14 @@ export default function LoginPage() {
                   onClick={() => router.push("/register")}
                 >
                   Sign Up
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex-1 h-12 rounded-lg border-green-600 text-green-700 hover:bg-green-50 bg-transparent"
+                  onClick={() => router.push("/register-owner")}
+                >
+                  Register as Owner
                 </Button>
               </div>
             </form>
