@@ -1,4 +1,6 @@
+
 using Microsoft.EntityFrameworkCore;
+using BoardingBee_backend.models;
 
 namespace BoardingBee_backend.Models
 {
@@ -11,6 +13,7 @@ namespace BoardingBee_backend.Models
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<TestTable> TestTables => Set<TestTable>();
     public DbSet<PasswordResetTestToken> PasswordResetTestTokens => Set<PasswordResetTestToken>();
+    public DbSet<Listing> Listings => Set<Listing>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
