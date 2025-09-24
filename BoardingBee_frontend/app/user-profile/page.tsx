@@ -34,7 +34,7 @@ interface SettingsData {
   showContactInfo: boolean
 }
 
-export function UserProfile() {
+export default function UserProfile() {
   const [userData, setUserData] = useState<UserData>({
     firstName: "",
     lastName: "",
@@ -487,5 +487,3 @@ export function UserProfile() {
     </div>
   )
 }
-
-export default UserProfile

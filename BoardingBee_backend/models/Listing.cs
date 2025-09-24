@@ -18,8 +18,6 @@ namespace BoardingBee_backend.models
         public double? Rating { get; set; }
         public string? Description { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
-        // ===== Added fields to support Owner Dashboard (non-breaking, optional) =====
         // Moderation/status & lifecycle
         public ListingStatus Status { get; set; } = ListingStatus.Pending; // Pending/Approved/Expired
         public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
@@ -45,3 +43,4 @@ namespace BoardingBee_backend.models
     public enum ListingStatus { Pending, Approved, Expired }
     public enum Availability { Available, Occupied }
 }
+

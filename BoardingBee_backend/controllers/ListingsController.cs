@@ -1,20 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using BoardingBee_backend.models;              // Listing entity (your model)
-using BoardingBee_backend.Models;              // AppDbContext
 using BoardingBee_backend.Controllers.Dto;     // ListingListItemDto, ListingDetailDto, Create/Update requests, ListingMappings
+using BoardingBee_backend.models;
+using BoardingBee_backend.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
-using System;
-using System.Linq;
-using System.Collections.Generic;
-using System.IO;
 
-namespace  BoardingBee_backend.controllers
+namespace BoardingBee_backend.controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    
+
     public class ListingsController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -22,10 +19,7 @@ namespace  BoardingBee_backend.controllers
         {
             _context = context;
         }
-
-        // ===================== YOUR EXISTING ENDPOINTS (UNCHANGED) =====================
-
-        // POST: api/listings (multipart form-data with images)
+        // POST: api/listings
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> CreateListing(
@@ -46,15 +40,10 @@ namespace  BoardingBee_backend.controllers
             if (!int.TryParse(userIdStr, out var ownerId))
                 return Unauthorized("Invalid user context.");
 
-            // Validation
-            if (string.IsNullOrWhiteSpace(title) ||
-                string.IsNullOrWhiteSpace(location) ||
-                price <= 0 ||
-                string.IsNullOrWhiteSpace(description) ||
-                images == null || images.Count == 0)
-            {
+
+            if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(location) || price <= 0 || string.IsNullOrWhiteSpace(description) || images == null || images.Count == 0)
                 return BadRequest("All required fields must be provided, and at least one image.");
-            }
+
 
             var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
             var imageUrls = new List<string>();
@@ -88,9 +77,6 @@ namespace  BoardingBee_backend.controllers
                 IsAvailable = isAvailable,
                 ThumbnailUrl = imageUrls.FirstOrDefault(),
                 CreatedAt = DateTime.UtcNow,
-                // If you want strict ownership, uncomment:
-                // OwnerId = ownerId
-            };
 
             _context.Listings.Add(listing);
             try
@@ -123,12 +109,8 @@ namespace  BoardingBee_backend.controllers
                 query = query.Where(l => l.Price <= maxPrice.Value);
 
             query = query.OrderByDescending(l => l.CreatedAt);
-
             var total = await query.CountAsync();
-            var listings = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            var listings = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
             return Ok(new { total, listings });
         }
@@ -141,8 +123,6 @@ namespace  BoardingBee_backend.controllers
             if (listing == null) return NotFound();
             return Ok(listing);
         }
-
-        // ===================== ADDED: OWNER DASHBOARD SUPPORT =====================
 
         // Auto-expire listings when ExpiresAt has passed
         private async Task AutoExpireAsync()
