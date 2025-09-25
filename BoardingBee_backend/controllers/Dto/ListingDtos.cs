@@ -48,6 +48,7 @@ namespace BoardingBee_backend.Controllers.Dto
         public int Price { get; set; }
         public string Availability { get; set; } = "Available";
         public string Description { get; set; } = "";
+        public string? Facilities { get; set; } // Added for compatibility
         public string? ContactPhone { get; set; }
         public string? ContactEmail { get; set; }
         public string[]? Amenities { get; set; }
@@ -64,7 +65,7 @@ namespace BoardingBee_backend.Controllers.Dto
             Title = l.Title,
             Location = l.Location,
             Price = (int)l.Price,
-            Availability = l.AvailabilityStatus.ToString(),
+            Availability = l.IsAvailable ? "Available" : "Occupied",
             Status = l.Status.ToString(),
             LastUpdated = l.LastUpdated.ToString("yyyy-MM-dd"),
             ExpiresAt = l.ExpiresAt.ToString("yyyy-MM-dd"),
@@ -78,7 +79,7 @@ namespace BoardingBee_backend.Controllers.Dto
             Description = l.Description ?? "",
             Location = l.Location,
             Price = (int)l.Price,
-            Availability = l.AvailabilityStatus.ToString(),
+            Availability = l.IsAvailable ? "Available" : "Occupied",
             Status = l.Status.ToString(),
             Amenities = (l.AmenitiesCsv ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
             Images = (l.ImagesCsv ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),

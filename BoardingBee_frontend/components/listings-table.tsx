@@ -3,6 +3,8 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Eye, Edit, Trash2, RefreshCw } from "lucide-react"
+import { deleteListing, renewListing } from "@/lib/listingsApi";
+import { useAuth } from "@/context/authContext";
 
 interface Listing {
   id: string
@@ -11,9 +13,9 @@ interface Listing {
   price: number
   availability: string
   status: string
-  lastUpdated: string
-  expiresAt: string
-  ownerId: string
+  lastUpdated?: string
+  expiresAt?: string
+  ownerId?: string
 }
 
 interface ListingsTableProps {
@@ -25,6 +27,27 @@ interface ListingsTableProps {
 }
 
 export function ListingsTable({ listings, onEdit, onDelete, onView, onRenew }: ListingsTableProps) {
+  const { user } = useAuth();
+
+  // Example: handle delete with API
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteListing(id, user?.token || "");
+      onDelete(id);
+    } catch (err) {
+      alert("Failed to delete listing");
+    }
+  };
+
+  // Example: handle renew with API
+  const handleRenew = async (id: string) => {
+    try {
+      await renewListing(id, user?.token || "");
+      onRenew(id);
+    } catch (err) {
+      alert("Failed to renew listing");
+    }
+  };
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "Approved":
@@ -78,11 +101,11 @@ export function ListingsTable({ listings, onEdit, onDelete, onView, onRenew }: L
                     <Edit className="h-4 w-4" />
                   </Button>
                   {listing.status === "Expired" && (
-                    <Button variant="ghost" size="sm" onClick={() => onRenew(listing.id)}>
+                    <Button variant="ghost" size="sm" onClick={() => handleRenew(listing.id)}>
                       <RefreshCw className="h-4 w-4" />
                     </Button>
                   )}
-                  <Button variant="ghost" size="sm" onClick={() => onDelete(listing.id)}>
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(listing.id)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
