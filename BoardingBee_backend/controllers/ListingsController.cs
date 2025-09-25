@@ -76,7 +76,8 @@ namespace BoardingBee_backend.controllers
                 Description = description,
                 IsAvailable = isAvailable,
                 ThumbnailUrl = imageUrls.FirstOrDefault(),
-                CreatedAt = DateTime.UtcNow,
+                CreatedAt = DateTime.UtcNow
+            };
 
             _context.Listings.Add(listing);
             try

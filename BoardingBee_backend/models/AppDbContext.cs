@@ -15,9 +15,6 @@ namespace BoardingBee_backend.Models
     public DbSet<PasswordResetTestToken> PasswordResetTestTokens => Set<PasswordResetTestToken>();
     public DbSet<Listing> Listings => Set<Listing>();
 
-    public DbSet<Listing> Listings => Set<Listing>();
-
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

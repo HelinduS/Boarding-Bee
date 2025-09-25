@@ -32,7 +32,7 @@ export function ListingsTable({ listings, onEdit, onDelete, onView, onRenew }: L
       case "Pending":
         return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Pending</Badge>
       case "Expired":
-        return <Badge variant="destructive">Expired</Badge>
+        return <Badge variant="destructive" className="bg-red-400">Expired</Badge>
       default:
         return <Badge variant="secondary">{status}</Badge>
     }

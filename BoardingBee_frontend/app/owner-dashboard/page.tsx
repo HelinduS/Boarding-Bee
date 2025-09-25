@@ -255,7 +255,7 @@ export default function OwnerDashboard() {
                 <Home className="h-5 w-5" />
                 My Listings
               </CardTitle>
-              <Button className="bg-primary hover:bg-primary/90" onClick={() => router.push("/owner/listings/create")}>
+              <Button className="bg-primary hover:bg-primary/90" onClick={() => router.push("/create-listing")}>
                 <Plus className="h-4 w-4 mr-2" />
                 Create Listing
               </Button>
