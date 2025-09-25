@@ -84,6 +84,12 @@ export default function RegisterOwnerPage() {
           {loading ? "Registering..." : "Register as Owner"}
         </Button>
       </form>
+      <div className="flex justify-center mt-6">
+        <p className="text-sm text-gray-600">
+          Already have an account?{' '}
+          <a href="/login" className="text-indigo-700 hover:underline font-medium">Login</a>
+        </p>
+      </div>
     </div>
   );
 }

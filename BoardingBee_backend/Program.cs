@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
 using BoardingBee_backend.Models;
 using DotNetEnv;
@@ -6,6 +9,29 @@ using BoardingBee_backend.Auth.Services;
 DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
+
+// JWT Authentication setup
+var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET") ?? "your_dev_secret_key";
+var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "BoardingBee_backend";
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = false,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtIssuer,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+        ClockSkew = TimeSpan.Zero
+    };
+    options.RequireHttpsMetadata = false; // for local dev only
+});
 
 builder.Services.AddControllers();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -26,7 +52,33 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "BoardingBee API", Version = "v1" });
+    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Enter 'Bearer' [space] and then your valid JWT token."
+    });
+    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
 
 var app = builder.Build();
 
@@ -43,6 +95,7 @@ app.UseCors("NextJs");
 // Serve wwwroot for uploaded avatars
 app.UseStaticFiles();
 
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

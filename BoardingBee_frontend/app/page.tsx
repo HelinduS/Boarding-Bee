@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useMemo, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/authContext";
 import ListingCard from "@/components/ui/ListingCard";
 
 type Listing = {
@@ -15,6 +17,8 @@ type Listing = {
 };
 
 export default function Home() {
+  const router = useRouter();
+  const { user, isOwner } = useAuth();
   // Dummy data (can be lifted to props later)
   const dummyListings: Listing[] = [
     {

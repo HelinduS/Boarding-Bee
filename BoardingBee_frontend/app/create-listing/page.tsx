@@ -7,6 +7,7 @@ import { Input } from "../../components/ui/input";
 import { Textarea } from "../../components/ui/textarea";
 import { Checkbox } from "../../components/ui/checkbox";
 import { Alert } from "../../components/ui/alert";
+import { createListing } from "@/lib/listingsApi";
 
 export default function CreateListingPage() {
   const router = useRouter();
@@ -24,7 +25,7 @@ export default function CreateListingPage() {
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Redirect logic (client-side only)
+  
   React.useEffect(() => {
     if (!isAuthenticated) {
       router.replace("/login?redirect=/create-listing");
@@ -85,23 +86,14 @@ export default function CreateListingPage() {
     formData.append("isAvailable", String(form.isAvailable));
     form.images.forEach((img) => formData.append("images", img));
     try {
-      const res = await fetch("/api/listings", {
-        method: "POST",
-        body: formData,
-        headers: { Authorization: `Bearer ${user?.token}` },
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        setErrors([data.message || "Failed to create listing"]);
-      } else {
-        setSuccess("Your listing has been created successfully.");
-        setForm({ title: "", location: "", price: "", description: "", facilities: "", isAvailable: true, images: [] });
-        setErrors([]);
-        // Optionally redirect to dashboard or listing page
-        // router.push("/my-listings");
-      }
-    } catch (err) {
-      setErrors(["Server error. Please try again."]);
+      await createListing(formData, user?.token || "");
+      setSuccess("Your listing has been created successfully.");
+      setForm({ title: "", location: "", price: "", description: "", facilities: "", isAvailable: true, images: [] });
+      setErrors([]);
+      // Optionally redirect to dashboard or listing page
+      // router.push("/my-listings");
+    } catch (err: any) {
+      setErrors([err?.message || "Failed to create listing"]);
     } finally {
       setLoading(false);
     }

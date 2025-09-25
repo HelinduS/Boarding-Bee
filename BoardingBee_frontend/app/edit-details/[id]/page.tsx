@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, ChangeEvent } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -10,8 +10,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowLeft, Save, Loader2 } from "lucide-react"
+import { ArrowLeft, Save, Loader2, X } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { fetchListing, updateListing } from "@/lib/listingsApi";
+import { useAuth } from "@/context/authContext";
 
 // Mock data
 const mockListing = {
@@ -32,6 +34,7 @@ const mockListing = {
 export default function EditListing() {
   const router = useRouter()
   const params = useParams()
+  const { user } = useAuth();
   const listingId = params.id as string
 
   const [loading, setLoading] = useState(true)
@@ -47,43 +50,91 @@ export default function EditListing() {
     availability: "",
     contactPhone: "",
     contactEmail: "",
+    // Add more fields as needed
   })
+  const [images, setImages] = useState<File[]>([]);
+  const [existingImages, setExistingImages] = useState<string[]>([]);
+  const [removedImages, setRemovedImages] = useState<string[]>([]);
 
-  // Simulate loading listing data
+  // Remove an existing image from the UI (mark for removal)
+  function handleRemoveExistingImage(url: string) {
+    setRemovedImages((prev) => [...prev, url]);
+  }
+
+  // Fetch listing data from API
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setFormData({
-        title: mockListing.title,
-        description: mockListing.description,
-        location: mockListing.location,
-        price: mockListing.price.toString(),
-        availability: mockListing.availability,
-        contactPhone: mockListing.contactPhone,
-        contactEmail: mockListing.contactEmail,
-      })
-      setLoading(false)
-    }, 1000)
-    return () => clearTimeout(timer)
-  }, [listingId])
+    async function loadListing() {
+      setLoading(true);
+      try {
+        const data = await fetchListing(listingId, user?.token);
+        setFormData({
+          title: data.title || "",
+          description: data.description || "",
+          location: data.location || "",
+          price: data.price !== undefined && data.price !== null ? String(data.price) : "",
+          availability: data.availability || "",
+          contactPhone: data.contactPhone || "",
+          contactEmail: data.contactEmail || "",
+        });
+        // Handle images: support both array and CSV string
+        let imgs: string[] = [];
+        if (Array.isArray(data.images)) {
+          imgs = data.images as string[];
+        } else if (typeof data.images === "string") {
+          imgs = (data.images as string).split(",").map((s: string) => s.trim()).filter(Boolean);
+        }
+        setExistingImages(imgs);
+        setRemovedImages([]); // reset removed images on load
+      } catch (err) {
+        setError("Failed to load listing data.");
+      } finally {
+        setLoading(false);
+      }
+    }
+    if (listingId) loadListing();
+  }, [listingId, user?.token]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSaving(true)
-    setError(null)
-
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      setSuccess(true)
+      let dataToSend: any = formData;
+      // If images are selected or images are removed, use FormData
+      if (images.length > 0 || removedImages.length > 0) {
+        const formDataObj = new FormData();
+        Object.entries(formData).forEach(([key, value]) => {
+          formDataObj.append(key, value);
+        });
+        images.forEach((file) => {
+          formDataObj.append("images", file);
+        });
+        // Send removed images as a comma-separated string
+        if (removedImages.length > 0) {
+          formDataObj.append("removedImages", removedImages.join(","));
+        }
+        dataToSend = formDataObj;
+      } else {
+        // Ensure price is a number for JSON
+        dataToSend = { ...formData, price: Number(formData.price) };
+      }
+      await updateListing(listingId, dataToSend, user?.token || "");
+      setSuccess(true);
       setTimeout(() => {
-        router.push("/owner/dashboard")
-      }, 1500)
-    } catch (err) {
-      setError("Failed to update listing. Please try again.")
+        router.push("/owner-dashboard");
+      }, 1500);
+    } catch (err: any) {
+      setError(err?.message || "Failed to update listing. Please try again.");
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
   }
+  // Handle file input change
+  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setImages(Array.from(e.target.files));
+    }
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -240,6 +291,56 @@ export default function EditListing() {
                   rows={4}
                   required
                 />
+              </div>
+
+              {/* Existing images with remove option */}
+              <div className="space-y-2">
+                <Label>Uploaded Images</Label>
+                {existingImages.filter(url => !removedImages.includes(url)).length > 0 ? (
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    {existingImages.filter(url => !removedImages.includes(url)).map((url, idx) => (
+                      <div key={url + idx} className="relative group">
+                        <img
+                          src={url}
+                          alt={`Listing image ${idx + 1}`}
+                          className="h-24 w-32 object-cover rounded border"
+                          style={{ background: '#f3f3f3' }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveExistingImage(url)}
+                          className="absolute top-1 right-1 bg-white/80 hover:bg-red-500 hover:text-white text-red-500 rounded-full p-1 shadow group-hover:opacity-100 opacity-80 transition"
+                          title="Remove image"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-xs text-muted-foreground">No images uploaded yet.</div>
+                )}
+              </div>
+
+              {/* Image upload */}
+              <div className="space-y-2">
+                <Label htmlFor="images">Add Images</Label>
+                <Input
+                  id="images"
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleImageChange}
+                />
+                {images.length > 0 && (
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    {images.map((file, idx) => (
+                      <span key={file.name + idx} className="text-xs bg-muted px-2 py-1 rounded">
+                        {file.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center gap-4 pt-6">
