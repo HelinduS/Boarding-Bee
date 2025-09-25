@@ -53,6 +53,7 @@ export default function LoginPage() {
       const userRole = decodedToken.role
       const userId = decodedToken.sub
       // You may want to fetch user details from backend if needed
+
       login({
         id: Number(userId),
         username,

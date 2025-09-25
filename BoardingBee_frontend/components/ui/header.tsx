@@ -25,6 +25,14 @@ export default function Header() {
             Home
             <span className="absolute left-0 bottom-[-4px] w-0 h-[2px] bg-yellow-300 transition-all group-hover:w-full"></span>
           </Link>
+          {isAuthenticated && isOwner && (
+            <button
+              onClick={() => router.push("/owner-dashboard")}
+              className="bg-yellow-300 text-indigo-900 px-4 py-2 rounded-lg shadow hover:bg-yellow-200 transition-all"
+            >
+              Owner Dashboard
+            </button>
+          )}
           {isAuthenticated && (
             <button
               onClick={() => {

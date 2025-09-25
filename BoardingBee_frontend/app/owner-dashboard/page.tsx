@@ -1,7 +1,6 @@
 "use client"
-
-import { useState, useEffect, useMemo } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -16,58 +15,13 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Home, Plus, ChevronLeft, ChevronRight, AlertCircle, Building2 } from "lucide-react"
 import { ListingsTable } from "@/components/listings-table"
 import { EmptyState } from "@/components/empty-state"
-
-// Mock data - replace with actual API calls
-const mockListings = [
-  {
-    id: "1",
-    title: "Cozy Room near University of Colombo",
-    location: "Colombo 03",
-    price: 25000,
-    availability: "Available",
-    status: "Approved",
-    lastUpdated: "2024-01-15",
-    expiresAt: "2024-06-15",
-    ownerId: "current-user",
-  },
-  {
-    id: "2",
-    title: "Modern Apartment in Kandy",
-    location: "Kandy",
-    price: 35000,
-    availability: "Occupied",
-    status: "Approved",
-    lastUpdated: "2024-01-10",
-    expiresAt: "2024-05-10",
-    ownerId: "current-user",
-  },
-  {
-    id: "3",
-    title: "Student Hostel Room",
-    location: "Galle",
-    price: 18000,
-    availability: "Available",
-    status: "Pending",
-    lastUpdated: "2024-01-20",
-    expiresAt: "2024-04-20",
-    ownerId: "current-user",
-  },
-  {
-    id: "4",
-    title: "Luxury Boarding House",
-    location: "Negombo",
-    price: 45000,
-    availability: "Available",
-    status: "Expired",
-    lastUpdated: "2023-12-01",
-    expiresAt: "2024-01-01",
-    ownerId: "current-user",
-  },
-]
+import { useAuth } from "@/context/authContext"
+import { fetchListings } from "@/lib/listingsApi"
+import type { Listing } from "@/types/listing.d"
 
 const mockOwner = {
   name: "Priya Jayawardena",
@@ -75,11 +29,12 @@ const mockOwner = {
   phone: "+94 77 123 4567",
   location: "Colombo",
   avatar: "/sri-lankan-woman.jpg",
-}
+};
 
-export default function OwnerDashboard() {
+function OwnerDashboardPage() {
   const router = useRouter()
-  const [listings, setListings] = useState(mockListings)
+  const { user } = useAuth();
+  const [listings, setListings] = useState<Listing[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; listingId: string | null }>({
@@ -93,13 +48,43 @@ export default function OwnerDashboard() {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
 
-  // Simulate loading
+  // Fetch listings for owner
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false)
-    }, 1500)
-    return () => clearTimeout(timer)
-  }, [])
+    console.log("[OwnerDashboard] user:", user);
+    const fetchOwnerListings = async () => {
+      if (!user?.token) {
+        console.log("[OwnerDashboard] No user token, skipping fetchListings");
+        return;
+      }
+      setLoading(true);
+      setError(null);
+  try {
+    console.log("[OwnerDashboard] Fetching listings with token:", user.token);
+    const allListings = await fetchListings(user.token);
+    console.log("[OwnerDashboard] Listings fetched:", allListings);
+    // Use allListings.listings if backend returns { total, listings }
+    let listingsArray: Listing[] = [];
+    if (Array.isArray(allListings)) {
+      listingsArray = allListings;
+    } else if (
+      allListings &&
+      typeof allListings === "object" &&
+      "listings" in allListings &&
+      Array.isArray((allListings as { listings: Listing[] }).listings)
+    ) {
+      listingsArray = (allListings as { listings: Listing[] }).listings;
+    }
+    const ownerListings = listingsArray.filter((l) => String(l.ownerId) === String(user.id));
+    setListings(ownerListings);
+  } catch (err: any) {
+    console.error("[OwnerDashboard] Error fetching listings:", err);
+    setError(err?.message || "Failed to fetch listings");
+  } finally {
+    setLoading(false);
+  }
+    };
+    fetchOwnerListings();
+  }, [user]);
 
   // Calculate summary stats
   const stats = useMemo(() => ({
@@ -152,7 +137,7 @@ export default function OwnerDashboard() {
   }
 
   const handleEdit = (listingId: string) => {
-    router.push(`/owner/listings/${listingId}/edit`)
+    router.push(`/edit-details/${listingId}`)
   }
 
   const handleView = (listingId: string) => {
@@ -321,7 +306,11 @@ export default function OwnerDashboard() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => deleteDialog.listingId && handleDelete(deleteDialog.listingId)}
+              onClick={async () => {
+                if (deleteDialog.listingId) {
+                  await handleDelete(deleteDialog.listingId);
+                }
+              }}
               className="bg-destructive hover:bg-destructive/90"
             >
               Delete
@@ -399,3 +388,5 @@ function DashboardSkeleton() {
     </div>
   )
 }
+
+export default OwnerDashboardPage;
