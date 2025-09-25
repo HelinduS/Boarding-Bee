@@ -12,7 +12,7 @@ export default function Header() {
         {/* Logo & Title */}
         <Link href="/" className="flex items-center gap-3 font-bold text-2xl md:text-3xl text-white">
           <img 
-            src="/images/logo.png" 
+            src="/images/login-background.jpg" 
             alt="Boarding Bee Logo" 
             className="w-12 h-12 rounded-full object-cover shadow-lg border-2 border-white" 
           />
