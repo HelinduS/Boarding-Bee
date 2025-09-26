@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BoardingBee_backend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a53d8e277db5846a87c0b3bfbaf82c76b0b763fb")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f74c5376a8049670858c5870d0bca9dedb4dd405")]
 [assembly: System.Reflection.AssemblyProductAttribute("BoardingBee_backend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BoardingBee_backend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
