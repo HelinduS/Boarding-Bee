@@ -43,18 +43,6 @@ export default function RootLayout({
                 <CartProvider>
                   <AuthProvider>
                     {!isAdminDashboard && !isAuthPage && <Header />}
-                    {isAuthPage && (
-                        <div className="w-full bg-indigo-600 shadow-sm sticky top-0 z-30">
-                            <div className="container mx-auto px-4 py-4 flex items-center">
-                                <Link href="/" className="text-white hover:text-blue-200 flex items-center gap-2 text-lg font-medium">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-                                    </svg>
-                                    Back
-                                </Link>
-                            </div>
-                        </div>
-                    )}
                     <div className="flex min-h-screen">
                         {isAdminDashboard && (
                             <div className="hidden md:flex md:w-64">

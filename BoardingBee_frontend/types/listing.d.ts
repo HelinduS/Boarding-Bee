@@ -1,5 +1,5 @@
 export interface Listing {
-  id: string;
+  id: number;
   title: string;
   description: string;
   location: string;

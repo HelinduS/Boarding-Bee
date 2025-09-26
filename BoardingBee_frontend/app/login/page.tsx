@@ -74,9 +74,23 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-purple-200 to-blue-200 relative">
+    <div className="min-h-screen flex bg-gradient-to-br from-purple-200 to-blue-200 relative pt-16">
       {/* Glass effect overlay */}
       <div className="absolute inset-0 backdrop-blur-xl bg-white/50" />
+
+      {/* Absolutely positioned back button */}
+      <div className="absolute top-0 left-0 z-20 p-6">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="text-indigo-700 hover:text-blue-500 flex items-center gap-2 text-lg font-medium"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+          </svg>
+          Back
+        </button>
+      </div>
 
       <div className="relative flex w-full max-w-7xl mx-auto overflow-hidden rounded-3xl m-4 border border-white/30 shadow-2xl bg-white/20 backdrop-blur-xl">
         {/* Left side - Login Form */}

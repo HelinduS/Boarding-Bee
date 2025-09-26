@@ -7,7 +7,7 @@ import { deleteListing, renewListing } from "@/lib/listingsApi";
 import { useAuth } from "@/context/authContext";
 
 interface Listing {
-  id: string
+  id: number
   title: string
   location: string
   price: number
@@ -20,19 +20,19 @@ interface Listing {
 
 interface ListingsTableProps {
   listings: Listing[]
-  onEdit: (id: string) => void
-  onDelete: (id: string) => void
-  onView: (id: string) => void
-  onRenew: (id: string) => void
+  onEdit: (id: number) => void
+  onDelete: (id: number) => void
+  onView: (id: number) => void
+  onRenew: (id: number) => void
 }
 
 export function ListingsTable({ listings, onEdit, onDelete, onView, onRenew }: ListingsTableProps) {
   const { user } = useAuth();
 
   // Example: handle delete with API
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     try {
-      await deleteListing(id, user?.token || "");
+  await deleteListing(id, user?.token || "");
       onDelete(id);
     } catch (err) {
       alert("Failed to delete listing");
@@ -40,9 +40,9 @@ export function ListingsTable({ listings, onEdit, onDelete, onView, onRenew }: L
   };
 
   // Example: handle renew with API
-  const handleRenew = async (id: string) => {
+  const handleRenew = async (id: number) => {
     try {
-      await renewListing(id, user?.token || "");
+  await renewListing(id, user?.token || "");
       onRenew(id);
     } catch (err) {
       alert("Failed to renew listing");

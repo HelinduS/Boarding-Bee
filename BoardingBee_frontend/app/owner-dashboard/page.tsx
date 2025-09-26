@@ -23,13 +23,6 @@ import { useAuth } from "@/context/authContext"
 import { fetchListings } from "@/lib/listingsApi"
 import type { Listing } from "@/types/listing.d"
 
-const mockOwner = {
-  name: "Priya Jayawardena",
-  email: "priya.jayawardena@gmail.com",
-  phone: "+94 77 123 4567",
-  location: "Colombo",
-  avatar: "/sri-lankan-woman.jpg",
-};
 
 function OwnerDashboardPage() {
   const router = useRouter()
@@ -136,11 +129,11 @@ function OwnerDashboardPage() {
     setTimeout(() => setLoading(false), 1000)
   }
 
-  const handleEdit = (listingId: string) => {
+  const handleEdit = (listingId: number) => {
     router.push(`/edit-details/${listingId}`)
   }
 
-  const handleView = (listingId: string) => {
+  const handleView = (listingId: number) => {
     router.push(`/listings/${listingId}`)
   }
 
@@ -151,33 +144,37 @@ function OwnerDashboardPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="gradient-header text-white">
-        <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-6 pt-8">
+  <div className="rounded-2xl shadow-lg bg-gradient-to-r from-indigo-100 via-purple-200 to-indigo-200 text-indigo-900 p-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Avatar className="h-16 w-16 border-2 border-white/20">
-                <AvatarImage src={mockOwner.avatar || "/placeholder.svg"} alt={mockOwner.name} />
-                <AvatarFallback className="bg-white/20 text-white text-lg">
-                  {mockOwner.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
+              <Avatar className="h-16 w-16 border-2 border-purple-200">
+                <AvatarImage src={"/placeholder.svg"} alt={user?.username ?? "User"} />
+                <AvatarFallback className="bg-purple-200 text-purple-700 text-lg">
+                  {user?.username
+                    ? user.username
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                    : "U"}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h1 className="text-2xl font-bold text-balance">{mockOwner.name}</h1>
-                <p className="text-white/80 flex items-center gap-2">
+                <h1 className="text-2xl font-bold text-balance">{user?.username ?? "User"}</h1>
+                <p className="text-purple-800 flex items-center gap-2">
                   <Building2 className="h-4 w-4" />
                   Boarding Owner Dashboard
                 </p>
-                <p className="text-white/60 text-sm">
-                  {mockOwner.email} • {mockOwner.phone}
+                <p className="text-purple-700 text-sm">
+                  {user?.email ?? "-"}
                 </p>
               </div>
             </div>
-            <Button variant="secondary" className="bg-white/10 hover:bg-white/20 text-white border-white/20">
-              Edit Profile
-            </Button>
+            <a href="/user-profile">
+              <Button variant="secondary" className="bg-white/60 hover:bg-white/80 text-purple-900 border-purple-200">
+                Edit Profile
+              </Button>
+            </a>
           </div>
         </div>
       </div>
@@ -254,9 +251,9 @@ function OwnerDashboardPage() {
                 <ListingsTable
                   listings={paginatedListings}
                   onEdit={handleEdit}
-                  onDelete={(id) => setDeleteDialog({ open: true, listingId: id })}
+                  onDelete={(id) => setDeleteDialog({ open: true, listingId: String(id) })}
                   onView={handleView}
-                  onRenew={(id) => setRenewDialog({ open: true, listingId: id })}
+                  onRenew={(id) => setRenewDialog({ open: true, listingId: String(id) })}
                 />
 
                 {/* Pagination */}

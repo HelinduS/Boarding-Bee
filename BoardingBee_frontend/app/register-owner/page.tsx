@@ -65,30 +65,49 @@ export default function RegisterOwnerPage() {
   };
 
   return (
-    <div className="max-w-lg mx-auto mt-10 bg-white/80 rounded-xl shadow-lg p-8 backdrop-blur-md">
-      <h1 className="text-2xl font-bold mb-6 text-indigo-700">Register as Owner</h1>
-      {error && <Alert variant="destructive" className="mb-4">{error}</Alert>}
-      {success && <Alert className="mb-4">{success}</Alert>}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <Input name="username" placeholder="Username" value={form.username} onChange={handleChange} required />
-        <div className="flex gap-2">
-          <Input name="firstName" placeholder="First Name" value={form.firstName} onChange={handleChange} required />
-          <Input name="lastName" placeholder="Last Name" value={form.lastName} onChange={handleChange} required />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-200 to-blue-200 relative pt-16">
+      {/* Glass effect overlay */}
+      <div className="absolute inset-0 backdrop-blur-xl bg-white/50" />
+
+      {/* Absolutely positioned back button */}
+      <div className="absolute top-0 left-0 z-20 p-6">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="text-indigo-700 hover:text-blue-500 flex items-center gap-2 text-lg font-medium"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+          </svg>
+          Back
+        </button>
+      </div>
+
+      <div className="max-w-lg mx-auto mt-10 bg-white/80 rounded-xl shadow-lg p-8 backdrop-blur-md">
+        <h1 className="text-2xl font-bold mb-6 text-indigo-700">Register as Owner</h1>
+        {error && <Alert variant="destructive" className="mb-4">{error}</Alert>}
+        {success && <Alert className="mb-4">{success}</Alert>}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Input name="username" placeholder="Username" value={form.username} onChange={handleChange} required />
+          <div className="flex gap-2">
+            <Input name="firstName" placeholder="First Name" value={form.firstName} onChange={handleChange} required />
+            <Input name="lastName" placeholder="Last Name" value={form.lastName} onChange={handleChange} required />
+          </div>
+          <Input name="email" type="email" placeholder="Email" value={form.email} onChange={handleChange} required />
+          <Input name="password" type="password" placeholder="Password" value={form.password} onChange={handleChange} required />
+          <Input name="confirmPassword" type="password" placeholder="Confirm Password" value={form.confirmPassword} onChange={handleChange} required />
+          <Input name="business" placeholder="Business/Company (optional)" value={form.business} onChange={handleChange} />
+          <Input name="location" placeholder="Location (optional)" value={form.location} onChange={handleChange} />
+          <Button type="submit" disabled={loading} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg shadow">
+            {loading ? "Registering..." : "Register as Owner"}
+          </Button>
+        </form>
+        <div className="flex justify-center mt-6">
+          <p className="text-sm text-gray-600">
+            Already have an account?{' '}
+            <a href="/login" className="text-indigo-700 hover:underline font-medium">Login</a>
+          </p>
         </div>
-        <Input name="email" type="email" placeholder="Email" value={form.email} onChange={handleChange} required />
-        <Input name="password" type="password" placeholder="Password" value={form.password} onChange={handleChange} required />
-        <Input name="confirmPassword" type="password" placeholder="Confirm Password" value={form.confirmPassword} onChange={handleChange} required />
-        <Input name="business" placeholder="Business/Company (optional)" value={form.business} onChange={handleChange} />
-        <Input name="location" placeholder="Location (optional)" value={form.location} onChange={handleChange} />
-        <Button type="submit" disabled={loading} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg shadow">
-          {loading ? "Registering..." : "Register as Owner"}
-        </Button>
-      </form>
-      <div className="flex justify-center mt-6">
-        <p className="text-sm text-gray-600">
-          Already have an account?{' '}
-          <a href="/login" className="text-indigo-700 hover:underline font-medium">Login</a>
-        </p>
       </div>
     </div>
   );

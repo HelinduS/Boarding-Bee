@@ -1,60 +1,55 @@
 "use client";
 
 import React, { useMemo, useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/authContext";
+// Removed unused imports
 import ListingCard from "@/components/ui/ListingCard";
+import { fetchListings } from "@/lib/listingsApi";
+
+import type { Listing as ApiListing } from "@/types/listing";
 
 type Listing = {
   id: number;
   title: string;
   location: string;
   price: number;
-  availability: "Available" | "Unavailable" | string;
+  availability: "Available" | "Unavailable";
   thumbnailUrl: string;
   rating: number;
   description: string;
 };
 
 export default function Home() {
-  const router = useRouter();
-  const { user, isOwner } = useAuth();
-  // Dummy data (can be lifted to props later)
-  const dummyListings: Listing[] = [
-    {
-      id: 1,
-      title: "Sunny Studio in Colombo",
-      location: "Colombo 07, Sri Lanka",
-      price: 25000,
-      availability: "Available",
-      thumbnailUrl: "/images/login-background.jpg",
-      rating: 4.7,
-      description:
-        "A bright, modern studio apartment in the heart of the city. Close to all amenities and public transport. Perfect for students or young professionals.",
-    },
-    {
-      id: 2,
-      title: "Cozy Room near University",
-      location: "Kandy, Sri Lanka",
-      price: 18000,
-      availability: "Available",
-      thumbnailUrl: "/images/mango.jpg",
-      rating: 4.2,
-      description:
-        "Comfortable room in a shared house. Walking distance to university. Utilities included.",
-    },
-    {
-      id: 3,
-      title: "Luxury Apartment",
-      location: "Galle Face, Colombo",
-      price: 60000,
-      availability: "Unavailable",
-      thumbnailUrl: "/images/dcd8b9a7-3418-48ae-b4d4-0bd8b038ab47.png",
-      rating: 5.0,
-      description:
-        "Spacious luxury apartment with sea view. 3 bedrooms, 2 bathrooms, fully furnished.",
-    },
-  ];
+  // Listings state from backend
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [loadingListings, setLoadingListings] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoadingListings(true);
+    setFetchError(null);
+    fetchListings()
+      .then((data: ApiListing[]) => {
+        // Map API listings to UI Listing type
+        const mapped = Array.isArray(data)
+          ? data.map((l) => ({
+              id: Number(l.id),
+              title: l.title,
+              location: l.location,
+              price: l.price,
+              availability:
+                l.availability && l.availability.toLowerCase() === "available"
+                  ? "Available"
+                  : "Unavailable",
+              thumbnailUrl: l.images && l.images.length > 0 ? l.images[0] : "/images/images.jpg",
+              rating: l.owner?.rating ?? 4.5,
+              description: l.description,
+            })) as Listing[]
+          : [];
+        setListings(mapped);
+      })
+      .catch((err) => setFetchError(err?.message || "Failed to fetch listings"))
+      .finally(() => setLoadingListings(false));
+  }, []);
 
   // ---------------- UI State ----------------
   const [location, setLocation] = useState("");
@@ -72,14 +67,14 @@ export default function Home() {
 
   // Helpers
   const toNumberOrNull = (v: string) => (v === "" ? null : Number(v));
-  const nf = useMemo(() => new Intl.NumberFormat("en-LK", { style: "currency", currency: "LKR", maximumFractionDigits: 0 }), []);
+  // Removed unused nf
 
   // --------------- Filtering + Sorting ---------------
   const filteredListings = useMemo(() => {
     const min = toNumberOrNull(minPrice);
     const max = toNumberOrNull(maxPrice);
 
-    let out = dummyListings.filter((l) => {
+    let out = listings.filter((l) => {
       const matchesLocation =
         debouncedLocation.trim() === "" ||
         l.location.toLowerCase().includes(debouncedLocation.trim().toLowerCase()) ||
@@ -109,10 +104,9 @@ export default function Home() {
     }
 
     return out;
-  }, [debouncedLocation, minPrice, maxPrice, availableOnly, sortBy, dummyListings]);
+  }, [debouncedLocation, minPrice, maxPrice, availableOnly, sortBy, listings]);
 
-  const totalCount = dummyListings.length;
-  const resultCount = filteredListings.length;
+  // Remove unused totalCount/resultCount
 
   const clearAll = () => {
     setLocation("");
@@ -168,9 +162,9 @@ export default function Home() {
                   {/* Results pill */}
                   <div className="flex items-center gap-2 self-start md:self-auto">
                     <span className="text-[11px] text-slate-600">Results</span>
-                    <span className="px-2 py-0.5 rounded-full bg-slate-900 text-white text-[11px] font-semibold shadow-sm">
-                      {filteredListings.length}/{dummyListings.length}
-                    </span>
+            <span className="px-2 py-0.5 rounded-full bg-slate-900 text-white text-[11px] font-semibold shadow-sm">
+              {filteredListings.length}/{listings.length}
+            </span>
                   </div>
                 </div>
 
@@ -303,7 +297,15 @@ export default function Home() {
           </section>
 
           {/* Listings grid */}
-          {filteredListings.length > 0 ? (
+          {loadingListings ? (
+            <div className="flex items-center justify-center min-h-[300px] text-blue-700">Loading listings…</div>
+          ) : fetchError ? (
+            <div className="flex flex-col items-center justify-center text-center gap-3 bg-white/60 backdrop-blur p-10 rounded-2xl border border-red-200">
+              <div className="text-6xl">😢</div>
+              <h3 className="text-xl font-semibold text-red-800">Failed to load listings</h3>
+              <p className="text-gray-700 max-w-md">{fetchError}</p>
+            </div>
+          ) : filteredListings.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 min-h-[300px]">
               {filteredListings.map((listing) => (
                 <ListingCard
@@ -311,7 +313,7 @@ export default function Home() {
                   title={listing.title}
                   location={listing.location}
                   price={listing.price}
-                  availability={listing.availability as "Available" | "Unavailable"}
+                  availability={listing.availability}
                   thumbnailUrl={listing.thumbnailUrl}
                   rating={listing.rating}
                   description={listing.description}
