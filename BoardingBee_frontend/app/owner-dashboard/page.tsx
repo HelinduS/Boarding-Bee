@@ -134,7 +134,7 @@ function OwnerDashboardPage() {
   }
 
   const handleView = (listingId: number) => {
-    router.push(`/listings/${listingId}`)
+    router.push(`/view-details/${listingId}`)
   }
 
   if (loading) {
