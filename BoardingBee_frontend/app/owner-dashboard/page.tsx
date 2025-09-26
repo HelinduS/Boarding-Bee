@@ -1,7 +1,6 @@
 "use client"
-
-import { useState, useEffect, useMemo } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -16,70 +15,19 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Home, Plus, ChevronLeft, ChevronRight, AlertCircle, Building2 } from "lucide-react"
 import { ListingsTable } from "@/components/listings-table"
 import { EmptyState } from "@/components/empty-state"
+import { useAuth } from "@/context/authContext"
+import { fetchListings } from "@/lib/listingsApi"
+import type { Listing } from "@/types/listing.d"
 
-// Mock data - replace with actual API calls
-const mockListings = [
-  {
-    id: "1",
-    title: "Cozy Room near University of Colombo",
-    location: "Colombo 03",
-    price: 25000,
-    availability: "Available",
-    status: "Approved",
-    lastUpdated: "2024-01-15",
-    expiresAt: "2024-06-15",
-    ownerId: "current-user",
-  },
-  {
-    id: "2",
-    title: "Modern Apartment in Kandy",
-    location: "Kandy",
-    price: 35000,
-    availability: "Occupied",
-    status: "Approved",
-    lastUpdated: "2024-01-10",
-    expiresAt: "2024-05-10",
-    ownerId: "current-user",
-  },
-  {
-    id: "3",
-    title: "Student Hostel Room",
-    location: "Galle",
-    price: 18000,
-    availability: "Available",
-    status: "Pending",
-    lastUpdated: "2024-01-20",
-    expiresAt: "2024-04-20",
-    ownerId: "current-user",
-  },
-  {
-    id: "4",
-    title: "Luxury Boarding House",
-    location: "Negombo",
-    price: 45000,
-    availability: "Available",
-    status: "Expired",
-    lastUpdated: "2023-12-01",
-    expiresAt: "2024-01-01",
-    ownerId: "current-user",
-  },
-]
 
-const mockOwner = {
-  name: "Priya Jayawardena",
-  email: "priya.jayawardena@gmail.com",
-  phone: "+94 77 123 4567",
-  location: "Colombo",
-  avatar: "/sri-lankan-woman.jpg",
-}
-
-export default function OwnerDashboard() {
+function OwnerDashboardPage() {
   const router = useRouter()
-  const [listings, setListings] = useState(mockListings)
+  const { user } = useAuth();
+  const [listings, setListings] = useState<Listing[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; listingId: string | null }>({
@@ -93,13 +41,43 @@ export default function OwnerDashboard() {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
 
-  // Simulate loading
+  // Fetch listings for owner
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false)
-    }, 1500)
-    return () => clearTimeout(timer)
-  }, [])
+    console.log("[OwnerDashboard] user:", user);
+    const fetchOwnerListings = async () => {
+      if (!user?.token) {
+        console.log("[OwnerDashboard] No user token, skipping fetchListings");
+        return;
+      }
+      setLoading(true);
+      setError(null);
+  try {
+    console.log("[OwnerDashboard] Fetching listings with token:", user.token);
+    const allListings = await fetchListings(user.token);
+    console.log("[OwnerDashboard] Listings fetched:", allListings);
+    // Use allListings.listings if backend returns { total, listings }
+    let listingsArray: Listing[] = [];
+    if (Array.isArray(allListings)) {
+      listingsArray = allListings;
+    } else if (
+      allListings &&
+      typeof allListings === "object" &&
+      "listings" in allListings &&
+      Array.isArray((allListings as { listings: Listing[] }).listings)
+    ) {
+      listingsArray = (allListings as { listings: Listing[] }).listings;
+    }
+    const ownerListings = listingsArray.filter((l) => String(l.ownerId) === String(user.id));
+    setListings(ownerListings);
+  } catch (err: any) {
+    console.error("[OwnerDashboard] Error fetching listings:", err);
+    setError(err?.message || "Failed to fetch listings");
+  } finally {
+    setLoading(false);
+  }
+    };
+    fetchOwnerListings();
+  }, [user]);
 
   // Calculate summary stats
   const stats = useMemo(() => ({
@@ -151,11 +129,11 @@ export default function OwnerDashboard() {
     setTimeout(() => setLoading(false), 1000)
   }
 
-  const handleEdit = (listingId: string) => {
-    router.push(`/owner/listings/${listingId}/edit`)
+  const handleEdit = (listingId: number) => {
+    router.push(`/edit-details/${listingId}`)
   }
 
-  const handleView = (listingId: string) => {
+  const handleView = (listingId: number) => {
     router.push(`/listings/${listingId}`)
   }
 
@@ -166,33 +144,37 @@ export default function OwnerDashboard() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="gradient-header text-white">
-        <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-6 pt-8">
+  <div className="rounded-2xl shadow-lg bg-gradient-to-r from-indigo-100 via-purple-200 to-indigo-200 text-indigo-900 p-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Avatar className="h-16 w-16 border-2 border-white/20">
-                <AvatarImage src={mockOwner.avatar || "/placeholder.svg"} alt={mockOwner.name} />
-                <AvatarFallback className="bg-white/20 text-white text-lg">
-                  {mockOwner.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
+              <Avatar className="h-16 w-16 border-2 border-purple-200">
+                <AvatarImage src={"/placeholder.svg"} alt={user?.username ?? "User"} />
+                <AvatarFallback className="bg-purple-200 text-purple-700 text-lg">
+                  {user?.username
+                    ? user.username
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                    : "U"}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h1 className="text-2xl font-bold text-balance">{mockOwner.name}</h1>
-                <p className="text-white/80 flex items-center gap-2">
+                <h1 className="text-2xl font-bold text-balance">{user?.username ?? "User"}</h1>
+                <p className="text-purple-800 flex items-center gap-2">
                   <Building2 className="h-4 w-4" />
                   Boarding Owner Dashboard
                 </p>
-                <p className="text-white/60 text-sm">
-                  {mockOwner.email} • {mockOwner.phone}
+                <p className="text-purple-700 text-sm">
+                  {user?.email ?? "-"}
                 </p>
               </div>
             </div>
-            <Button variant="secondary" className="bg-white/10 hover:bg-white/20 text-white border-white/20">
-              Edit Profile
-            </Button>
+            <a href="/user-profile">
+              <Button variant="secondary" className="bg-white/60 hover:bg-white/80 text-purple-900 border-purple-200">
+                Edit Profile
+              </Button>
+            </a>
           </div>
         </div>
       </div>
@@ -269,9 +251,9 @@ export default function OwnerDashboard() {
                 <ListingsTable
                   listings={paginatedListings}
                   onEdit={handleEdit}
-                  onDelete={(id) => setDeleteDialog({ open: true, listingId: id })}
+                  onDelete={(id) => setDeleteDialog({ open: true, listingId: String(id) })}
                   onView={handleView}
-                  onRenew={(id) => setRenewDialog({ open: true, listingId: id })}
+                  onRenew={(id) => setRenewDialog({ open: true, listingId: String(id) })}
                 />
 
                 {/* Pagination */}
@@ -321,7 +303,11 @@ export default function OwnerDashboard() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => deleteDialog.listingId && handleDelete(deleteDialog.listingId)}
+              onClick={async () => {
+                if (deleteDialog.listingId) {
+                  await handleDelete(deleteDialog.listingId);
+                }
+              }}
               className="bg-destructive hover:bg-destructive/90"
             >
               Delete
@@ -399,3 +385,5 @@ function DashboardSkeleton() {
     </div>
   )
 }
+
+export default OwnerDashboardPage;

@@ -121,8 +121,8 @@ export default function RegisterPage() {
     try {
       setLoading(true)
       setError("")
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-  const response = await fetch(`${apiUrl}/api/auth/register`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const response = await fetch(`${apiUrl}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -151,7 +151,24 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-indigo-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-200 to-blue-200 relative pt-16">
+      {/* Glass effect overlay */}
+      <div className="absolute inset-0 backdrop-blur-xl bg-white/50" />
+
+      {/* Absolutely positioned back button */}
+      <div className="absolute top-0 left-0 z-20 p-6">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="text-indigo-700 hover:text-blue-500 flex items-center gap-2 text-lg font-medium"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+          </svg>
+          Back
+        </button>
+      </div>
+
       <Card className="w-full max-w-3xl shadow-xl border border-gray-200 rounded-2xl bg-white/90 backdrop-blur-md">
         <CardHeader className="space-y-4 p-6">
           <div className="flex items-center justify-between">

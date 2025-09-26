@@ -16,7 +16,9 @@ namespace BoardingBee_backend.models
         public bool IsAvailable { get; set; } = true;
         public string? ThumbnailUrl { get; set; }
         public double? Rating { get; set; }
-        public string? Description { get; set; }
+    public string? Description { get; set; }
+    // Added for compatibility with frontend and controller
+    public string? Facilities { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         // Moderation/status & lifecycle
         public ListingStatus Status { get; set; } = ListingStatus.Pending; // Pending/Approved/Expired
@@ -26,8 +28,6 @@ namespace BoardingBee_backend.models
         // Owner linkage (nullable so existing data still works)
         public int? OwnerId { get; set; }
 
-        // Convenience availability enum alongside IsAvailable (UI maps to "Available"/"Occupied")
-        public Availability AvailabilityStatus { get; set; } = Availability.Available;
 
         // Optional details used by your details page
         public string? ContactPhone { get; set; }
