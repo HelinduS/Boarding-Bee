@@ -49,7 +49,7 @@ export default function ListingDetails() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
-  const listingId = params.id as string;
+  const listingId = Number(params.id);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

@@ -19,23 +19,23 @@ interface Listing {
 }
 
 interface ListingsTableProps {
-  listings: Listing[]
-  onEdit: (id: number) => void
-  onDelete: (id: number) => void
-  onView: (id: number) => void
-  onRenew: (id: number) => void
+  readonly listings: Listing[]
+  onEditAction: (id: number) => void
+  onDeleteAction: (id: number) => void
+  onViewAction: (id: number) => void
+  onRenewAction: (id: number) => void
 }
 
-export function ListingsTable({ listings, onEdit, onDelete, onView, onRenew }: ListingsTableProps) {
+export function ListingsTable({ listings, onEditAction, onDeleteAction, onViewAction, onRenewAction }: Readonly<ListingsTableProps>) {
   const { user } = useAuth();
 
   // Example: handle delete with API
   const handleDelete = async (id: number) => {
     try {
   await deleteListing(id, user?.token || "");
-      onDelete(id);
-    } catch (err) {
-      alert("Failed to delete listing");
+  onDeleteAction(id);
+    } catch {
+      // Optionally handle error
     }
   };
 
@@ -43,9 +43,9 @@ export function ListingsTable({ listings, onEdit, onDelete, onView, onRenew }: L
   const handleRenew = async (id: number) => {
     try {
   await renewListing(id, user?.token || "");
-      onRenew(id);
-    } catch (err) {
-      alert("Failed to renew listing");
+  onRenewAction(id);
+    } catch {
+      // Optionally handle error
     }
   };
   const getStatusBadge = (status: string) => {
@@ -94,10 +94,10 @@ export function ListingsTable({ listings, onEdit, onDelete, onView, onRenew }: L
               <td className="py-3 px-4 text-muted-foreground">{listing.expiresAt}</td>
               <td className="py-3 px-4">
                 <div className="flex items-center justify-end gap-2">
-                  <Button variant="ghost" size="sm" onClick={() => onView(listing.id)}>
+                  <Button variant="ghost" size="sm" onClick={() => onViewAction(listing.id)}>
                     <Eye className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => onEdit(listing.id)}>
+                  <Button variant="ghost" size="sm" onClick={() => onEditAction(listing.id)}>
                     <Edit className="h-4 w-4" />
                   </Button>
                   {listing.status === "Expired" && (

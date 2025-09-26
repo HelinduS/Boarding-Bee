@@ -30,11 +30,11 @@ function OwnerDashboardPage() {
   const [listings, setListings] = useState<Listing[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; listingId: string | null }>({
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; listingId: number | null }>({
     open: false,
     listingId: null,
   })
-  const [renewDialog, setRenewDialog] = useState<{ open: boolean; listingId: string | null }>({
+  const [renewDialog, setRenewDialog] = useState<{ open: boolean; listingId: number | null }>({
     open: false,
     listingId: null,
   })
@@ -93,7 +93,7 @@ function OwnerDashboardPage() {
     paginatedListings: listings.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
   }), [listings, currentPage])
 
-  const handleDelete = async (listingId: string) => {
+  const handleDelete = async (listingId: number) => {
     try {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000))
@@ -105,7 +105,7 @@ function OwnerDashboardPage() {
     }
   }
 
-  const handleRenew = async (listingId: string) => {
+  const handleRenew = async (listingId: number) => {
     try {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000))
@@ -250,10 +250,10 @@ function OwnerDashboardPage() {
               <>
                 <ListingsTable
                   listings={paginatedListings}
-                  onEdit={handleEdit}
-                  onDelete={(id) => setDeleteDialog({ open: true, listingId: String(id) })}
-                  onView={handleView}
-                  onRenew={(id) => setRenewDialog({ open: true, listingId: String(id) })}
+                  onEditAction={handleEdit}
+                  onDeleteAction={(id) => setDeleteDialog({ open: true, listingId: id })}
+                  onViewAction={handleView}
+                  onRenewAction={(id) => setRenewDialog({ open: true, listingId: id })}
                 />
 
                 {/* Pagination */}

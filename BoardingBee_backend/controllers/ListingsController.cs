@@ -147,7 +147,7 @@ namespace BoardingBee_backend.controllers
 
         // GET: api/listings/{id} (public)
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetListing(int id)
+    public async Task<IActionResult> GetListing(int id)
         {
             var listing = await _context.Listings.FindAsync(id);
             if (listing == null) return NotFound();
@@ -160,7 +160,7 @@ namespace BoardingBee_backend.controllers
     [HttpPut("{id}")]
     [Authorize]
     [Consumes("multipart/form-data", "application/json")]
-        public async Task<IActionResult> UpdateListing(int id)
+    public async Task<IActionResult> UpdateListing(int id)
         {
             var userRole = GetUserRole()?.ToUpperInvariant();
             var userId = GetUserId();
@@ -251,7 +251,7 @@ namespace BoardingBee_backend.controllers
         // DELETE: api/listings/{id} (OWNER only)
         [HttpDelete("{id}")]
         [Authorize]
-        public async Task<IActionResult> DeleteListing(int id)
+    public async Task<IActionResult> DeleteListing(int id)
         {
             var userRole = GetUserRole()?.ToUpperInvariant();
             var userId = GetUserId();
@@ -267,7 +267,7 @@ namespace BoardingBee_backend.controllers
         // POST: api/listings/{id}/renew (OWNER only)
         [HttpPost("{id}/renew")]
         [Authorize]
-        public async Task<IActionResult> RenewListing(int id)
+    public async Task<IActionResult> RenewListing(int id)
         {
             var userRole = GetUserRole()?.ToUpperInvariant();
             var userId = GetUserId();

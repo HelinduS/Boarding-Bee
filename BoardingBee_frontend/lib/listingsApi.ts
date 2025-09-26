@@ -4,7 +4,7 @@ import { Listing } from "@/types/listing";
 const API_BASE = `${process.env.NEXT_PUBLIC_API_URL || ""}/api/listings`;
 
 export async function fetchListing(id: number, token?: string): Promise<Listing> {
-  const res = await fetch(`${API_BASE}/${id.toString()}`, {
+  const res = await fetch(`${API_BASE}/${id}`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
   if (!res.ok) throw new Error("Failed to fetch listing");
@@ -32,7 +32,7 @@ export async function createListing(formData: FormData, token: string) {
 export async function updateListing(id: number, data: any, token: string) {
   // If data is FormData (for file upload), send as multipart/form-data
   if (typeof FormData !== "undefined" && data instanceof FormData) {
-  const res = await fetch(`${API_BASE}/${id.toString()}`, {
+  const res = await fetch(`${API_BASE}/${id}`, {
       method: "PUT",
       body: data,
       headers: { Authorization: `Bearer ${token}` },
@@ -41,7 +41,7 @@ export async function updateListing(id: number, data: any, token: string) {
     return res.json();
   } else {
     // Otherwise, send as JSON
-  const res = await fetch(`${API_BASE}/${id.toString()}`, {
+  const res = await fetch(`${API_BASE}/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -55,7 +55,7 @@ export async function updateListing(id: number, data: any, token: string) {
 }
 
 export async function deleteListing(id: number, token: string) {
-  const res = await fetch(`${API_BASE}/${id.toString()}`, {
+  const res = await fetch(`${API_BASE}/${id}`, {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -77,7 +77,7 @@ export async function deleteListing(id: number, token: string) {
 }
 
 export async function renewListing(id: number, token: string) {
-  const res = await fetch(`${API_BASE}/${id.toString()}/renew`, {
+  const res = await fetch(`${API_BASE}/${id}/renew`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}` },
   });
