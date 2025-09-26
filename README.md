@@ -50,7 +50,7 @@ git clone https://github.com/HelinduS/Boarding-Bee.git
 cd boarding-bee
 
 cd BoardingBee_frontend
-npm instal
+npm install
 npm run dev
 
 cd BoardingBee_backend
