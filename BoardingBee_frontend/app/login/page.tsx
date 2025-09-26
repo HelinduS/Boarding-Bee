@@ -198,10 +198,10 @@ export default function LoginPage() {
             {/* Centered logo */}
             <div className="flex justify-center mb-8">
               <Image
-                src="/images/dcd8b9a7-3418-48ae-b4d4-0bd8b038ab47.png"
+                src="/images/image.png"
                 alt="Boarding Bee Logo"
-                width={180}
-                height={180}
+                width={200}
+                height={200}
                 priority
               />
             </div>
