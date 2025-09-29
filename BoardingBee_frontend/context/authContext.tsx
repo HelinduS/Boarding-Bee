@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const isAuthenticated = !!user;
-  const isOwner = user?.role?.toLowerCase() === "owner";
+  const isOwner = user?.role?.toUpperCase() === "OWNER";
 
   return (
     <AuthContext.Provider value={{ user, isAuthenticated, isOwner, login, logout }}>

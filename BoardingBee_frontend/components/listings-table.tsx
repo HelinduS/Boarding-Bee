@@ -3,28 +3,51 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Eye, Edit, Trash2, RefreshCw } from "lucide-react"
+import { deleteListing, renewListing } from "@/lib/listingsApi";
+import { useAuth } from "@/context/authContext";
 
 interface Listing {
-  id: string
+  id: number
   title: string
   location: string
   price: number
   availability: string
   status: string
-  lastUpdated: string
-  expiresAt: string
-  ownerId: string
+  lastUpdated?: string
+  expiresAt?: string
+  ownerId?: string
 }
 
 interface ListingsTableProps {
-  listings: Listing[]
-  onEdit: (id: string) => void
-  onDelete: (id: string) => void
-  onView: (id: string) => void
-  onRenew: (id: string) => void
+  readonly listings: Listing[]
+  onEditAction: (id: number) => void
+  onDeleteAction: (id: number) => void
+  onViewAction: (id: number) => void
+  onRenewAction: (id: number) => void
 }
 
-export function ListingsTable({ listings, onEdit, onDelete, onView, onRenew }: ListingsTableProps) {
+export function ListingsTable({ listings, onEditAction, onDeleteAction, onViewAction, onRenewAction }: Readonly<ListingsTableProps>) {
+  const { user } = useAuth();
+
+  // Example: handle delete with API
+  const handleDelete = async (id: number) => {
+    try {
+  await deleteListing(id, user?.token || "");
+  onDeleteAction(id);
+    } catch {
+      // Optionally handle error
+    }
+  };
+
+  // Example: handle renew with API
+  const handleRenew = async (id: number) => {
+    try {
+  await renewListing(id, user?.token || "");
+  onRenewAction(id);
+    } catch {
+      // Optionally handle error
+    }
+  };
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "Approved":
@@ -71,18 +94,18 @@ export function ListingsTable({ listings, onEdit, onDelete, onView, onRenew }: L
               <td className="py-3 px-4 text-muted-foreground">{listing.expiresAt}</td>
               <td className="py-3 px-4">
                 <div className="flex items-center justify-end gap-2">
-                  <Button variant="ghost" size="sm" onClick={() => onView(listing.id)}>
+                  <Button variant="ghost" size="sm" onClick={() => onViewAction(listing.id)}>
                     <Eye className="h-4 w-4" />
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => onEdit(listing.id)}>
+                  <Button variant="ghost" size="sm" onClick={() => onEditAction(listing.id)}>
                     <Edit className="h-4 w-4" />
                   </Button>
                   {listing.status === "Expired" && (
-                    <Button variant="ghost" size="sm" onClick={() => onRenew(listing.id)}>
+                    <Button variant="ghost" size="sm" onClick={() => handleRenew(listing.id)}>
                       <RefreshCw className="h-4 w-4" />
                     </Button>
                   )}
-                  <Button variant="ghost" size="sm" onClick={() => onDelete(listing.id)}>
+                  <Button variant="ghost" size="sm" onClick={() => handleDelete(listing.id)}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>

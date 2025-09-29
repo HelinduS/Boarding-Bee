@@ -4,8 +4,8 @@ namespace BoardingBee_backend.models
 {
     public class Listing
     {
-        [Key]
-        public int Id { get; set; }
+    [Key]
+    public int Id { get; set; }
         [Required]
         public string Title { get; set; } = string.Empty;
         [Required]
@@ -16,7 +16,9 @@ namespace BoardingBee_backend.models
         public bool IsAvailable { get; set; } = true;
         public string? ThumbnailUrl { get; set; }
         public double? Rating { get; set; }
-        public string? Description { get; set; }
+    public string? Description { get; set; }
+    // Added for compatibility with frontend and controller
+    public string? Facilities { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         // Moderation/status & lifecycle
         public ListingStatus Status { get; set; } = ListingStatus.Pending; // Pending/Approved/Expired
@@ -26,14 +28,12 @@ namespace BoardingBee_backend.models
         // Owner linkage (nullable so existing data still works)
         public int? OwnerId { get; set; }
 
-        // Convenience availability enum alongside IsAvailable (UI maps to "Available"/"Occupied")
-        public Availability AvailabilityStatus { get; set; } = Availability.Available;
 
-        // Optional details used by your details page
-        public string? ContactPhone { get; set; }
-        public string? ContactEmail { get; set; }
-        public string? AmenitiesCsv { get; set; }   // e.g. "WiFi,AC,Meals"
-        public string? ImagesCsv { get; set; }      // e.g. "/img1.jpg,/img2.jpg"
+
+    public string? ContactPhone { get; set; }
+    public string? ContactEmail { get; set; }
+    public string? AmenitiesCsv { get; set; }   // e.g. "WiFi,AC,Meals"
+    public string? ImagesCsv { get; set; }      // e.g. "/img1.jpg,/img2.jpg"
     }
 }
 

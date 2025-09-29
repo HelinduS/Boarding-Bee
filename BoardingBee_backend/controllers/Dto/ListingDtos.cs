@@ -7,7 +7,7 @@ namespace BoardingBee_backend.Controllers.Dto
 {
     public class ListingListItemDto
     {
-        public Guid Id { get; set; }
+        public string Id { get; set; } = string.Empty;
         public string Title { get; set; } = "";
         public string Location { get; set; } = "";
         public int Price { get; set; }
@@ -20,7 +20,7 @@ namespace BoardingBee_backend.Controllers.Dto
 
     public class ListingDetailDto
     {
-        public Guid Id { get; set; }
+        public string Id { get; set; } = string.Empty;
         public string Title { get; set; } = "";
         public string Description { get; set; } = "";
         public string Location { get; set; } = "";
@@ -48,6 +48,7 @@ namespace BoardingBee_backend.Controllers.Dto
         public int Price { get; set; }
         public string Availability { get; set; } = "Available";
         public string Description { get; set; } = "";
+        public string? Facilities { get; set; } // Added for compatibility
         public string? ContactPhone { get; set; }
         public string? ContactEmail { get; set; }
         public string[]? Amenities { get; set; }
@@ -60,11 +61,11 @@ namespace BoardingBee_backend.Controllers.Dto
     {
         public static ListingListItemDto ToListItemDto(Listing l) => new()
         {
-            Id = Guid.NewGuid(),
+            Id = l.Id.ToString(),
             Title = l.Title,
             Location = l.Location,
             Price = (int)l.Price,
-            Availability = l.AvailabilityStatus.ToString(),
+            Availability = l.IsAvailable ? "Available" : "Occupied",
             Status = l.Status.ToString(),
             LastUpdated = l.LastUpdated.ToString("yyyy-MM-dd"),
             ExpiresAt = l.ExpiresAt.ToString("yyyy-MM-dd"),
@@ -73,12 +74,12 @@ namespace BoardingBee_backend.Controllers.Dto
 
         public static ListingDetailDto ToDetailDto(Listing l) => new()
         {
-            Id = Guid.NewGuid(),
+            Id = l.Id.ToString(),
             Title = l.Title,
             Description = l.Description ?? "",
             Location = l.Location,
             Price = (int)l.Price,
-            Availability = l.AvailabilityStatus.ToString(),
+            Availability = l.IsAvailable ? "Available" : "Occupied",
             Status = l.Status.ToString(),
             Amenities = (l.AmenitiesCsv ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
             Images = (l.ImagesCsv ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),

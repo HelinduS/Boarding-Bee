@@ -1,5 +1,4 @@
 using BoardingBee_backend.Models;
-using BoardingBee_backend.Models;
 using Microsoft.EntityFrameworkCore;
 using BoardingBee_backend.Auth.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -56,6 +55,7 @@ namespace BoardingBee_backend.Auth.Controllers
                 Gender = request.Gender,
                 EmergencyContact = request.EmergencyContact,
                 UserType = request.UserType,
+                Role = request.Role,
                 InstitutionCompany = request.InstitutionCompany,
                 Location = request.Location,
                 CreatedAt = DateTime.UtcNow,
@@ -82,6 +82,7 @@ namespace BoardingBee_backend.Auth.Controllers
             public string UserType { get; set; } = string.Empty;
             public string InstitutionCompany { get; set; } = string.Empty;
             public string Location { get; set; } = string.Empty;
+            public string Role { get; set; } = string.Empty;
         }
     }
 
