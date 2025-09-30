@@ -7,7 +7,8 @@ This is the Next.js (React) frontend for the BoardingBee project.
 Create a `.env` file in the frontend root with:
 
 ```
-NEXT_PUBLIC_API_URL=http://localhost:5000
+NEXT_PUBLIC_API_URL=https://boardingbee-atf5gegteud8hpc0.southindia-01.azurewebsites.net
+#NEXT_PUBLIC_API_URL=http://localhost:5000
 ```
 
 ## Install & Setup
