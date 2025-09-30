@@ -120,3 +120,38 @@ BoardingBee_backend/
   "userSettings": { /* ... */ }
 }
 ```
+
+## Hosting & Deployment
+
+The BoardingBee backend can be hosted on any platform that supports ASP.NET Core, such as Azure App Service, AWS, or your own server.
+
+### Azure App Service Example
+
+1. **Publish the App:**
+   - Use `dotnet publish -c Release` to generate the publish output.
+2. **Deploy to Azure:**
+   - Use Azure Portal, GitHub Actions, or Azure CLI to deploy the published files to your App Service.
+3. **Set Environment Variables:**
+   - In the Azure Portal, go to your App Service > Configuration > Application settings.
+   - Add your connection string and JWT settings as environment variables (e.g., `ConnectionStrings__DefaultConnection`, `Jwt__Key`, etc.).
+4. **Startup Command:**
+   - If you have multiple DLLs in your publish output, set the Startup Command to `dotnet BoardingBee_backend.dll` in Azure App Service > Configuration > General settings.
+5. **Access the API:**
+   - Your API will be available at `https://<your-app-name>.azurewebsites.net/api/`
+
+### Notes
+- Make sure to update your frontend `.env` with the deployed backend URL (e.g., `NEXT_PUBLIC_API_URL=https://<your-app-name>.azurewebsites.net`).
+- For production, always use secure, unique values for your JWT key and database connection string.
+- Enable HTTPS and configure CORS as needed for your frontend domain.
+
+## Production Deployment
+
+The BoardingBee backend is currently hosted at:
+
+```
+https://boardingbee-atf5gegteud8hpc0.southindia-01.azurewebsites.net
+```
+
+This URL is set in the frontend `.env` as `NEXT_PUBLIC_API_URL` for production use.
+
+All API requests from the frontend are routed to this backend instance.
