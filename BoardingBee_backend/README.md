@@ -7,16 +7,18 @@ This is the ASP.NET Core backend for the BoardingBee project.
 Create an `.env` or use `appsettings.json` in the backend root with the following variables:
 
 ```
-# Example for appsettings.json or environment variables
-ConnectionStrings__DefaultConnection=your_connection_string_here
-Jwt__Key=your_jwt_secret_key
-Jwt__Issuer=BoardingBee
-Jwt__Audience=BoardingBeeUsers
+Smtp__Host=smtp.gmail.com
+Smtp__Port=587
+Smtp__User=helindusenadheera@gmail.com
+Smtp__Pass=uwze hicl smqo bbbz
+Smtp__From=helindusenadheera@gmail.com
+DB_CONNECTION_STRING=Server=tcp:boardingbee.database.windows.net,1433;Initial Catalog=BoardingBeeDB;Persist Security Info=False;User ID=boardingbee;Password=#Boarding1234;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;
+JWT_SECRET=your-very-strong-secret-key-1234567890abcdef
 ```
 
 ## Database Setup
 
-This application uses a relational database (e.g., SQL Server, PostgreSQL, or MySQL) via Entity Framework Core.
+This application uses a relational database (SQL Server) via Entity Framework Core.
 
 - **Purpose**: User authentication, listings, and all core data.
 - **Default Connection**: Set in `appsettings.json` or as an environment variable.
@@ -32,7 +34,7 @@ dotnet ef database update
 
 ### 1. .NET Environment
 
-Install the required .NET SDK (e.g., .NET 9).
+Install the required .NET SDK (.NET 9).
 
 ### 2. Restore Dependencies
 
@@ -77,7 +79,7 @@ BoardingBee_backend/
 - `GET /api/users/me` - Get current user profile
 
 ### Swagger
-- `/swagger` - API documentation (development only)
+- `https://boardingbee-atf5gegteud8hpc0.southindia-01.azurewebsites.net/swagger` - API documentation (development only)
 
 ## Models
 
