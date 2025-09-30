@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BoardingBee Frontend
 
-## Getting Started
+This is the Next.js (React) frontend for the BoardingBee project.
 
-First, run the development server:
+## Environment
+
+Create a `.env` file in the frontend root with:
+
+```
+NEXT_PUBLIC_API_URL=http://localhost:5000
+```
+
+## Install & Setup
+
+### 1. Node.js Environment
+
+Install Node.js (v18+ recommended).
+
+### 2. Install Dependencies
+
+```bash
+npm install
+```
+
+### 3. Run the Development Server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+App will run at: [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## File Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+BoardingBee_frontend/
+├── app/                   # Next.js app directory (pages, layouts)
+│   ├── page.tsx           # Homepage
+│   ├── view-details/      # Listing details page
+│   └── ...                # Other routes (login, register, dashboard, etc.)
+├── components/            # Reusable UI components
+├── context/               # React context (auth, cart)
+├── lib/                   # API utilities
+├── public/                # Static assets
+├── types/                 # TypeScript types
+├── .env                   # Environment variables
+└── ...
+```
 
-## Learn More
+## API Integration
 
-To learn more about Next.js, take a look at the following resources:
+- Uses `NEXT_PUBLIC_API_URL` to call backend endpoints.
+- Handles authentication via JWT tokens stored in context.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Key Pages
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `/` - Homepage: Shows all listings with filters and search.
+- `/view-details/[id]` - Listing details page.
+- `/owner-dashboard` - Owner’s dashboard for managing listings.
+- `/login`, `/register`, `/register-owner` - Auth pages.
 
-## Deploy on Vercel
+## Example API Call
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```typescript
+// Fetch all listings
+fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/listings`)
+  .then(res => res.json())
+  .then(data => console.log(data));
+```
