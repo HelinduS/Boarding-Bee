@@ -11,11 +11,13 @@ namespace BoardingBee_backend.controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    // Handles password reset and recovery endpoints, including token generation and email delivery.
     public class PasswordController : ControllerBase
     {
         private readonly AppDbContext _db;
         private readonly IConfiguration _cfg;
 
+    // Constructor injecting database context and configuration.
         public PasswordController(AppDbContext db, IConfiguration cfg)
         {
             _db = db;
@@ -23,8 +25,12 @@ namespace BoardingBee_backend.controllers
         }
 
         // --- DTOs ---
+    // Request body for forgot password endpoint.
         public class ForgotPasswordRequest { public string Email { get; set; } = default!; }
+    // Request body for verifying a password reset token.
         public class VerifyResetTokenRequest { public string Email { get; set; } = default!; public string Token { get; set; } = default!; }
+
+    // Request body for resetting password.
         public class ResetPasswordRequest
         {
             public string Email { get; set; } = default!;
@@ -34,22 +40,26 @@ namespace BoardingBee_backend.controllers
         }
 
         // --- Helpers (inline, no DI services) ---
+    // Generates a secure random token and its hash for password reset.
         private static (string raw, string hash) GenerateToken()
         {
             var raw = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)); // 256-bit
             return (raw, Hash(raw));
         }
+    // Hashes a string using SHA256 and returns hex.
         private static string Hash(string value)
         {
             var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(value));
             return Convert.ToHexString(bytes); // uppercase hex
         }
+    // Hashes a password using ASP.NET Identity's strong salted format.
         private static string HashPassword(string password)
         {
             // Strong, salted format from ASP.NET (works even without full Identity)
             var hasher = new Microsoft.AspNetCore.Identity.PasswordHasher<object>();
             return hasher.HashPassword(null!, password);
         }
+    // Sends an email using SMTP configuration.
         private async Task SendEmailAsync(string toEmail, string subject, string html)
         {
             using var client = new SmtpClient(_cfg["Smtp:Host"], int.Parse(_cfg["Smtp:Port"] ?? "587"))

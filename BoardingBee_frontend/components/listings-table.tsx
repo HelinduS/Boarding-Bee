@@ -26,10 +26,11 @@ interface ListingsTableProps {
   onRenewAction: (id: number) => void
 }
 
+// Table to display property listings
 export function ListingsTable({ listings, onEditAction, onDeleteAction, onViewAction, onRenewAction }: Readonly<ListingsTableProps>) {
   const { user } = useAuth();
 
-  // Example: handle delete with API
+  // Delete a listing and update UI
   const handleDelete = async (id: number) => {
     try {
   await deleteListing(id, user?.token || "");

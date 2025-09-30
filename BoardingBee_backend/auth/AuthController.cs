@@ -7,15 +7,18 @@ namespace BoardingBee_backend.Auth.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    // Handles authentication endpoints for login and registration.
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
 
+    // Constructor injecting the authentication service.
         public AuthController(IAuthService authService)
         {
             _authService = authService;
         }
 
+    // Authenticates a user and returns a JWT token if successful.
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginRequest request)
         {
@@ -32,7 +35,9 @@ namespace BoardingBee_backend.Auth.Controllers
         }
 
         [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterRequest request, [FromServices] AppDbContext db)
+    // Registers a new user if username and email are unique.
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request, [FromServices] AppDbContext db)
         {
             if (string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Password))
             {

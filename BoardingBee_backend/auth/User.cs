@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BoardingBee_backend.Auth.Models
 {
+    // Represents a user in the system. Base class for Admin and Owner.
     public class User
     {
         [Key]

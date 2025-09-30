@@ -8,15 +8,18 @@ namespace BoardingBee_backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    // Handles user management endpoints, including profile and settings updates.
     public class UsersController : ControllerBase
     {
         private readonly AppDbContext _context;
 
+    // Constructor injecting the database context.
         public UsersController(AppDbContext context)
         {
             _context = context;
         }
 
+    // Returns all users in the system.
         [HttpGet]
         public async Task<IActionResult> GetUsers()
         {
@@ -24,6 +27,7 @@ namespace BoardingBee_backend.Controllers
             return Ok(users);
         }
 
+    // Returns a user by ID.
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUser(int id)
         {
@@ -33,7 +37,9 @@ namespace BoardingBee_backend.Controllers
         }
 
         [HttpPost]
-    public async Task<IActionResult> CreateUser(BoardingBee_backend.Models.User user)
+    // Creates a new user.
+        [HttpPost]
+        public async Task<IActionResult> CreateUser(BoardingBee_backend.Models.User user)
         {
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
@@ -41,7 +47,9 @@ namespace BoardingBee_backend.Controllers
         }
         // GET api/users/{userId}/profile
         [HttpGet("{userId}/profile")]
-    public async Task<ActionResult<ProfileResponse>> GetProfile(int userId)
+    // Returns the profile for a given user ID.
+        [HttpGet("{userId}/profile")]
+        public async Task<ActionResult<ProfileResponse>> GetProfile(int userId)
         {
             var user = await _context.Users.Include(u => u.UserSettings).FirstOrDefaultAsync(u => u.Id == userId);
             if (user == null) return NotFound();
@@ -50,7 +58,9 @@ namespace BoardingBee_backend.Controllers
 
         // PUT api/users/{userId}/profile
         [HttpPut("{userId}/profile")]
-    public async Task<ActionResult<ProfileResponse>> UpdateProfile(int userId, [FromBody] UpdateProfileRequest req)
+    // Updates the profile for a given user ID.
+        [HttpPut("{userId}/profile")]
+        public async Task<ActionResult<ProfileResponse>> UpdateProfile(int userId, [FromBody] UpdateProfileRequest req)
         {
             var user = await _context.Users.Include(u => u.UserSettings).FirstOrDefaultAsync(u => u.Id == userId);
             if (user == null) return NotFound();
@@ -76,7 +86,11 @@ namespace BoardingBee_backend.Controllers
 
         // PUT api/users/{userId}/profile/settings
         [HttpPut("{userId}/profile/settings")]
-    public async Task<ActionResult<ProfileResponse>> UpdateSettings(int userId, [FromBody] UpdateSettingsRequest req)
+        /// <summary>
+        /// Updates notification and privacy settings for a given user ID.
+        /// </summary>
+        [HttpPut("{userId}/profile/settings")]
+        public async Task<ActionResult<ProfileResponse>> UpdateSettings(int userId, [FromBody] UpdateSettingsRequest req)
         {
             var user = await _context.Users.Include(u => u.UserSettings).FirstOrDefaultAsync(u => u.Id == userId);
             if (user == null) return NotFound();

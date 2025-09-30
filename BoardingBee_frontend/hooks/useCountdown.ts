@@ -7,6 +7,7 @@ export interface UseCountdownProps {
   autoStart?: boolean;       // start immediately? (default true)
 }
 
+// Countdown timer hook
 export function useCountdown({
   initialSeconds,
   onComplete,
