@@ -36,7 +36,7 @@ namespace BoardingBee_backend.Controllers
             return Ok(user);
         }
 
-        [HttpPost]
+        
     // Creates a new user.
         [HttpPost]
         public async Task<IActionResult> CreateUser(BoardingBee_backend.Models.User user)
@@ -46,8 +46,7 @@ namespace BoardingBee_backend.Controllers
             return CreatedAtAction(nameof(GetUser), new { id = user.Id }, user);
         }
         // GET api/users/{userId}/profile
-        [HttpGet("{userId}/profile")]
-    // Returns the profile for a given user ID.
+        // Returns the profile for a given user ID.
         [HttpGet("{userId}/profile")]
         public async Task<ActionResult<ProfileResponse>> GetProfile(int userId)
         {
@@ -56,9 +55,7 @@ namespace BoardingBee_backend.Controllers
             return Ok(ToProfileResponse(user));
         }
 
-        // PUT api/users/{userId}/profile
-        [HttpPut("{userId}/profile")]
-    // Updates the profile for a given user ID.
+        // Updates the profile for a given user ID.
         [HttpPut("{userId}/profile")]
         public async Task<ActionResult<ProfileResponse>> UpdateProfile(int userId, [FromBody] UpdateProfileRequest req)
         {
@@ -84,13 +81,9 @@ namespace BoardingBee_backend.Controllers
             return Ok(ToProfileResponse(user));
         }
 
-        // PUT api/users/{userId}/profile/settings
-        [HttpPut("{userId}/profile/settings")]
-        /// <summary>
-        /// Updates notification and privacy settings for a given user ID.
-        /// </summary>
-        [HttpPut("{userId}/profile/settings")]
-        public async Task<ActionResult<ProfileResponse>> UpdateSettings(int userId, [FromBody] UpdateSettingsRequest req)
+    // Updates notification and privacy settings for a given user ID.
+    [HttpPut("{userId}/profile/settings")]
+    public async Task<ActionResult<ProfileResponse>> UpdateSettings(int userId, [FromBody] UpdateSettingsRequest req)
         {
             var user = await _context.Users.Include(u => u.UserSettings).FirstOrDefaultAsync(u => u.Id == userId);
             if (user == null) return NotFound();
