@@ -34,7 +34,6 @@ namespace BoardingBee_backend.Auth.Controllers
             return Ok(new { token, role = user.Role });
         }
 
-        [HttpPost("register")]
     // Registers a new user if username and email are unique.
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest request, [FromServices] AppDbContext db)
