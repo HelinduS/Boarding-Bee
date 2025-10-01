@@ -11,30 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { fetchListing } from "@/lib/listingsApi";
 import { useAuth } from "@/context/authContext";
 
-// Mock data - replace with actual API calls
-const mockListing = {
-  id: "1",
-  title: "Cozy Room near University of Colombo",
-  description:
-    "A comfortable and well-furnished room perfect for students. Located just 5 minutes walk from the University of Colombo campus. The room comes with all necessary amenities including high-speed WiFi, air conditioning, and daily meals. Perfect for both local and international students looking for a safe and convenient place to stay.",
-  location: "Colombo 03",
-  price: 25000,
-  availability: "Available",
-  status: "Approved",
-  amenities: ["WiFi", "AC", "Meals", "Laundry", "Parking", "Security"],
-  images: ["/modern-boarding-room.jpg", "/comfortable-bedroom.png", "/shared-kitchen.jpg"],
-  contactPhone: "+94 77 123 4567",
-  contactEmail: "priya.jayawardena@gmail.com",
-  owner: {
-    name: "Priya Jayawardena",
-    avatar: "/sri-lankan-woman.jpg",
-    rating: 4.8,
-    totalReviews: 24,
-    joinedDate: "2022-03-15",
-  },
-  createdAt: "2024-01-15",
-  lastUpdated: "2024-01-15",
-}
+
 
 const amenityIcons = {
   WiFi: Wifi,
@@ -45,11 +22,13 @@ const amenityIcons = {
   Security: Star,
 }
 
+
 export default function ListingDetails() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
-  const listingId = params.id as string;
+  // id from params is string (App Router)
+  const listingId = params?.id;
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -59,15 +38,24 @@ export default function ListingDetails() {
     async function loadListing() {
       setLoading(true);
       try {
-        const data = await fetchListing(listingId, user?.token);
-        setListing(data);
+        // Only fetch if id is present
+        if (listingId) {
+          const id =
+            Array.isArray(listingId) ? Number(listingId[0]) : Number(listingId);
+          if (!isNaN(id)) {
+            const data = await fetchListing(id, user?.token);
+            setListing(data);
+          } else {
+            setError("Invalid listing ID.");
+          }
+        }
       } catch (err: any) {
         setError(err?.message || "Failed to load listing.");
       } finally {
         setLoading(false);
       }
     }
-    if (listingId) loadListing();
+    loadListing();
   }, [listingId, user?.token]);
 
   const formatPrice = (price: number) => {
@@ -161,7 +149,7 @@ export default function ListingDetails() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="md:col-span-2">
                   <img
-                    src={listing.images?.[0] || "/placeholder.svg"}
+                    src={listing.images?.[0] || "/images/boarding.jpeg"}
                     alt={listing.title}
                     className="w-full h-96 object-cover rounded-lg"
                   />

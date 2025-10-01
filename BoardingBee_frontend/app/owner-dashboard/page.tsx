@@ -20,7 +20,7 @@ import { Home, Plus, ChevronLeft, ChevronRight, AlertCircle, Building2 } from "l
 import { ListingsTable } from "@/components/listings-table"
 import { EmptyState } from "@/components/empty-state"
 import { useAuth } from "@/context/authContext"
-import { fetchListings } from "@/lib/listingsApi"
+import { fetchListingsByOwner } from "@/lib/listingsApi"
 import type { Listing } from "@/types/listing.d"
 
 
@@ -30,11 +30,11 @@ function OwnerDashboardPage() {
   const [listings, setListings] = useState<Listing[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; listingId: string | null }>({
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; listingId: number | null }>({
     open: false,
     listingId: null,
   })
-  const [renewDialog, setRenewDialog] = useState<{ open: boolean; listingId: string | null }>({
+  const [renewDialog, setRenewDialog] = useState<{ open: boolean; listingId: number | null }>({
     open: false,
     listingId: null,
   })
@@ -45,36 +45,21 @@ function OwnerDashboardPage() {
   useEffect(() => {
     console.log("[OwnerDashboard] user:", user);
     const fetchOwnerListings = async () => {
-      if (!user?.token) {
-        console.log("[OwnerDashboard] No user token, skipping fetchListings");
+      if (!user?.token || !user?.id) {
+        console.log("[OwnerDashboard] No user token or id, skipping fetchListingsByOwner");
         return;
       }
       setLoading(true);
       setError(null);
-  try {
-    console.log("[OwnerDashboard] Fetching listings with token:", user.token);
-    const allListings = await fetchListings(user.token);
-    console.log("[OwnerDashboard] Listings fetched:", allListings);
-    // Use allListings.listings if backend returns { total, listings }
-    let listingsArray: Listing[] = [];
-    if (Array.isArray(allListings)) {
-      listingsArray = allListings;
-    } else if (
-      allListings &&
-      typeof allListings === "object" &&
-      "listings" in allListings &&
-      Array.isArray((allListings as { listings: Listing[] }).listings)
-    ) {
-      listingsArray = (allListings as { listings: Listing[] }).listings;
-    }
-    const ownerListings = listingsArray.filter((l) => String(l.ownerId) === String(user.id));
-    setListings(ownerListings);
-  } catch (err: any) {
-    console.error("[OwnerDashboard] Error fetching listings:", err);
-    setError(err?.message || "Failed to fetch listings");
-  } finally {
-    setLoading(false);
-  }
+      try {
+        const ownerListings = await fetchListingsByOwner(user.id, user.token);
+        setListings(ownerListings);
+      } catch (err: any) {
+        console.error("[OwnerDashboard] Error fetching listings:", err);
+        setError(err?.message || "Failed to fetch listings");
+      } finally {
+        setLoading(false);
+      }
     };
     fetchOwnerListings();
   }, [user]);
@@ -93,7 +78,7 @@ function OwnerDashboardPage() {
     paginatedListings: listings.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
   }), [listings, currentPage])
 
-  const handleDelete = async (listingId: string) => {
+  const handleDelete = async (listingId: number) => {
     try {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000))
@@ -105,7 +90,7 @@ function OwnerDashboardPage() {
     }
   }
 
-  const handleRenew = async (listingId: string) => {
+  const handleRenew = async (listingId: number) => {
     try {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000))
@@ -134,7 +119,7 @@ function OwnerDashboardPage() {
   }
 
   const handleView = (listingId: number) => {
-    router.push(`/listings/${listingId}`)
+    router.push(`/view-details/${listingId}`)
   }
 
   if (loading) {
@@ -250,10 +235,10 @@ function OwnerDashboardPage() {
               <>
                 <ListingsTable
                   listings={paginatedListings}
-                  onEdit={handleEdit}
-                  onDelete={(id) => setDeleteDialog({ open: true, listingId: String(id) })}
-                  onView={handleView}
-                  onRenew={(id) => setRenewDialog({ open: true, listingId: String(id) })}
+                  onEditAction={handleEdit}
+                  onDeleteAction={(id) => setDeleteDialog({ open: true, listingId: id })}
+                  onViewAction={handleView}
+                  onRenewAction={(id) => setRenewDialog({ open: true, listingId: id })}
                 />
 
                 {/* Pagination */}

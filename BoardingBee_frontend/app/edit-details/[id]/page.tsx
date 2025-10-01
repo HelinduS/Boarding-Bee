@@ -35,7 +35,7 @@ export default function EditListing() {
   const router = useRouter()
   const params = useParams()
   const { user } = useAuth();
-  const listingId = params.id as string
+  const listingId = Number(params.id)
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)

@@ -4,8 +4,8 @@ namespace BoardingBee_backend.models
 {
     public class Listing
     {
-        [Key]
-        public int Id { get; set; }
+    [Key]
+    public int Id { get; set; }
         [Required]
         public string Title { get; set; } = string.Empty;
         [Required]
@@ -29,11 +29,11 @@ namespace BoardingBee_backend.models
         public int? OwnerId { get; set; }
 
 
-        // Optional details used by your details page
-        public string? ContactPhone { get; set; }
-        public string? ContactEmail { get; set; }
-        public string? AmenitiesCsv { get; set; }   // e.g. "WiFi,AC,Meals"
-        public string? ImagesCsv { get; set; }      // e.g. "/img1.jpg,/img2.jpg"
+
+    public string? ContactPhone { get; set; }
+    public string? ContactEmail { get; set; }
+    public string? AmenitiesCsv { get; set; }   // e.g. "WiFi,AC,Meals"
+    public string? ImagesCsv { get; set; }      // e.g. "/img1.jpg,/img2.jpg"
     }
 }
 

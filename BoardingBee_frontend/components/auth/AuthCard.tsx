@@ -16,6 +16,7 @@ interface AuthCardProps {
   className?: string; // extra classes for Card
 }
 
+// Card layout for authentication pages (login, register, etc.)
 export function AuthCard({
   title,
   subtitle,

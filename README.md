@@ -44,16 +44,14 @@ Boarding owners can post and maintain listings, tenants can search and review, a
 
 ## ⚙️ Setup
 
-### 1. Clone repo
-```bash
-git clone https://github.com/HelinduS/Boarding-Bee.git
-cd boarding-bee
+- **Backend Setup:** See [`BoardingBee_backend/README.md`](BoardingBee_backend/README.md)  
+   Includes instructions for virtual environment, dependencies, database, environment variables, and running the API.
 
-cd BoardingBee_frontend
-npm install
-npm run dev
+- **Frontend Setup:** See [`BoardingBee_frontend/README.md`](BoardingBee_frontend/README.md)  
+   Includes instructions for Node.js setup, dependencies, environment variables, and running the development server.
 
-cd BoardingBee_backend
-dotnet restore
-dotnet build
-dotnet run
+## Notes
+
+- Make sure to follow each folder’s README for proper environment setup.
+
+

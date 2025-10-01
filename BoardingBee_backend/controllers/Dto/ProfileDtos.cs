@@ -1,6 +1,8 @@
 namespace BoardingBee_backend.Controllers.Dto
 {
-    // What your frontend receives when fetching profile
+    /// <summary>
+    /// DTO returned to frontend when fetching user profile details.
+    /// </summary>
     public class ProfileResponse
     {
         public int UserId { get; set; }
@@ -16,14 +18,16 @@ namespace BoardingBee_backend.Controllers.Dto
         public string Location { get; set; } = "";
         public string ProfileImage { get; set; } = "";
 
-        // notification & privacy
+        // Notification & privacy settings
         public bool EmailNotifications { get; set; }
         public bool SmsNotifications { get; set; }
         public bool ProfileVisibility { get; set; }
         public bool ShowContactInfo { get; set; }
     }
 
-    // What frontend sends when user edits profile (name, address, etc.)
+    /// <summary>
+    /// DTO received from frontend when user edits profile (name, address, etc.).
+    /// </summary>
     public class UpdateProfileRequest
     {
         public string FirstName { get; set; } = "";
@@ -35,12 +39,14 @@ namespace BoardingBee_backend.Controllers.Dto
         public string InstitutionCompany { get; set; } = "";
         public string Location { get; set; } = "";
 
-        // optional updates (because email/phone are stored in User, not UserProfile)
+        // Optional updates (email/phone are stored in User, not UserProfile)
         public string? MobileNumber { get; set; }
         public string? EmailAddress { get; set; }
     }
 
-    // What frontend sends when user toggles switches
+    /// <summary>
+    /// DTO received from frontend when user updates notification or privacy settings.
+    /// </summary>
     public class UpdateSettingsRequest
     {
         public bool EmailNotifications { get; set; }

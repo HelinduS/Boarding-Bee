@@ -1,3 +1,4 @@
+
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,25 +12,32 @@ namespace BoardingBee_backend.controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    // Handles CRUD operations for property listings, including creation, retrieval, and update.
+    // Only users with OWNER role can create or modify listings.
     public class ListingsController : ControllerBase
     {
         private readonly AppDbContext _context;
         private const string OwnerRole = "OWNER";
+    // Constructor injecting the database context.
         public ListingsController(AppDbContext context)
         {
             _context = context;
         }
 
         // Helper: Extract user role robustly
+    // Extracts the user's role from claims.
         private string? GetUserRole() =>
             User.FindFirstValue("role") ?? User.FindFirstValue(ClaimTypes.Role) ?? User.FindFirstValue("roles");
+
+    // Extracts the user's ID from claims.
         private int? GetUserId()
         {
             var idStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             return int.TryParse(idStr, out var id) ? id : (int?)null;
         }
 
-        // POST: api/listings (form-data, OWNER only)
+    // Creates a new property listing (OWNER only, form-data).
+    // Validates input, saves images, and stores listing in the database.
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> CreateListing([
@@ -43,8 +51,10 @@ namespace BoardingBee_backend.controllers
         {
             var userRole = GetUserRole()?.ToUpperInvariant();
             var ownerId = GetUserId();
+            // Only owners can create listings
             if (userRole != OwnerRole || ownerId == null)
                 return Forbid("Only owners can create listings.");
+            // Validate required fields and at least one image
             if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(location) || price <= 0 || string.IsNullOrWhiteSpace(description) || images == null || images.Count == 0)
                 return BadRequest("All required fields must be provided, and at least one image.");
 
@@ -56,6 +66,7 @@ namespace BoardingBee_backend.controllers
             foreach (var file in images)
             {
                 var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+                // Validate image extension and size
                 if (!allowedExtensions.Contains(ext))
                     return BadRequest($"Unsupported image format: {ext}");
                 if (file.Length > 5 * 1024 * 1024)
@@ -147,7 +158,7 @@ namespace BoardingBee_backend.controllers
 
         // GET: api/listings/{id} (public)
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetListing(int id)
+    public async Task<IActionResult> GetListing(int id)
         {
             var listing = await _context.Listings.FindAsync(id);
             if (listing == null) return NotFound();
@@ -160,7 +171,7 @@ namespace BoardingBee_backend.controllers
     [HttpPut("{id}")]
     [Authorize]
     [Consumes("multipart/form-data", "application/json")]
-        public async Task<IActionResult> UpdateListing(int id)
+    public async Task<IActionResult> UpdateListing(int id)
         {
             var userRole = GetUserRole()?.ToUpperInvariant();
             var userId = GetUserId();
@@ -251,7 +262,7 @@ namespace BoardingBee_backend.controllers
         // DELETE: api/listings/{id} (OWNER only)
         [HttpDelete("{id}")]
         [Authorize]
-        public async Task<IActionResult> DeleteListing(int id)
+    public async Task<IActionResult> DeleteListing(int id)
         {
             var userRole = GetUserRole()?.ToUpperInvariant();
             var userId = GetUserId();
@@ -264,10 +275,22 @@ namespace BoardingBee_backend.controllers
             return NoContent();
         }
 
+        // GET: api/listings/owner/{ownerId} (fetch listings by owner)
+        [HttpGet("owner/{ownerId}")]
+    public async Task<IActionResult> GetListingsByOwner(int ownerId)
+        {
+            var listings = await _context.Listings
+                .Where(l => l.OwnerId == ownerId)
+                .OrderByDescending(l => l.CreatedAt)
+                .ToListAsync();
+            var listingDtos = listings.Select(BoardingBee_backend.Controllers.Dto.ListingMappings.ToListItemDto).ToList();
+            return Ok(new { total = listingDtos.Count, listings = listingDtos });
+        }
+
         // POST: api/listings/{id}/renew (OWNER only)
         [HttpPost("{id}/renew")]
         [Authorize]
-        public async Task<IActionResult> RenewListing(int id)
+    public async Task<IActionResult> RenewListing(int id)
         {
             var userRole = GetUserRole()?.ToUpperInvariant();
             var userId = GetUserId();

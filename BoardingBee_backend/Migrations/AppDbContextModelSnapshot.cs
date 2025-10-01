@@ -242,9 +242,6 @@ namespace BoardingBee_backend.Migrations
                     b.Property<string>("AmenitiesCsv")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("AvailabilityStatus")
-                        .HasColumnType("int");
-
                     b.Property<string>("ContactEmail")
                         .HasColumnType("nvarchar(max)");
 

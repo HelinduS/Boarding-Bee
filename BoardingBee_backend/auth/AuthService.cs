@@ -32,7 +32,6 @@ namespace BoardingBee_backend.Auth.Services
 
         public string GenerateJwtToken(User user)
         {
-            // Replace with your actual secret key (should be stored securely)
             var secretKey = Environment.GetEnvironmentVariable("JWT_SECRET") ?? "your-very-strong-secret-key";
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

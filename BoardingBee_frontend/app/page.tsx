@@ -3,6 +3,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 // Removed unused imports
 import ListingCard from "@/components/ui/ListingCard";
+import { useRouter } from "next/navigation";
 import { fetchListings } from "@/lib/listingsApi";
 
 import type { Listing as ApiListing } from "@/types/listing";
@@ -19,6 +20,7 @@ type Listing = {
 };
 
 export default function Home() {
+  const router = useRouter();
   // Listings state from backend
   const [listings, setListings] = useState<Listing[]>([]);
   const [loadingListings, setLoadingListings] = useState(true);
@@ -28,23 +30,22 @@ export default function Home() {
     setLoadingListings(true);
     setFetchError(null);
     fetchListings()
-      .then((data: ApiListing[]) => {
-        // Map API listings to UI Listing type
-        const mapped = Array.isArray(data)
-          ? data.map((l) => ({
-              id: Number(l.id),
-              title: l.title,
-              location: l.location,
-              price: l.price,
-              availability:
-                l.availability && l.availability.toLowerCase() === "available"
-                  ? "Available"
-                  : "Unavailable",
-              thumbnailUrl: l.images && l.images.length > 0 ? l.images[0] : "/images/images.jpg",
-              rating: l.owner?.rating ?? 4.5,
-              description: l.description,
-            })) as Listing[]
-          : [];
+      .then((data: any) => {
+        const apiListings = Array.isArray(data.listings) ? data.listings : [];
+        const mapped = apiListings.map((l: any) => ({
+          id: Number(l.id),
+          title: l.title,
+          location: l.location,
+          price: l.price,
+          availability:
+            l.availability && l.availability.toLowerCase() === "available"
+              ? "Available"
+              : "Unavailable",
+          thumbnailUrl: l.images && l.images.length > 0 ? l.images[0] : "/images/images.jpg",
+          rating: l.owner?.rating ?? 4.5,
+          description: l.description,
+        })) as Listing[];
+        console.log('Fetched listings:', mapped);
         setListings(mapped);
       })
       .catch((err) => setFetchError(err?.message || "Failed to fetch listings"))
@@ -317,7 +318,7 @@ export default function Home() {
                   thumbnailUrl={listing.thumbnailUrl}
                   rating={listing.rating}
                   description={listing.description}
-                  onClick={() => alert(`Navigate to details for ${listing.title}`)}
+                  onClick={() => router.push(`/view-details/${listing.id}`)}
                 />
               ))}
             </div>
