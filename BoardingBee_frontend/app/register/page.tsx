@@ -138,6 +138,7 @@ export default function RegisterPage() {
           userType: formData.userType,
           institutionCompany: formData.institutionCompany,
           location: formData.location,
+          Role: "User",
         }),
       })
       const data = await response.json()
