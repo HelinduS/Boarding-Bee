@@ -24,7 +24,8 @@ interface JwtPayload {
 export default function LoginPage() {
   const { login } = useAuth()
   const router = useRouter()
-  const [username, setUsername] = useState("")
+  // Accepts either email or username
+  const [identifier, setIdentifier] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -40,7 +41,7 @@ export default function LoginPage() {
       const response = await fetch(`${API}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ identifier, password }),
       })
 
       const data = await response.json()
@@ -56,8 +57,8 @@ export default function LoginPage() {
 
       login({
         id: Number(userId),
-        username,
-        email: username,
+        username: identifier,
+        email: identifier,
         role: userRole,
         token: accessToken,
       })
@@ -109,16 +110,16 @@ export default function LoginPage() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Email */}
+              {/* Identifier (Email or Username) */}
               <div className="space-y-2">
-                <Label htmlFor="username">Email Address</Label>
+                <Label htmlFor="identifier">Email or Username</Label>
                 <Input
-                  id="username"
-                  type="email"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  id="identifier"
+                  type="text"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
                   required
-                  placeholder="Enter Your Email"
+                  placeholder="Enter Email or Username"
                   className="h-12 rounded-lg border-gray-300 px-4 
                              outline-none focus:outline-none 
                              focus:border-blue-600 focus:ring-2 focus:ring-blue-500"

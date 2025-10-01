@@ -22,11 +22,12 @@ namespace BoardingBee_backend.Auth.Controllers
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginRequest request)
         {
-            if (string.IsNullOrEmpty(request.Username) || string.IsNullOrEmpty(request.Password))
+            // Accepts either username or email as the identifier
+            if (string.IsNullOrEmpty(request.Identifier) || string.IsNullOrEmpty(request.Password))
             {
-                return BadRequest("Username and password are required.");
+                return BadRequest("Identifier and password are required.");
             }
-            var user = _authService.Authenticate(request.Username, request.Password);
+            var user = _authService.Authenticate(request.Identifier, request.Password);
             if (user == null)
                 return Unauthorized();
 
@@ -90,9 +91,10 @@ namespace BoardingBee_backend.Auth.Controllers
         }
     }
 
+    // Login request model that accepts either username or email as the identifier
     public class LoginRequest
     {
-    public string? Username { get; set; }
-    public string? Password { get; set; }
+        public string? Identifier { get; set; } // username or email
+        public string? Password { get; set; }
     }
 }
