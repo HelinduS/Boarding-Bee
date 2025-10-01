@@ -1,3 +1,15 @@
+// Fetch listings by owner
+export async function fetchListingsByOwner(ownerId: number, token?: string): Promise<Listing[]> {
+  const res = await fetch(`${API_BASE}/owner/${ownerId}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) throw new Error("Failed to fetch listings for owner");
+  const data = await res.json();
+  // Support both { total, listings } and array response
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.listings)) return data.listings;
+  return [];
+}
 import { Listing } from "@/types/listing";
 
 // API base URL (from .env)

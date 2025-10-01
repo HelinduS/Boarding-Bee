@@ -1,3 +1,4 @@
+
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -272,6 +273,18 @@ namespace BoardingBee_backend.controllers
             _context.Listings.Remove(listing);
             await _context.SaveChangesAsync();
             return NoContent();
+        }
+
+        // GET: api/listings/owner/{ownerId} (fetch listings by owner)
+        [HttpGet("owner/{ownerId}")]
+    public async Task<IActionResult> GetListingsByOwner(int ownerId)
+        {
+            var listings = await _context.Listings
+                .Where(l => l.OwnerId == ownerId)
+                .OrderByDescending(l => l.CreatedAt)
+                .ToListAsync();
+            var listingDtos = listings.Select(BoardingBee_backend.Controllers.Dto.ListingMappings.ToListItemDto).ToList();
+            return Ok(new { total = listingDtos.Count, listings = listingDtos });
         }
 
         // POST: api/listings/{id}/renew (OWNER only)
