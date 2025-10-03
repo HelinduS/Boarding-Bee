@@ -60,7 +60,7 @@ namespace BoardingBee_backend.Auth.Controllers
                 Gender = request.Gender,
                 EmergencyContact = request.EmergencyContact,
                 UserType = request.UserType,
-                Role = request.Role,
+                Role = string.IsNullOrWhiteSpace(request.Role) ? "User" : request.Role,
                 InstitutionCompany = request.InstitutionCompany,
                 Location = request.Location,
                 CreatedAt = DateTime.UtcNow,
