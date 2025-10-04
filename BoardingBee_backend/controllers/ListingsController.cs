@@ -16,12 +16,15 @@ namespace BoardingBee_backend.controllers
     // Only users with OWNER role can create or modify listings.
     public class ListingsController : ControllerBase
     {
-        private readonly AppDbContext _context;
+    private readonly AppDbContext _context;
         private const string OwnerRole = "OWNER";
     // Constructor injecting the database context.
-        public ListingsController(AppDbContext context)
+        private readonly Services.ListingService _listingService;
+        // Constructor injecting the database context and listing service.
+        public ListingsController(AppDbContext context, Services.ListingService listingService)
         {
             _context = context;
+            _listingService = listingService;
         }
 
         // Helper: Extract user role robustly
@@ -51,53 +54,14 @@ namespace BoardingBee_backend.controllers
         {
             var userRole = GetUserRole()?.ToUpperInvariant();
             var ownerId = GetUserId();
-            // Only owners can create listings
             if (userRole != OwnerRole || ownerId == null)
                 return Forbid("Only owners can create listings.");
-            // Validate required fields and at least one image
             if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(location) || price <= 0 || string.IsNullOrWhiteSpace(description) || images == null || images.Count == 0)
                 return BadRequest("All required fields must be provided, and at least one image.");
-
-            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
-            var imageUrls = new List<string>();
-            var env = HttpContext.RequestServices.GetService(typeof(IWebHostEnvironment)) as IWebHostEnvironment;
-            var root = Path.Combine(env?.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"), "uploads", "listings");
-            Directory.CreateDirectory(root);
-            foreach (var file in images)
-            {
-                var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-                // Validate image extension and size
-                if (!allowedExtensions.Contains(ext))
-                    return BadRequest($"Unsupported image format: {ext}");
-                if (file.Length > 5 * 1024 * 1024)
-                    return BadRequest("Image size must be under 5MB.");
-                var fileName = $"l{ownerId}_{Guid.NewGuid():N}{ext}";
-                var path = Path.Combine(root, fileName);
-                using (var stream = System.IO.File.Create(path))
-                {
-                    await file.CopyToAsync(stream);
-                }
-                imageUrls.Add($"/uploads/listings/{fileName}");
-            }
-            var listing = new Listing
-            {
-                Title = title,
-                Location = location,
-                Price = price,
-                Description = description,
-                Facilities = facilities,
-                IsAvailable = isAvailable,
-                ImagesCsv = string.Join(",", imageUrls),
-                ThumbnailUrl = imageUrls.FirstOrDefault(),
-                OwnerId = ownerId,
-                Status = ListingStatus.Pending,
-                ExpiresAt = DateTime.UtcNow.AddMonths(6),
-                CreatedAt = DateTime.UtcNow,
-                LastUpdated = DateTime.UtcNow
-            };
-            _context.Listings.Add(listing);
-            await _context.SaveChangesAsync();
-            return Ok(new { message = "Listing created successfully.", listingId = listing.Id });
+            var result = await _listingService.CreateListingAsync(ownerId.Value, title, location, price, description, facilities, isAvailable, images);
+            if (!result.Success)
+                return BadRequest(result.Message);
+            return Ok(new { message = result.Message, listingId = result.ListingId });
         }
 
         // POST: api/listings/json (JSON body, OWNER only)

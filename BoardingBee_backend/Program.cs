@@ -9,6 +9,7 @@ using BoardingBee_backend.Auth.Services;
 DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddScoped<BoardingBee_backend.Services.ListingService>();
 
 // JWT Authentication setup
 var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET") ?? "your_dev_secret_key";
