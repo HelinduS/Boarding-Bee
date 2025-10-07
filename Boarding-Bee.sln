@@ -5,7 +5,9 @@ VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoardingBee_backend", "BoardingBee_backend\BoardingBee_backend.csproj", "{E6B30BA0-D22F-ACF7-972C-846B999BC885}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoardingBee.Tests", "BoardingBee.Tests\BoardingBee.Tests.csproj", "{272477A0-B924-4DDE-9D27-37772C1F25E4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoardingBee.Tests.UI", "tests/BoardingBee.Tests.UI/BoardingBee.Tests.UI.csproj", "{A1B2C3D4-E5F6-7890-1234-56789ABCDEF0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoardingBee.Tests.Unit", "tests/BoardingBee.Tests.Unit/BoardingBee.Tests.Unit.csproj", "{B1C2D3E4-F5A6-7890-4321-56789ABCDEF1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
