@@ -37,17 +37,24 @@ namespace BoardingBee_backend.Models
                 .IsUnique();
 
             // NEW: relationships
-            modelBuilder.Entity( typeof(Review) )
+            modelBuilder.Entity(typeof(Review))
                 .HasOne(typeof(Listing), "Listing")
                 .WithMany()
                 .HasForeignKey("ListingId")
                 .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity( typeof(Review) )
+            modelBuilder.Entity(typeof(Review))
                 .HasOne(typeof(User), "User")
                 .WithMany()
                 .HasForeignKey("UserId")
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Listing>()
+                .Property(l => l.Price)
+                .HasPrecision(18, 2);
+
+                
+                
         }
     }
 }
