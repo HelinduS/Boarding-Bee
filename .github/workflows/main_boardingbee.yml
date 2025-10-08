@@ -45,6 +45,10 @@ jobs:
           echo "NEXT_PUBLIC_API_URL=http://localhost:5000" > BoardingBee_frontend/.env
           echo "BASE_URL=http://localhost:3000" >> BoardingBee_frontend/.env
 
+
+      - name: Install root dependencies
+        run: npm install
+
       - name: Install backend dependencies
         run: |
           cd BoardingBee_backend
