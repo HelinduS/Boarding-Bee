@@ -28,7 +28,9 @@ function getFixedTestUser() {
 async function happyPath() {
   const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
   const user = getFixedTestUser();
+  try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
   const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-user-data-'));
+  console.log('Using Chrome user data dir:', userDataDir);
   const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
@@ -85,7 +87,9 @@ async function happyPath() {
 
 // --- Edge Cases ---
 async function testInvalidEmail() {
+  try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
   const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-user-data-'));
+  console.log('Using Chrome user data dir:', userDataDir);
   const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
@@ -116,7 +120,9 @@ async function testInvalidEmail() {
 }
 
 async function testUnmatchedPasswords() {
+  try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
   const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-user-data-'));
+  console.log('Using Chrome user data dir:', userDataDir);
   const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
@@ -147,7 +153,9 @@ async function testUnmatchedPasswords() {
 }
 
 async function testRequiredFields() {
+  try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
   const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-user-data-'));
+  console.log('Using Chrome user data dir:', userDataDir);
   const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
@@ -171,7 +179,9 @@ async function testRequiredFields() {
 
 async function testDuplicateEmail() {
   const user = getFixedTestUser();
+  try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
   const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-user-data-'));
+  console.log('Using Chrome user data dir:', userDataDir);
   const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {

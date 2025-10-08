@@ -17,7 +17,9 @@ function getOwnerTestUser() {
 
 async function happyPath() {
   const user = getOwnerTestUser();
+  try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
   const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-user-data-'));
+  console.log('Using Chrome user data dir:', userDataDir);
   const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
@@ -35,7 +37,11 @@ async function happyPath() {
 }
 
 async function testInvalidEmail() {
-  const driver = await new Builder().forBrowser('chrome').build();
+  try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
+  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-user-data-'));
+  console.log('Using Chrome user data dir:', userDataDir);
+  const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
+  const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/login`);
   await driver.wait(until.elementLocated(By.id('identifier')), 10000);
@@ -60,7 +66,11 @@ async function testInvalidEmail() {
 
 async function testWrongPassword() {
   const user = getOwnerTestUser();
-  const driver = await new Builder().forBrowser('chrome').build();
+  try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
+  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-user-data-'));
+  console.log('Using Chrome user data dir:', userDataDir);
+  const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
+  const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/login`);
   await driver.wait(until.elementLocated(By.id('identifier')), 10000);
@@ -84,7 +94,11 @@ async function testWrongPassword() {
 }
 
 async function testNonExistentEmail() {
-  const driver = await new Builder().forBrowser('chrome').build();
+  try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
+  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-user-data-'));
+  console.log('Using Chrome user data dir:', userDataDir);
+  const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
+  const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/login`);
   await driver.wait(until.elementLocated(By.id('identifier')), 10000);
@@ -108,7 +122,11 @@ async function testNonExistentEmail() {
 }
 
 async function testBlankFields() {
-  const driver = await new Builder().forBrowser('chrome').build();
+  try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
+  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-user-data-'));
+  console.log('Using Chrome user data dir:', userDataDir);
+  const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
+  const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/login`);
   await driver.wait(until.elementLocated(By.id('identifier')), 10000);

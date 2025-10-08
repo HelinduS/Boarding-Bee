@@ -31,7 +31,14 @@ async function loginAsTenant(driver) {
 }
 
 async function testTenantReviewFlow() {
+  // Kill any lingering Chrome processes to avoid user data dir lock
+  try {
+    require('child_process').execSync('pkill chrome || true');
+  } catch (e) {
+    // Ignore errors if pkill is not available
+  }
   const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-user-data-'));
+  console.log('Using Chrome user data dir:', userDataDir);
   const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
