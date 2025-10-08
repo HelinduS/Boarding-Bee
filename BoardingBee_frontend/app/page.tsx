@@ -1,27 +1,25 @@
 "use client";
 
 import React, { useMemo, useState, useEffect } from "react";
-// Removed unused imports
 import ListingCard from "@/components/ui/ListingCard";
 import { useRouter } from "next/navigation";
 import { fetchListings } from "@/lib/listingsApi";
-
-import type { Listing as ApiListing } from "@/types/listing";
 
 type Listing = {
   id: number;
   title: string;
   location: string;
   price: number;
-  availability: "Available" | "Unavailable";
+  availability: "Available" | "Unavailable" | "Occupied";
   thumbnailUrl: string;
-  rating: number;
-  description: string;
+  rating: number | null;
+  reviewCount: number;
+  description?: string | null;
 };
 
 export default function Home() {
   const router = useRouter();
-  // Listings state from backend
+
   const [listings, setListings] = useState<Listing[]>([]);
   const [loadingListings, setLoadingListings] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -29,23 +27,35 @@ export default function Home() {
   useEffect(() => {
     setLoadingListings(true);
     setFetchError(null);
+
     fetchListings()
       .then((data: any) => {
-        const apiListings = Array.isArray(data.listings) ? data.listings : [];
-        const mapped = apiListings.map((l: any) => ({
-          id: Number(l.id),
-          title: l.title,
-          location: l.location,
-          price: l.price,
-          availability:
-            l.availability && l.availability.toLowerCase() === "available"
+        const apiListings = Array.isArray(data?.listings) ? data.listings : [];
+
+        const mapped: Listing[] = apiListings.map((l: any) => {
+          const availability =
+            (typeof l.isAvailable === "boolean"
+              ? l.isAvailable
+              : String(l.availability || "").toLowerCase() === "available")
               ? "Available"
-              : "Unavailable",
-          thumbnailUrl: l.images && l.images.length > 0 ? l.images[0] : "/images/images.jpg",
-          rating: l.owner?.rating ?? 4.5,
-          description: l.description,
-        })) as Listing[];
-        console.log('Fetched listings:', mapped);
+              : (String(l.availability || "").toLowerCase() === "occupied" ? "Occupied" : "Unavailable");
+
+          const images: string[] =
+            Array.isArray(l.images) ? l.images : [];
+
+          return {
+            id: Number(l.id),
+            title: l.title,
+            location: l.location,
+            price: Number(l.price),
+            availability,
+            thumbnailUrl: images.length > 0 ? images[0] : "/images/images.jpg",
+            rating: typeof l.rating === "number" ? l.rating : null, // from backend DTO
+            reviewCount: Number(l.reviewCount ?? 0),                 // from backend DTO
+            description: l.description ?? null,
+          };
+        });
+
         setListings(mapped);
       })
       .catch((err) => setFetchError(err?.message || "Failed to fetch listings"))
@@ -58,17 +68,18 @@ export default function Home() {
   const [minPrice, setMinPrice] = useState<string>("");
   const [maxPrice, setMaxPrice] = useState<string>("");
   const [availableOnly, setAvailableOnly] = useState<boolean>(false);
-  const [sortBy, setSortBy] = useState<"relevance" | "price_asc" | "price_desc" | "rating_desc">("relevance");
+  const [reviewsOnly, setReviewsOnly] = useState<boolean>(false);
+  const [minRating, setMinRating] = useState<number>(0);
+  const [sortBy, setSortBy] =
+    useState<"relevance" | "price_asc" | "price_desc" | "rating_desc">("relevance");
 
-  // Debounce location input for smoother typing
+  // Debounce search
   useEffect(() => {
     const t = setTimeout(() => setDebouncedLocation(location), 250);
     return () => clearTimeout(t);
   }, [location]);
 
-  // Helpers
   const toNumberOrNull = (v: string) => (v === "" ? null : Number(v));
-  // Removed unused nf
 
   // --------------- Filtering + Sorting ---------------
   const filteredListings = useMemo(() => {
@@ -83,9 +94,19 @@ export default function Home() {
 
       const matchesMin = min === null || l.price >= min;
       const matchesMax = max === null || l.price <= max;
-      const matchesAvail = !availableOnly || String(l.availability).toLowerCase() === "available";
+      const matchesAvail = !availableOnly || l.availability === "Available";
 
-      return matchesLocation && matchesMin && matchesMax && matchesAvail;
+      const matchesReviewsOnly = !reviewsOnly || (l.reviewCount ?? 0) > 0;
+      const matchesMinRating = minRating <= 0 || (l.rating ?? 0) >= minRating;
+
+      return (
+        matchesLocation &&
+        matchesMin &&
+        matchesMax &&
+        matchesAvail &&
+        matchesReviewsOnly &&
+        matchesMinRating
+      );
     });
 
     switch (sortBy) {
@@ -96,32 +117,31 @@ export default function Home() {
         out = [...out].sort((a, b) => b.price - a.price);
         break;
       case "rating_desc":
-        out = [...out].sort((a, b) => b.rating - a.rating);
+        out = [...out].sort(
+          (a, b) => (b.rating ?? -Infinity) - (a.rating ?? -Infinity)
+        );
         break;
       case "relevance":
       default:
-        // keep original order for now (you can plug in a scoring later)
         break;
     }
 
     return out;
-  }, [debouncedLocation, minPrice, maxPrice, availableOnly, sortBy, listings]);
-
-  // Remove unused totalCount/resultCount
+  }, [debouncedLocation, minPrice, maxPrice, availableOnly, reviewsOnly, minRating, sortBy, listings]);
 
   const clearAll = () => {
     setLocation("");
     setMinPrice("");
     setMaxPrice("");
     setAvailableOnly(false);
+    setReviewsOnly(false);
+    setMinRating(0);
     setSortBy("relevance");
   };
 
   return (
     <div className="min-h-screen flex bg-gradient-to-br from-purple-200 to-blue-200 relative">
-      {/* Subtle pattern overlay */}
       <div className="pointer-events-none absolute inset-0 opacity-20 [background:radial-gradient(circle_at_1px_1px,_#ffffff_1px,_transparent_1px)] [background-size:16px_16px]" />
-      {/* Glass sheet */}
       <div className="absolute inset-0 backdrop-blur-xl bg-white/50" />
 
       <div className="relative flex w-full max-w-7xl mx-auto overflow-hidden rounded-3xl m-4 border border-white/40 shadow-2xl bg-white/20 backdrop-blur-xl">
@@ -142,11 +162,9 @@ export default function Home() {
               <div className="flex flex-col gap-2">
                 {/* Row 1: Search + Count */}
                 <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-                  {/* Search */}
                   <label className="group relative w-full md:max-w-xl">
                     <span className="sr-only">Search by location or title</span>
                     <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2">
-                      {/* magnifier */}
                       <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden className="opacity-60">
                         <path d="M21 21l-4.3-4.3M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15z" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round"/>
                       </svg>
@@ -160,17 +178,16 @@ export default function Home() {
                     />
                   </label>
 
-                  {/* Results pill */}
                   <div className="flex items-center gap-2 self-start md:self-auto">
                     <span className="text-[11px] text-slate-600">Results</span>
-            <span className="px-2 py-0.5 rounded-full bg-slate-900 text-white text-[11px] font-semibold shadow-sm">
-              {filteredListings.length}/{listings.length}
-            </span>
+                    <span className="px-2 py-0.5 rounded-full bg-slate-900 text-white text-[11px] font-semibold shadow-sm">
+                      {filteredListings.length}/{listings.length}
+                    </span>
                   </div>
                 </div>
 
-                {/* Row 2: Price inputs */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {/* Row 2: Price + toggles */}
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
                   {/* Min */}
                   <label className="relative">
                     <span className="text-xs font-medium text-slate-600">Min price</span>
@@ -205,7 +222,7 @@ export default function Home() {
                     </div>
                   </label>
 
-                  {/* Availability toggle chip */}
+                  {/* Availability */}
                   <div className="flex items-end">
                     <button
                       type="button"
@@ -221,11 +238,27 @@ export default function Home() {
                       {availableOnly ? "✓ Available only" : "Show: All / Available"}
                     </button>
                   </div>
+
+                  {/* Reviews only */}
+                  <div className="flex items-end">
+                    <button
+                      type="button"
+                      aria-pressed={reviewsOnly}
+                      onClick={() => setReviewsOnly(v => !v)}
+                      className={[
+                        "w-full h-8 rounded-lg border transition shadow-sm text-sm",
+                        reviewsOnly
+                          ? "bg-indigo-600 text-white border-indigo-600 hover:bg-indigo-500"
+                          : "bg-white/80 text-slate-700 border-slate-200/70 hover:bg-slate-50"
+                      ].join(" ")}
+                    >
+                      {reviewsOnly ? "✓ Has reviews" : "Has reviews: any"}
+                    </button>
+                  </div>
                 </div>
 
-                {/* Row 3: Sort segmented + Clear */}
+                {/* Row 3: Sort + Min rating + Clear */}
                 <div className="flex flex-col-reverse gap-2 md:flex-row md:items-center md:justify-between">
-                  {/* Segmented control */}
                   <div className="inline-flex overflow-hidden rounded-lg border border-slate-200/70 bg-white/80 shadow-sm">
                     <button
                       type="button"
@@ -240,11 +273,7 @@ export default function Home() {
                       className={`px-2.5 py-1.5 text-xs transition border-l border-slate-200/70 ${sortBy==="price_asc" ? "bg-slate-900 text-white" : "hover:bg-slate-100"}`}
                       title="Low → High"
                     >
-                      <span className="inline-flex items-center gap-1">
-                        {/* price up icon */}
-                        <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden><path d="M7 20V4m0 0l-3 3m3-3l3 3M17 4v16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round"/></svg>
-                        Price
-                      </span>
+                      Price ↑
                     </button>
                     <button
                       type="button"
@@ -252,10 +281,7 @@ export default function Home() {
                       className={`px-2.5 py-1.5 text-xs transition border-l border-slate-200/70 ${sortBy==="price_desc" ? "bg-slate-900 text-white" : "hover:bg-slate-100"}`}
                       title="High → Low"
                     >
-                      <span className="inline-flex items-center gap-1">
-                        <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden><path d="M7 4v16m0 0l-3-3m3 3l3-3M17 4v16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round"/></svg>
-                        Price
-                      </span>
+                      Price ↓
                     </button>
                     <button
                       type="button"
@@ -263,29 +289,29 @@ export default function Home() {
                       className={`px-2.5 py-1.5 text-xs transition border-l border-slate-200/70 ${sortBy==="rating_desc" ? "bg-slate-900 text-white" : "hover:bg-slate-100"}`}
                       title="Highest first"
                     >
-                      <span className="inline-flex items-center gap-1">
-                        {/* star */}
-                        <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden><path d="M12 17.3l-5.2 3.1 1.4-5.9-4.4-3.8 5.9-.5L12 4l2.3 6.2 5.9.5-4.4 3.8 1.4 5.9z" fill="currentColor"/></svg>
-                        Rating
-                      </span>
+                      Rating
                     </button>
                   </div>
 
-                  {/* Clear button + active filters summary */}
+                  {/* Min rating select + Clear */}
                   <div className="flex items-center gap-2">
-                    <div className="text-xs text-slate-600">
-                      {minPrice || maxPrice || availableOnly || location
-                        ? <>Active:{" "}
-                            {location && <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 mr-1">“{location}”</span>}
-                            {minPrice && <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border-amber-200 mr-1">min {minPrice}</span>}
-                            {maxPrice && <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border-amber-200 mr-1">max {maxPrice}</span>}
-                            {availableOnly && <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">available</span>}
-                          </>
-                        : <span className="opacity-70">No active filters</span>}
-                    </div>
+                    <label className="text-xs text-slate-600">
+                      Min rating:
+                      <select
+                        className="ml-1 rounded border border-slate-200/70 bg-white/80 text-xs py-1 px-2"
+                        value={minRating}
+                        onChange={(e) => setMinRating(Number(e.target.value))}
+                      >
+                        <option value={0}>Any</option>
+                        <option value={1}>1+</option>
+                        <option value={2}>2+</option>
+                        <option value={3}>3+</option>
+                        <option value={4}>4+</option>
+                      </select>
+                    </label>
 
                     <button
-                      onClick={() => { setLocation(""); setMinPrice(""); setMaxPrice(""); setAvailableOnly(false); setSortBy("relevance"); }}
+                      onClick={clearAll}
                       className="px-2.5 py-1.5 text-xs rounded-lg border border-slate-200/70 bg-white/80 hover:bg-slate-100 transition shadow-sm"
                       title="Clear filters"
                     >
@@ -308,27 +334,27 @@ export default function Home() {
             </div>
           ) : filteredListings.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 min-h-[300px]">
-              {filteredListings.map((listing) => (
+              {filteredListings.map((l) => (
                 <ListingCard
-                  key={listing.id}
-                  title={listing.title}
-                  location={listing.location}
-                  price={listing.price}
-                  availability={listing.availability}
-                  thumbnailUrl={listing.thumbnailUrl}
-                  rating={listing.rating}
-                  description={listing.description}
-                  onClick={() => router.push(`/view-details/${listing.id}`)}
+                  key={l.id}
+                  title={l.title}
+                  location={l.location}
+                  price={l.price}
+                  availability={l.availability}
+                  thumbnailUrl={l.thumbnailUrl}
+                  rating={l.rating}
+                  reviewCount={l.reviewCount}
+                  description={l.description ?? undefined}
+                  onClick={() => router.push(`/view-details/${l.id}`)}
                 />
               ))}
             </div>
           ) : (
-            // Empty State
             <div className="flex flex-col items-center justify-center text-center gap-3 bg-white/60 backdrop-blur p-10 rounded-2xl border border-blue-100">
               <div className="text-6xl">🧐</div>
               <h3 className="text-xl font-semibold text-blue-800">No listings match your filters</h3>
               <p className="text-gray-700 max-w-md">
-                Try widening your price range, removing the availability filter, or searching a broader location.
+                Try widening your price range, removing filters, or searching a broader location.
               </p>
               <button
                 onClick={clearAll}
