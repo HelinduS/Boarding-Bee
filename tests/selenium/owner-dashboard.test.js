@@ -1,3 +1,11 @@
+function getUserDataDir() {
+  const arg = process.argv.find(a => a.startsWith('--user-data-dir='));
+  if (arg) {
+    const dir = arg.split('=')[1];
+    if (dir) return dir;
+  }
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-user-data-'));
+}
 // owner-dashboard.test.js
 // Selenium E2E tests for Owner Dashboard (after login)
 const { Builder, By, until, Key } = require('selenium-webdriver');
@@ -58,7 +66,7 @@ async function getFirstRowAndButtons(driver, listingTitle = 'Selenium Test Listi
 async function testOwnerDashboardFlows() {
   // Kill any lingering Chrome processes to avoid user data dir/session errors
   try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
-  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-user-data-'));
+  const userDataDir = getUserDataDir();
   console.log('Using Chrome user data dir:', userDataDir);
   const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();

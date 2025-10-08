@@ -1,3 +1,11 @@
+function getUserDataDir() {
+  const arg = process.argv.find(a => a.startsWith('--user-data-dir='));
+  if (arg) {
+    const dir = arg.split('=')[1];
+    if (dir) return dir;
+  }
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-user-data-'));
+}
 // tenant-review.test.js
 // Selenium E2E test for review/rating flows as a tenant (not owner)
 const { Builder, By, until, Key } = require('selenium-webdriver');
@@ -37,7 +45,7 @@ async function testTenantReviewFlow() {
   } catch (e) {
     // Ignore errors if pkill is not available
   }
-  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-user-data-'));
+  const userDataDir = getUserDataDir();
   console.log('Using Chrome user data dir:', userDataDir);
   const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
