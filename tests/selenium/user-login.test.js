@@ -1,6 +1,10 @@
 // user-login.test.js
 // Selenium E2E tests for user login (happy path and edge cases)
 const { Builder, By, until } = require('selenium-webdriver');
+const chrome = require('selenium-webdriver/chrome');
+const os = require('os');
+const path = require('path');
+const fs = require('fs');
 const fs = require('fs');
 
 const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
@@ -20,7 +24,9 @@ function getTestUser() {
 // --- Happy Path ---
 async function happyPath() {
   const user = getTestUser();
-  const driver = await new Builder().forBrowser('chrome').build();
+  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-user-data-'));
+  const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
+  const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/login`);
     await driver.wait(until.elementLocated(By.id('identifier')), 10000);

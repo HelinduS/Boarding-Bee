@@ -1,6 +1,9 @@
 // user-registration.test.js
 // Selenium E2E tests for user registration (happy path and edge cases)
 const { Builder, By, until } = require('selenium-webdriver');
+const chrome = require('selenium-webdriver/chrome');
+const os = require('os');
+const path = require('path');
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 const fs = require('fs');
 
@@ -25,7 +28,9 @@ function getFixedTestUser() {
 async function happyPath() {
   const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
   const user = getFixedTestUser();
-  const driver = await new Builder().forBrowser('chrome').build();
+  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-user-data-'));
+  const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
+  const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/register`);
     // Step 0: Account
@@ -80,7 +85,9 @@ async function happyPath() {
 
 // --- Edge Cases ---
 async function testInvalidEmail() {
-  const driver = await new Builder().forBrowser('chrome').build();
+  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-user-data-'));
+  const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
+  const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get('http://localhost:3000/register');
     await driver.wait(until.elementLocated(By.css('input#username')), 10000);
@@ -109,7 +116,9 @@ async function testInvalidEmail() {
 }
 
 async function testUnmatchedPasswords() {
-  const driver = await new Builder().forBrowser('chrome').build();
+  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-user-data-'));
+  const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
+  const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get('http://localhost:3000/register');
     await driver.wait(until.elementLocated(By.css('input#username')), 10000);
@@ -138,7 +147,9 @@ async function testUnmatchedPasswords() {
 }
 
 async function testRequiredFields() {
-  const driver = await new Builder().forBrowser('chrome').build();
+  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-user-data-'));
+  const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
+  const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get('http://localhost:3000/register');
     await driver.wait(until.elementLocated(By.css('input#username')), 10000);
@@ -160,7 +171,9 @@ async function testRequiredFields() {
 
 async function testDuplicateEmail() {
   const user = getFixedTestUser();
-  const driver = await new Builder().forBrowser('chrome').build();
+  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-user-data-'));
+  const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
+  const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get('http://localhost:3000/register');
     await driver.wait(until.elementLocated(By.css('input#username')), 10000);

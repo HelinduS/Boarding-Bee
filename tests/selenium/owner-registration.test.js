@@ -1,6 +1,10 @@
 // owner-registration.test.js
 // Selenium E2E tests for owner registration (happy path and edge cases)
 const { Builder, By, until } = require('selenium-webdriver');
+const chrome = require('selenium-webdriver/chrome');
+const os = require('os');
+const path = require('path');
+const fs = require('fs');
 
 const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
 
@@ -18,7 +22,9 @@ function getOwnerTestUser() {
 
 async function happyPath() {
   const user = getOwnerTestUser();
-  const driver = await new Builder().forBrowser('chrome').build();
+  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-user-data-'));
+  const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
+  const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/register-owner`);
     await driver.wait(until.elementLocated(By.css('input[name="username"]')), 10000);

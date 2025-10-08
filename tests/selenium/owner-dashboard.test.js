@@ -1,6 +1,10 @@
 // owner-dashboard.test.js
 // Selenium E2E tests for Owner Dashboard (after login)
 const { Builder, By, until, Key } = require('selenium-webdriver');
+const chrome = require('selenium-webdriver/chrome');
+const os = require('os');
+const path = require('path');
+const fs = require('fs');
 const fs = require('fs');
 const path = require('path');
 
@@ -54,7 +58,9 @@ async function getFirstRowAndButtons(driver, listingTitle = 'Selenium Test Listi
 }
 
 async function testOwnerDashboardFlows() {
-  const driver = await new Builder().forBrowser('chrome').build();
+  const userDataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-user-data-'));
+  const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
+  const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     // -------------------------
     // 1) Login as owner
