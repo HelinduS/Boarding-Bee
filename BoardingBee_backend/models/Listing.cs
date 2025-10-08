@@ -4,43 +4,38 @@ namespace BoardingBee_backend.models
 {
     public class Listing
     {
-    [Key]
-    public int Id { get; set; }
-        [Required]
-        public string Title { get; set; } = string.Empty;
-        [Required]
-        public string Location { get; set; } = string.Empty;
-        [Required]
-        public decimal Price { get; set; }
-        [Required]
-        public bool IsAvailable { get; set; } = true;
+        [Key] public int Id { get; set; }
+
+        [Required] public string Title { get; set; } = string.Empty;
+        [Required] public string Location { get; set; } = string.Empty;
+
+        // EF warning fix will be set in AppDbContext (HasPrecision)
+        [Required] public decimal Price { get; set; }
+
+        [Required] public bool IsAvailable { get; set; } = true;
+
         public string? ThumbnailUrl { get; set; }
-        public double? Rating { get; set; }
-    public string? Description { get; set; }
-    // Added for compatibility with frontend and controller
-    public string? Facilities { get; set; }
+
+        // Aggregates for reviews
+        public double? Rating { get; set; }          // average rating (0–5, can be null if no reviews)
+        public int ReviewCount { get; set; } = 0;    // total number of reviews
+
+        public string? Description { get; set; }
+        public string? Facilities { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        // Moderation/status & lifecycle
-        public ListingStatus Status { get; set; } = ListingStatus.Pending; // Pending/Approved/Expired
+        public ListingStatus Status { get; set; } = ListingStatus.Pending;
         public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
         public DateTime ExpiresAt { get; set; } = DateTime.UtcNow.AddMonths(6);
 
-        // Owner linkage (nullable so existing data still works)
         public int? OwnerId { get; set; }
 
-
-
-    public string? ContactPhone { get; set; }
-    public string? ContactEmail { get; set; }
-    public string? AmenitiesCsv { get; set; }   // e.g. "WiFi,AC,Meals"
-    public string? ImagesCsv { get; set; }      // e.g. "/img1.jpg,/img2.jpg"
+        public string? ContactPhone { get; set; }
+        public string? ContactEmail { get; set; }
+        public string? AmenitiesCsv { get; set; }
+        public string? ImagesCsv { get; set; }
     }
-}
 
-// ===== Added enums (same namespace) =====
-namespace BoardingBee_backend.models
-{
     public enum ListingStatus { Pending, Approved, Expired }
     public enum Availability { Available, Occupied }
 }
-
