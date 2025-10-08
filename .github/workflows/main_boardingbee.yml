@@ -1,7 +1,6 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-
 name: Build, Test, and Deploy ASP.Net Core app to Azure Web App - boardingbee
 
 on:
@@ -12,7 +11,6 @@ on:
     branches:
       - dev
   workflow_dispatch:
-
 
 jobs:
   test:
@@ -57,11 +55,10 @@ jobs:
           cd BoardingBee_backend
           dotnet build --configuration Release
 
-
       - name: Start backend
         run: |
           cd BoardingBee_backend
-          nohup dotnet run --urls http://localhost:5000 > ../backend.log 2>&1 &
+          nohup dotnet run --urls http://0.0.0.0:5000 > ../backend.log 2>&1 &
 
       - name: Check backend process
         run: pgrep -af dotnet || echo "Backend not running"
@@ -84,9 +81,13 @@ jobs:
           cd BoardingBee_frontend
           nohup npm run start &
 
+      - name: Check backend health endpoint
+        run: |
+          curl --fail http://localhost:5000/api/health || echo "Backend health check failed"
+
       - name: Wait for servers to be ready
         run: |
-          npx wait-on http://localhost:5000/api/health http://localhost:3000
+          npx wait-on --timeout 300000 --debug http://localhost:5000/api/health http://localhost:3000
 
       - name: Run all tests
         run: ./run-all-tests.sh
