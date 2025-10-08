@@ -1,7 +1,7 @@
 // user-registration.test.js
 // Selenium E2E tests for user registration (happy path and edge cases)
 const { Builder, By, until } = require('selenium-webdriver');
-const fetch = require('node-fetch');
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 const fs = require('fs');
 
 function getFixedTestUser() {
