@@ -1,3 +1,4 @@
+
 using Microsoft.AspNetCore.Mvc;
 using BoardingBee_backend.Models;
 using BoardingBee_backend.Controllers.Dto;
@@ -13,13 +14,13 @@ namespace BoardingBee_backend.Controllers
     {
         private readonly AppDbContext _context;
 
-    // Constructor injecting the database context.
+        // Constructor injecting the database context.
         public UsersController(AppDbContext context)
         {
             _context = context;
         }
 
-    // Returns all users in the system.
+        // Returns all users in the system.
         [HttpGet]
         public async Task<IActionResult> GetUsers()
         {
@@ -27,7 +28,7 @@ namespace BoardingBee_backend.Controllers
             return Ok(users);
         }
 
-    // Returns a user by ID.
+        // Returns a user by ID.
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUser(int id)
         {
@@ -36,8 +37,8 @@ namespace BoardingBee_backend.Controllers
             return Ok(user);
         }
 
-        
-    // Creates a new user.
+
+        // Creates a new user.
         [HttpPost]
         public async Task<IActionResult> CreateUser(BoardingBee_backend.Models.User user)
         {
@@ -81,9 +82,9 @@ namespace BoardingBee_backend.Controllers
             return Ok(ToProfileResponse(user));
         }
 
-    // Updates notification and privacy settings for a given user ID.
-    [HttpPut("{userId}/profile/settings")]
-    public async Task<ActionResult<ProfileResponse>> UpdateSettings(int userId, [FromBody] UpdateSettingsRequest req)
+        // Updates notification and privacy settings for a given user ID.
+        [HttpPut("{userId}/profile/settings")]
+        public async Task<ActionResult<ProfileResponse>> UpdateSettings(int userId, [FromBody] UpdateSettingsRequest req)
         {
             var user = await _context.Users.Include(u => u.UserSettings).FirstOrDefaultAsync(u => u.Id == userId);
             if (user == null) return NotFound();
@@ -101,7 +102,7 @@ namespace BoardingBee_backend.Controllers
 
         // POST api/users/{userId}/profile/avatar
         [HttpPost("{userId}/profile/avatar")]
-    public async Task<ActionResult<ProfileResponse>> UploadAvatar(int userId, IFormFile file)
+        public async Task<ActionResult<ProfileResponse>> UploadAvatar(int userId, IFormFile file)
         {
             var user = await _context.Users.Include(u => u.UserSettings).FirstOrDefaultAsync(u => u.Id == userId);
             if (user == null) return NotFound();
@@ -121,7 +122,7 @@ namespace BoardingBee_backend.Controllers
             return Ok(ToProfileResponse(user));
         }
 
-    private static ProfileResponse ToProfileResponse(BoardingBee_backend.Models.User user)
+        private static ProfileResponse ToProfileResponse(BoardingBee_backend.Models.User user)
         {
             var s = user.UserSettings ?? new UserSettings { UserId = user.Id };
             return new ProfileResponse
@@ -144,5 +145,24 @@ namespace BoardingBee_backend.Controllers
                 ShowContactInfo = s.ShowContactInfo
             };
         }
+
+        // DELETE api/users/delete-by-email?email=someone@example.com
+        // Only enabled in Development environment for test cleanup
+        [HttpDelete("delete-by-email")]
+        public async Task<IActionResult> DeleteUserByEmail([FromQuery] string email)
+        {
+
+            if (string.IsNullOrWhiteSpace(email))
+                return BadRequest("Email is required.");
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            if (user == null)
+                return NotFound("User not found.");
+
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+            return Ok($"User with email {email} deleted.");
+        }
+        
     }
 }
