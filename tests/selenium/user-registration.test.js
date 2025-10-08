@@ -31,8 +31,13 @@ function getBaseUserDataDir() {
     const dir = arg.split('=')[1];
     if (dir) return dir;
   }
-  // Use $HOME in CI, /tmp otherwise
-  const baseTmp = process.env.CI ? (process.env.HOME || os.homedir()) : os.tmpdir();
+  // Use /dev/shm in CI if available, else $HOME, else /tmp
+  let baseTmp = os.tmpdir();
+  if (process.env.CI && fs.existsSync('/dev/shm')) {
+    baseTmp = '/dev/shm';
+  } else if (process.env.CI) {
+    baseTmp = process.env.HOME || os.homedir();
+  }
   return fs.mkdtempSync(path.join(baseTmp, 'chrome-user-data-'));
 }
 
@@ -57,7 +62,7 @@ async function happyPath() {
   }
   const options = new chrome.Options()
     .addArguments(`--user-data-dir=${userDataDir}`)
-    .addArguments('--no-sandbox', '--disable-dev-shm-usage');
+    .addArguments('--no-sandbox', '--disable-dev-shm-usage', '--headless=new');
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/register`);
@@ -123,7 +128,7 @@ async function testInvalidEmail() {
   }
   const options = new chrome.Options()
     .addArguments(`--user-data-dir=${userDataDir}`)
-    .addArguments('--no-sandbox', '--disable-dev-shm-usage');
+    .addArguments('--no-sandbox', '--disable-dev-shm-usage', '--headless=new');
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get('http://localhost:3000/register');
@@ -163,7 +168,7 @@ async function testUnmatchedPasswords() {
   }
   const options = new chrome.Options()
     .addArguments(`--user-data-dir=${userDataDir}`)
-    .addArguments('--no-sandbox', '--disable-dev-shm-usage');
+    .addArguments('--no-sandbox', '--disable-dev-shm-usage', '--headless=new');
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get('http://localhost:3000/register');
@@ -203,7 +208,7 @@ async function testRequiredFields() {
   }
   const options = new chrome.Options()
     .addArguments(`--user-data-dir=${userDataDir}`)
-    .addArguments('--no-sandbox', '--disable-dev-shm-usage');
+    .addArguments('--no-sandbox', '--disable-dev-shm-usage', '--headless=new');
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get('http://localhost:3000/register');
@@ -236,7 +241,7 @@ async function testDuplicateEmail() {
   }
   const options = new chrome.Options()
     .addArguments(`--user-data-dir=${userDataDir}`)
-    .addArguments('--no-sandbox', '--disable-dev-shm-usage');
+    .addArguments('--no-sandbox', '--disable-dev-shm-usage', '--headless=new');
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get('http://localhost:3000/register');
