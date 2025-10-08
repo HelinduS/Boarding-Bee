@@ -5,8 +5,6 @@ const chrome = require('selenium-webdriver/chrome');
 const os = require('os');
 const path = require('path');
 const fs = require('fs');
-const fs = require('fs');
-const path = require('path');
 
 const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
 

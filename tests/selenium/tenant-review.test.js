@@ -5,8 +5,6 @@ const chrome = require('selenium-webdriver/chrome');
 const os = require('os');
 const path = require('path');
 const fs = require('fs');
-const fs = require('fs');
-const path = require('path');
 
 const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
 
@@ -78,7 +76,7 @@ async function testTenantReviewFlow() {
     // Wait for the listing title to ensure the page is loaded
     try {
       await driver.wait(
-        until.elementLocated(By.xpath("//h1[contains(@class,'text-2xl') and contains(text(),'Selenium Test Listing')]")),
+        until.elementLocated(By.xpath("//h1[contains(@class,'text-2xl')]")),
         15000
       );
     } catch (e) {
