@@ -90,8 +90,8 @@ export default function CreateListingPage() {
       setSuccess("Your listing has been created successfully.");
       setForm({ title: "", location: "", price: "", description: "", facilities: "", isAvailable: true, images: [] });
       setErrors([]);
-      // Optionally redirect to dashboard or listing page
-      // router.push("/my-listings");
+      // Redirect to owner dashboard after successful creation
+      router.push("/owner-dashboard");
     } catch (err: any) {
       setErrors([err?.message || "Failed to create listing"]);
     } finally {
