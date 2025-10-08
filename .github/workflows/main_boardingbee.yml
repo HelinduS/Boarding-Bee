@@ -39,7 +39,7 @@ jobs:
           echo "Smtp__User=helindusenadheera@gmail.com" >> BoardingBee_backend/.env
           echo "Smtp__Pass=uwze hicl smqo bbbz" >> BoardingBee_backend/.env
           echo "Smtp__From=helindusenadheera@gmail.com" >> BoardingBee_backend/.env
-          echo "DB_CONNECTION_STRING=Server=tcp:boardingbee.database.windows.net,1433;Initial Catalog=BoardingBeeDB;Persist Security Info=False;User ID=boardingbee;Password=#Boarding1234;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30; >> BoardingBee_backend/.env
+          echo 'DB_CONNECTION_STRING=Server=tcp:boardingbee.database.windows.net,1433;Initial Catalog=BoardingBeeDB;Persist Security Info=False;User ID=boardingbee;Password=#Boarding1234;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;' >> BoardingBee_backend/.env
           echo "JWT_SECRET=your-very-strong-secret-key-1234567890abcdef" >> BoardingBee_backend/.env
 
       - name: Create frontend .env file
