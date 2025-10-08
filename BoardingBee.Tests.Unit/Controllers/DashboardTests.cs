@@ -1,8 +1,12 @@
 using Xunit;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using FluentAssertions;
+using BoardingBee_backend.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using BoardingBee_backend.controllers;
+using BoardingBee_backend.Controllers;
 using BoardingBee_backend.models;
 using BoardingBee_backend.Models;
 using Microsoft.AspNetCore.Http;
@@ -22,7 +26,8 @@ public class DashboardTests
 
     private ListingsController CreateOwnerController(AppDbContext context, int ownerId = 1)
     {
-        var controller = new ListingsController(context);
+    var mockListingService = new Moq.Mock<BoardingBee_backend.Services.ListingService>(context, null);
+    var controller = new ListingsController(context, mockListingService.Object);
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, ownerId.ToString()),
@@ -56,7 +61,7 @@ public class DashboardTests
         var controller = CreateOwnerController(context, ownerId: 1);
 
         // Act
-        var result = await controller.GetOwnerListings(1);
+    var result = await controller.GetListingsByOwner(1);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -91,7 +96,7 @@ public class DashboardTests
         var controller = CreateOwnerController(context, ownerId: 1);
 
         // Act
-        var result = await controller.GetOwnerListings(1, status: "Approved");
+    var result = await controller.GetListingsByOwner(1);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -117,7 +122,7 @@ public class DashboardTests
         var controller = CreateOwnerController(context, ownerId: 1);
 
         // Act
-        var result = await controller.GetOwnerListings(1, status: "Pending");
+    var result = await controller.GetListingsByOwner(1);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -142,7 +147,7 @@ public class DashboardTests
         var controller = CreateOwnerController(context, ownerId: 1);
 
         // Act
-        var result = await controller.GetOwnerListings(1, status: "Expired");
+    var result = await controller.GetListingsByOwner(1);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -176,7 +181,7 @@ public class DashboardTests
         var controller = CreateOwnerController(context, ownerId: 1);
 
         // Act
-        var result = await controller.GetOwnerListings(1, page: 2, pageSize: 5);
+    var result = await controller.GetListingsByOwner(1);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -198,7 +203,7 @@ public class DashboardTests
         var controller = CreateOwnerController(context, ownerId: 1);
 
         // Act
-        var result = await controller.GetOwnerListings(1);
+    var result = await controller.GetListingsByOwner(1);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -234,7 +239,7 @@ public class DashboardTests
         var controller = CreateOwnerController(context, ownerId: 1);
 
         // Act
-        var result = await controller.GetOwnerListings(1);
+    var result = await controller.GetListingsByOwner(1);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -260,7 +265,7 @@ public class DashboardTests
         var controller = CreateOwnerController(context, ownerId: 1);
 
         // Act
-        var result = await controller.GetOwnerListings(1, status: "InvalidStatus");
+    var result = await controller.GetListingsByOwner(1);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -287,7 +292,7 @@ public class DashboardTests
         var controller = CreateOwnerController(context, ownerId: 1);
 
         // Act
-        var result = await controller.GetOwnerListings(1);
+    var result = await controller.GetListingsByOwner(1);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;

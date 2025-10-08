@@ -1,4 +1,5 @@
 using Xunit;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -53,7 +54,7 @@ public class AuthControllerIntegrationTests : IDisposable
         // Act - Login (expect failure due to JWT key size issue)
         var loginRequest = new LoginRequest 
         { 
-            Username = registerRequest.Username, 
+            Identifier = registerRequest.Username, 
             Password = registerRequest.Password 
         };
         
@@ -158,13 +159,13 @@ public class AuthControllerIntegrationTests : IDisposable
         _context.Users.Add(user);
         _context.SaveChanges();
 
-        var request = new LoginRequest { Username = "testuser", Password = "password123" };
+    var request = new LoginRequest { Identifier = "testuser", Password = "password123" };
 
-        // Act
-        Action act = () => _controller.Login(request);
+    // Act
+    Action act = () => _controller.Login(request);
 
-        // Assert - Expect JWT key size exception
-        act.Should().Throw<ArgumentOutOfRangeException>();
+    // Assert - Expect JWT key size exception
+    act.Should().Throw<ArgumentOutOfRangeException>();
     }
 
     [Fact]

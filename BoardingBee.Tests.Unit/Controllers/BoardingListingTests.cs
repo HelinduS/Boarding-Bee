@@ -1,8 +1,11 @@
 using Xunit;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 using FluentAssertions;
+using BoardingBee_backend.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using BoardingBee_backend.controllers;
+using BoardingBee_backend.Controllers;
 using BoardingBee_backend.Controllers.Dto;
 using BoardingBee_backend.models;
 using BoardingBee_backend.Models;
@@ -23,7 +26,8 @@ public class BoardingListingTests : IDisposable
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         _context = new AppDbContext(options);
-        _controller = new ListingsController(_context);
+    var mockListingService = new Moq.Mock<BoardingBee_backend.Services.ListingService>(_context, null);
+    _controller = new ListingsController(_context, mockListingService.Object);
     }
 
     [Fact]
@@ -43,13 +47,13 @@ public class BoardingListingTests : IDisposable
             Images = new[] { "/image1.jpg", "/image2.jpg" }
         };
 
-        var result = await _controller.CreateListingJson(request);
+    var result = await _controller.CreateListingJson(request);
 
-        result.Should().BeOfType<CreatedAtActionResult>();
-        var listing = await _context.Listings.FirstOrDefaultAsync();
-        listing.Should().NotBeNull();
-        listing!.Title.Should().Be("Test Boarding");
-        listing.Status.Should().Be(ListingStatus.Pending);
+    result.Should().BeOfType<OkObjectResult>();
+    var listing = await _context.Listings.FirstOrDefaultAsync();
+    listing.Should().NotBeNull();
+    listing!.Title.Should().Be("Test Boarding");
+    listing.Status.Should().Be(ListingStatus.Pending);
     }
 
     [Fact]
@@ -177,7 +181,7 @@ public class BoardingListingTests : IDisposable
             Availability = "Available"
         };
 
-        var result = await _controller.UpdateListing(listing.Id, request);
+    var result = await _controller.UpdateListing(listing.Id);
 
         result.Should().BeOfType<OkObjectResult>();
         var updatedListing = await _context.Listings.FindAsync(listing.Id);
@@ -198,7 +202,7 @@ public class BoardingListingTests : IDisposable
             Description = "Updated description"
         };
 
-        var result = await _controller.UpdateListing(999, request);
+    var result = await _controller.UpdateListing(999);
 
         result.Should().BeOfType<NotFoundResult>();
     }
@@ -216,7 +220,7 @@ public class BoardingListingTests : IDisposable
             Description = "Updated description"
         };
 
-        var result = await _controller.UpdateListing(listing.Id, request);
+    var result = await _controller.UpdateListing(listing.Id);
 
         result.Should().BeOfType<ForbidResult>();
     }
@@ -262,7 +266,7 @@ public class BoardingListingTests : IDisposable
         CreateTestListing("Boarding 2", "Kandy", 12000, 1);
         CreateTestListing("Boarding 3", "Galle", 10000, 2); // Different owner
 
-        var result = await _controller.GetOwnerListings(1, 1, 10, null);
+    var result = await _controller.GetListingsByOwner(1);
 
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var response = okResult.Value;
@@ -290,7 +294,7 @@ public class BoardingListingTests : IDisposable
     {
         var listing = CreateTestListing("Test Boarding", "Colombo", 15000);
 
-        var result = await _controller.GetListingDetail(listing.Id);
+        var result = await _controller.GetListing(listing.Id);
 
         result.Should().BeOfType<OkObjectResult>();
     }

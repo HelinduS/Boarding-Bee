@@ -1,10 +1,16 @@
 using Xunit;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using BoardingBee_backend.controllers;
+using BoardingBee_backend.Controllers;
 using BoardingBee_backend.Controllers.Dto;
 using BoardingBee_backend.models;
+// Add using for ListingStatus enum
+using static BoardingBee_backend.models.Listing;
 using BoardingBee_backend.Models;
 
 namespace BoardingBee.Tests.Unit.Controllers;
@@ -50,7 +56,8 @@ public class BrowseListingsTests
         context.Listings.AddRange(listings);
         await context.SaveChangesAsync();
 
-        var controller = new ListingsController(context);
+    var mockListingService = new Moq.Mock<BoardingBee_backend.Services.ListingService>(context, null);
+    var controller = new ListingsController(context, mockListingService.Object);
         var result = await controller.GetListings(null, null, null, 1, 10);
 
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -73,7 +80,8 @@ public class BrowseListingsTests
         context.Listings.AddRange(listings);
         await context.SaveChangesAsync();
 
-        var controller = new ListingsController(context);
+    var mockListingService = new Moq.Mock<BoardingBee_backend.Services.ListingService>(context, null);
+    var controller = new ListingsController(context, mockListingService.Object);
         var result = await controller.GetListings("Colombo", null, null, 1, 10);
 
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -96,7 +104,8 @@ public class BrowseListingsTests
         context.Listings.AddRange(listings);
         await context.SaveChangesAsync();
 
-        var controller = new ListingsController(context);
+    var mockListingService = new Moq.Mock<BoardingBee_backend.Services.ListingService>(context, null);
+    var controller = new ListingsController(context, mockListingService.Object);
         var result = await controller.GetListings(null, 20000, null, 1, 10);
 
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -119,7 +128,8 @@ public class BrowseListingsTests
         context.Listings.AddRange(listings);
         await context.SaveChangesAsync();
 
-        var controller = new ListingsController(context);
+    var mockListingService = new Moq.Mock<BoardingBee_backend.Services.ListingService>(context, null);
+    var controller = new ListingsController(context, mockListingService.Object);
         var result = await controller.GetListings(null, null, 20000, 1, 10);
 
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -143,7 +153,8 @@ public class BrowseListingsTests
         context.Listings.AddRange(listings);
         await context.SaveChangesAsync();
 
-        var controller = new ListingsController(context);
+    var mockListingService = new Moq.Mock<BoardingBee_backend.Services.ListingService>(context, null);
+    var controller = new ListingsController(context, mockListingService.Object);
         var result = await controller.GetListings(null, 12000, 20000, 1, 10);
 
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -166,7 +177,8 @@ public class BrowseListingsTests
         context.Listings.AddRange(listings);
         await context.SaveChangesAsync();
 
-        var controller = new ListingsController(context);
+    var mockListingService = new Moq.Mock<BoardingBee_backend.Services.ListingService>(context, null);
+    var controller = new ListingsController(context, mockListingService.Object);
         var result = await controller.GetListings("Colombo", 15000, null, 1, 10);
 
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -187,7 +199,8 @@ public class BrowseListingsTests
         context.Listings.AddRange(listings);
         await context.SaveChangesAsync();
 
-        var controller = new ListingsController(context);
+    var mockListingService = new Moq.Mock<BoardingBee_backend.Services.ListingService>(context, null);
+    var controller = new ListingsController(context, mockListingService.Object);
         var result = await controller.GetListings(null, null, null, 2, 10);
 
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -196,7 +209,7 @@ public class BrowseListingsTests
         var listings_prop = response.GetType().GetProperty("listings")!.GetValue(response);
         
         total.Should().Be(25);
-        var listingsArray = listings_prop.Should().BeAssignableTo<List<Listing>>().Subject;
+    var listingsArray = listings_prop.Should().BeAssignableTo<List<ListingListItemDto>>().Subject;
         listingsArray.Should().HaveCount(10);
     }
 
@@ -212,13 +225,14 @@ public class BrowseListingsTests
         context.Listings.AddRange(listings);
         await context.SaveChangesAsync();
 
-        var controller = new ListingsController(context);
+    var mockListingService = new Moq.Mock<BoardingBee_backend.Services.ListingService>(context, null);
+    var controller = new ListingsController(context, mockListingService.Object);
         var result = await controller.GetListings(null, null, null, 1, 5);
 
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var response = okResult.Value;
         var listings_prop = response!.GetType().GetProperty("listings")!.GetValue(response);
-        var listingsArray = listings_prop.Should().BeAssignableTo<List<Listing>>().Subject;
+    var listingsArray = listings_prop.Should().BeAssignableTo<List<ListingListItemDto>>().Subject;
         listingsArray.Should().HaveCount(5);
     }
 
@@ -240,13 +254,14 @@ public class BrowseListingsTests
         context.Listings.AddRange(listings);
         await context.SaveChangesAsync();
 
-        var controller = new ListingsController(context);
+    var mockListingService = new Moq.Mock<BoardingBee_backend.Services.ListingService>(context, null);
+    var controller = new ListingsController(context, mockListingService.Object);
         var result = await controller.GetListings(null, null, null, 1, 10);
 
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var response = okResult.Value;
         var listings_prop = response!.GetType().GetProperty("listings")!.GetValue(response);
-        var listingsArray = listings_prop.Should().BeAssignableTo<List<Listing>>().Subject;
+    var listingsArray = listings_prop.Should().BeAssignableTo<List<ListingListItemDto>>().Subject;
         
         listingsArray.First().Title.Should().Be("Newest Room");
     }
@@ -255,7 +270,8 @@ public class BrowseListingsTests
     public async Task BrowseListings_WithNoResults_ShouldReturnEmptyList()
     {
         using var context = GetInMemoryContext();
-        var controller = new ListingsController(context);
+    var mockListingService = new Moq.Mock<BoardingBee_backend.Services.ListingService>(context, null);
+    var controller = new ListingsController(context, mockListingService.Object);
         var result = await controller.GetListings(null, null, null, 1, 10);
 
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -264,7 +280,7 @@ public class BrowseListingsTests
         var listings_prop = response.GetType().GetProperty("listings")!.GetValue(response);
         
         total.Should().Be(0);
-        var listingsArray = listings_prop.Should().BeAssignableTo<List<Listing>>().Subject;
+    var listingsArray = listings_prop.Should().BeAssignableTo<List<ListingListItemDto>>().Subject;
         listingsArray.Should().BeEmpty();
     }
 
@@ -290,8 +306,9 @@ public class BrowseListingsTests
         context.Listings.Add(listing);
         await context.SaveChangesAsync();
 
-        var controller = new ListingsController(context);
-        var result = await controller.GetListingDetail(listing.Id);
+    var mockListingService = new Moq.Mock<BoardingBee_backend.Services.ListingService>(context, null);
+    var controller = new ListingsController(context, mockListingService.Object);
+            var result = await controller.GetListing(listing.Id);
 
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var detailDto = okResult.Value.Should().BeAssignableTo<ListingDetailDto>().Subject;
@@ -307,8 +324,9 @@ public class BrowseListingsTests
     public async Task GetListingDetail_WithInvalidId_ShouldReturnNotFound()
     {
         using var context = GetInMemoryContext();
-        var controller = new ListingsController(context);
-        var result = await controller.GetListingDetail(999);
+    var mockListingService = new Moq.Mock<BoardingBee_backend.Services.ListingService>(context, null);
+    var controller = new ListingsController(context, mockListingService.Object);
+            var result = await controller.GetListing(999);
 
         result.Should().BeOfType<NotFoundResult>();
     }

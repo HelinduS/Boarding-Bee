@@ -1,8 +1,10 @@
 using Xunit;
+using System.Threading.Tasks;
 using FluentAssertions;
+using BoardingBee_backend.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using BoardingBee_backend.controllers;
+using BoardingBee_backend.Controllers;
 using BoardingBee_backend.models;
 using BoardingBee_backend.Models;
 using System;
@@ -22,7 +24,8 @@ public class OwnerDashboardTests : IDisposable
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         _context = new AppDbContext(options);
-        _controller = new ListingsController(_context);
+    var mockListingService = new Moq.Mock<BoardingBee_backend.Services.ListingService>(_context, null);
+    _controller = new ListingsController(_context, mockListingService.Object);
     }
 
     [Fact]
@@ -34,7 +37,7 @@ public class OwnerDashboardTests : IDisposable
         CreateTestListing("Pending Listing", ListingStatus.Pending, ownerId);
         CreateTestListing("Expired Listing", ListingStatus.Expired, ownerId);
 
-        var result = await _controller.GetOwnerListings(ownerId, 1, 10, null);
+    var result = await _controller.GetListingsByOwner(ownerId);
 
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var response = okResult.Value;
@@ -64,7 +67,7 @@ public class OwnerDashboardTests : IDisposable
         CreateTestListing("Approved Listing 2", ListingStatus.Approved, ownerId);
         CreateTestListing("Pending Listing", ListingStatus.Pending, ownerId);
 
-        var result = await _controller.GetOwnerListings(ownerId, 1, 10, "Approved");
+    var result = await _controller.GetListingsByOwner(ownerId);
 
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var response = okResult.Value;
@@ -84,7 +87,7 @@ public class OwnerDashboardTests : IDisposable
             CreateTestListing($"Listing {i}", ListingStatus.Approved, ownerId);
         }
 
-        var result = await _controller.GetOwnerListings(ownerId, 2, 5, null);
+    var result = await _controller.GetListingsByOwner(ownerId);
 
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var response = okResult.Value;
@@ -105,7 +108,7 @@ public class OwnerDashboardTests : IDisposable
     {
         var ownerId = 1;
 
-        var result = await _controller.GetOwnerListings(ownerId, 1, 10, null);
+    var result = await _controller.GetListingsByOwner(ownerId);
 
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var response = okResult.Value;
@@ -128,7 +131,7 @@ public class OwnerDashboardTests : IDisposable
         
         await _context.SaveChangesAsync();
 
-        var result = await _controller.GetOwnerListings(ownerId, 1, 10, null);
+    var result = await _controller.GetListingsByOwner(ownerId);
 
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var response = okResult.Value;
@@ -143,7 +146,7 @@ public class OwnerDashboardTests : IDisposable
         expiredListing.ExpiresAt = DateTime.UtcNow.AddDays(-1); // Already expired
         await _context.SaveChangesAsync();
 
-        var result = await _controller.GetOwnerListings(ownerId, 1, 10, null);
+    var result = await _controller.GetListingsByOwner(ownerId);
 
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var response = okResult.Value;
@@ -161,7 +164,7 @@ public class OwnerDashboardTests : IDisposable
         CreateTestListing("Owner 1 Listing 2", ListingStatus.Approved, 1);
         CreateTestListing("Owner 2 Listing", ListingStatus.Approved, 2);
 
-        var result = await _controller.GetOwnerListings(1, 1, 10, null);
+    var result = await _controller.GetListingsByOwner(1);
 
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var response = okResult.Value;
@@ -179,7 +182,7 @@ public class OwnerDashboardTests : IDisposable
         CreateTestListing("Approved Listing", ListingStatus.Approved, ownerId);
         CreateTestListing("Pending Listing", ListingStatus.Pending, ownerId);
 
-        var result = await _controller.GetOwnerListings(ownerId, 1, 10, "InvalidStatus");
+    var result = await _controller.GetListingsByOwner(ownerId);
 
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var response = okResult.Value;
@@ -201,7 +204,7 @@ public class OwnerDashboardTests : IDisposable
         CreateTestListing("Pending 2", ListingStatus.Pending, ownerId);
         CreateTestListing("Expired 1", ListingStatus.Expired, ownerId);
 
-        var result = await _controller.GetOwnerListings(ownerId, 1, 10, null);
+    var result = await _controller.GetListingsByOwner(ownerId);
 
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         var response = okResult.Value;

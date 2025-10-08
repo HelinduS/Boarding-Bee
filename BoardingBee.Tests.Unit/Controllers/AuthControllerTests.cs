@@ -1,4 +1,8 @@
+
 using Xunit;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Moq;
 using Microsoft.AspNetCore.Mvc;
@@ -26,13 +30,13 @@ public class AuthControllerTests
         // Arrange
         var request = new LoginRequest
         {
-            Username = "testuser",
+            Identifier = "testuser",
             Password = "password123"
         };
         var user = new User { Id = 1, Username = "testuser", Role = "USER" };
         var token = "jwt-token";
 
-        _mockAuthService.Setup(x => x.Authenticate(request.Username, request.Password))
+        _mockAuthService.Setup(x => x.Authenticate(request.Identifier, request.Password))
             .Returns(user);
         _mockAuthService.Setup(x => x.GenerateJwtToken(user))
             .Returns(token);
@@ -54,11 +58,11 @@ public class AuthControllerTests
         // Arrange
         var request = new LoginRequest
         {
-            Username = "testuser",
+            Identifier = "testuser",
             Password = "wrongpassword"
         };
 
-        _mockAuthService.Setup(x => x.Authenticate(request.Username, request.Password))
+        _mockAuthService.Setup(x => x.Authenticate(request.Identifier, request.Password))
             .Returns((User?)null);
 
         // Act
@@ -74,7 +78,7 @@ public class AuthControllerTests
         // Arrange
         var request = new LoginRequest
         {
-            Username = "",
+            Identifier = "",
             Password = "password123"
         };
 
@@ -83,7 +87,7 @@ public class AuthControllerTests
 
         // Assert
         var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
-        badRequestResult.Value.Should().Be("Username and password are required.");
+    badRequestResult.Value.Should().Be("Identifier and password are required.");
     }
 
     [Fact]
@@ -92,7 +96,7 @@ public class AuthControllerTests
         // Arrange
         var request = new LoginRequest
         {
-            Username = "testuser",
+            Identifier = "testuser",
             Password = ""
         };
 
@@ -101,7 +105,7 @@ public class AuthControllerTests
 
         // Assert
         var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
-        badRequestResult.Value.Should().Be("Username and password are required.");
+    badRequestResult.Value.Should().Be("Identifier and password are required.");
     }
 
     [Fact]

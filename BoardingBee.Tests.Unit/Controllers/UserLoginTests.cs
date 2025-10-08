@@ -1,4 +1,5 @@
 using Xunit;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -29,7 +30,7 @@ public class UserLoginTests : IDisposable
     public void Login_WithValidCredentials_ShouldReturnOkWithToken()
     {
         var user = CreateTestUser("testuser", "test@example.com", "password123");
-        var request = new LoginRequest { Username = "testuser", Password = "password123" };
+    var request = new LoginRequest { Identifier = "testuser", Password = "password123" };
 
         Action act = () => _controller.Login(request);
         act.Should().Throw<ArgumentOutOfRangeException>(); // Due to JWT key size issue
@@ -39,7 +40,7 @@ public class UserLoginTests : IDisposable
     public void Login_WithValidEmail_ShouldReturnOkWithToken()
     {
         var user = CreateTestUser("testuser", "test@example.com", "password123");
-        var request = new LoginRequest { Username = "test@example.com", Password = "password123" };
+    var request = new LoginRequest { Identifier = "test@example.com", Password = "password123" };
 
         Action act = () => _controller.Login(request);
         act.Should().Throw<ArgumentOutOfRangeException>(); // Due to JWT key size issue
@@ -49,7 +50,7 @@ public class UserLoginTests : IDisposable
     public void Login_WithInvalidUsername_ShouldReturnUnauthorized()
     {
         var user = CreateTestUser("testuser", "test@example.com", "password123");
-        var request = new LoginRequest { Username = "wronguser", Password = "password123" };
+    var request = new LoginRequest { Identifier = "wronguser", Password = "password123" };
 
         var result = _controller.Login(request);
 
@@ -60,7 +61,7 @@ public class UserLoginTests : IDisposable
     public void Login_WithInvalidPassword_ShouldReturnUnauthorized()
     {
         var user = CreateTestUser("testuser", "test@example.com", "password123");
-        var request = new LoginRequest { Username = "testuser", Password = "wrongpassword" };
+    var request = new LoginRequest { Identifier = "testuser", Password = "wrongpassword" };
 
         var result = _controller.Login(request);
 
@@ -70,7 +71,7 @@ public class UserLoginTests : IDisposable
     [Fact]
     public void Login_WithEmptyUsername_ShouldReturnBadRequest()
     {
-        var request = new LoginRequest { Username = "", Password = "password123" };
+    var request = new LoginRequest { Identifier = "", Password = "password123" };
 
         var result = _controller.Login(request);
 
@@ -80,7 +81,7 @@ public class UserLoginTests : IDisposable
     [Fact]
     public void Login_WithEmptyPassword_ShouldReturnBadRequest()
     {
-        var request = new LoginRequest { Username = "testuser", Password = "" };
+    var request = new LoginRequest { Identifier = "testuser", Password = "" };
 
         var result = _controller.Login(request);
 
@@ -90,7 +91,7 @@ public class UserLoginTests : IDisposable
     [Fact]
     public void Login_WithNullUsername_ShouldReturnBadRequest()
     {
-        var request = new LoginRequest { Username = null, Password = "password123" };
+    var request = new LoginRequest { Identifier = null, Password = "password123" };
 
         var result = _controller.Login(request);
 
@@ -100,7 +101,7 @@ public class UserLoginTests : IDisposable
     [Fact]
     public void Login_WithNullPassword_ShouldReturnBadRequest()
     {
-        var request = new LoginRequest { Username = "testuser", Password = null };
+    var request = new LoginRequest { Identifier = "testuser", Password = null };
 
         var result = _controller.Login(request);
 
@@ -110,7 +111,7 @@ public class UserLoginTests : IDisposable
     [Fact]
     public void Login_WithWhitespaceUsername_ShouldReturnUnauthorized()
     {
-        var request = new LoginRequest { Username = "   ", Password = "password123" };
+    var request = new LoginRequest { Identifier = "   ", Password = "password123" };
 
         var result = _controller.Login(request);
 
@@ -120,7 +121,7 @@ public class UserLoginTests : IDisposable
     [Fact]
     public void Login_WithWhitespacePassword_ShouldReturnUnauthorized()
     {
-        var request = new LoginRequest { Username = "testuser", Password = "   " };
+    var request = new LoginRequest { Identifier = "testuser", Password = "   " };
 
         var result = _controller.Login(request);
 
@@ -130,7 +131,7 @@ public class UserLoginTests : IDisposable
     [Fact]
     public void Login_WithNonExistentUser_ShouldReturnUnauthorized()
     {
-        var request = new LoginRequest { Username = "nonexistent", Password = "password123" };
+    var request = new LoginRequest { Identifier = "nonexistent", Password = "password123" };
 
         var result = _controller.Login(request);
 
@@ -141,7 +142,7 @@ public class UserLoginTests : IDisposable
     public void Login_WithSpecialCharactersInCredentials_ShouldWork()
     {
         var user = CreateTestUser("user@domain.com", "test+tag@example.com", "P@ssw0rd!#$");
-        var request = new LoginRequest { Username = "user@domain.com", Password = "P@ssw0rd!#$" };
+    var request = new LoginRequest { Identifier = "user@domain.com", Password = "P@ssw0rd!#$" };
 
         Action act = () => _controller.Login(request);
         act.Should().Throw<ArgumentOutOfRangeException>(); // Due to JWT key size issue
