@@ -1,18 +1,4 @@
-function getBaseUserDataDir() {
-  const arg = process.argv.find(a => a.startsWith('--user-data-dir='));
-  if (arg) {
-    const dir = arg.split('=')[1];
-    if (dir) return dir;
-  }
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'chrome-user-data-'));
-}
-
-function getUniqueUserDataDir(testName) {
-  const baseDir = getBaseUserDataDir();
-  const uniqueDir = path.join(baseDir, `${testName}-${Math.random().toString(36).slice(2, 10)}`);
-  fs.mkdirSync(uniqueDir, { recursive: true });
-  return uniqueDir;
-}
+const { getUniqueUserDataDir, getChromeOptions } = require('./seleniumTestUtils');
 // owner-registration.test.js
 // Selenium E2E tests for owner registration (happy path and edge cases)
 const { Builder, By, until } = require('selenium-webdriver');
@@ -40,8 +26,7 @@ async function happyPath() {
   // Kill any lingering Chrome processes to avoid user data dir/session errors
   try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
   const userDataDir = getUniqueUserDataDir('happyPath');
-  console.log('Using Chrome user data dir:', userDataDir);
-  const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
+  const options = getChromeOptions(userDataDir);
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/register-owner`);
@@ -67,8 +52,7 @@ async function testUnmatchedPasswords() {
   const user = getOwnerTestUser();
   try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
   const userDataDir = getUniqueUserDataDir('testUnmatchedPasswords');
-  console.log('Using Chrome user data dir:', userDataDir);
-  const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
+  const options = getChromeOptions(userDataDir);
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/register-owner`);

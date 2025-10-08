@@ -114,9 +114,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y google-chrome-stable
 
-      # Check Chrome installation and launch
-      - name: Chrome launch check
-        run: bash ./ci-chrome-check.sh
 
       # Run all tests
       - name: Run all tests
