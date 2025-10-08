@@ -153,10 +153,10 @@ public class BoardingListingTests : IDisposable
 
         var result = await _controller.GetListing(listing.Id);
 
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var returnedListing = okResult.Value as Listing;
-        returnedListing.Should().NotBeNull();
-        returnedListing!.Title.Should().Be("Test Boarding");
+    var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+    var returnedListing = okResult.Value as BoardingBee_backend.Controllers.Dto.ListingDetailDto;
+    returnedListing.Should().NotBeNull();
+    returnedListing!.Title.Should().Be("Test Boarding");
     }
 
     [Fact]
@@ -181,10 +181,16 @@ public class BoardingListingTests : IDisposable
             Availability = "Available"
         };
 
-    var result = await _controller.UpdateListing(listing.Id);
+        // Provide request body as controller expects to read JSON from Request.Body
+        var json = System.Text.Json.JsonSerializer.Serialize(request);
+        var bytes = System.Text.Encoding.UTF8.GetBytes(json);
+        _controller.ControllerContext.HttpContext.Request.Body = new System.IO.MemoryStream(bytes);
+
+        var result = await _controller.UpdateListing(listing.Id);
 
         result.Should().BeOfType<OkObjectResult>();
         var updatedListing = await _context.Listings.FindAsync(listing.Id);
+        // verify persisted changes
         updatedListing!.Title.Should().Be("Updated Title");
         updatedListing.Location.Should().Be("Kandy");
         updatedListing.Price.Should().Be(18000);
