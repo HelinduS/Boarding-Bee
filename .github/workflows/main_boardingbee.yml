@@ -57,10 +57,17 @@ jobs:
           cd BoardingBee_backend
           dotnet build --configuration Release
 
+
       - name: Start backend
         run: |
           cd BoardingBee_backend
-          nohup dotnet run --urls http://localhost:5000 &
+          nohup dotnet run --urls http://localhost:5000 > ../backend.log 2>&1 &
+
+      - name: Check backend process
+        run: pgrep -af dotnet || echo "Backend not running"
+
+      - name: Tail backend log
+        run: tail -n 50 backend.log || echo "No backend log"
 
       - name: Install frontend dependencies
         run: |
