@@ -45,7 +45,7 @@ jobs:
           echo "NEXT_PUBLIC_API_URL=http://localhost:5000" > BoardingBee_frontend/.env
           echo "BASE_URL=http://localhost:3000" >> BoardingBee_frontend/.env
 
-
+      # Install root dependencies (Frontend and Backend)
       - name: Install root dependencies
         run: npm install
 
@@ -59,40 +59,54 @@ jobs:
           cd BoardingBee_backend
           dotnet build --configuration Release
 
+      # Start backend service
       - name: Start backend
         run: |
           cd BoardingBee_backend
           nohup dotnet run --urls http://0.0.0.0:5000 > ../backend.log 2>&1 &
 
+      # Ensure backend is running and check process
       - name: Check backend process
         run: pgrep -af dotnet || echo "Backend not running"
 
       - name: Tail backend log
-        run: tail -n 50 backend.log || echo "No backend log"
+        run: tail -n 50 ../backend.log || echo "No backend log"
 
+      # Install frontend dependencies
       - name: Install frontend dependencies
         run: |
           cd BoardingBee_frontend
           npm install
 
+      # Build frontend
       - name: Build frontend
         run: |
           cd BoardingBee_frontend
           npm run build
 
+      # Start frontend service
       - name: Start frontend
         run: |
           cd BoardingBee_frontend
           nohup npm run start &
 
+      # Wait for backend to be fully ready before proceeding with the health check
+      - name: Wait for backend to initialize
+        run: |
+          echo "Waiting for backend to be ready..."
+          sleep 30  # Adjust sleep time if needed, or use more advanced retry logic
+
+      # Check backend health endpoint
       - name: Check backend health endpoint
         run: |
           curl --fail http://localhost:5000/api/health || echo "Backend health check failed"
 
+      # Wait for both backend and frontend to be ready before running tests
       - name: Wait for servers to be ready
         run: |
           npx wait-on --timeout 300000 --debug http://localhost:5000/api/health http://localhost:3000
 
+      # Run all tests
       - name: Run all tests
         run: ./run-all-tests.sh
 
@@ -129,6 +143,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: .net-app
+
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
