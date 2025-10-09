@@ -20,7 +20,7 @@ async function happyPath() {
   const user = getOwnerTestUser();
   try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
   const userDataDir = getUniqueUserDataDir('happyPath');
-  const options = getChromeOptions(userDataDir);
+  const options = getChromeOptions(userDataDir, chrome);
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/login`);
@@ -39,7 +39,7 @@ async function happyPath() {
 async function testInvalidEmail() {
   try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
   const userDataDir = getUniqueUserDataDir('testInvalidEmail');
-  const options = getChromeOptions(userDataDir);
+  const options = getChromeOptions(userDataDir, chrome);
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/login`);
@@ -67,7 +67,7 @@ async function testWrongPassword() {
   const user = getOwnerTestUser();
   try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
   const userDataDir = getUniqueUserDataDir('testWrongPassword');
-  const options = getChromeOptions(userDataDir);
+  const options = getChromeOptions(userDataDir, chrome);
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/login`);

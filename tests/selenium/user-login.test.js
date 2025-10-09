@@ -28,7 +28,7 @@ async function happyPath() {
   } catch (e) {}
   const user = getTestUser();
   const userDataDir = getUniqueUserDataDir('happyPath');
-  const options = getChromeOptions(userDataDir);
+  const options = getChromeOptions(userDataDir, chrome);
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/login`);
@@ -60,7 +60,7 @@ async function testInvalidEmailFormat() {
     require('child_process').execSync('pkill chrome || true');
   } catch (e) {}
   const userDataDir = getUniqueUserDataDir('testInvalidEmailFormat');
-  const options = getChromeOptions(userDataDir);
+  const options = getChromeOptions(userDataDir, chrome);
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/login`);

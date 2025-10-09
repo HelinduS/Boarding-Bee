@@ -60,7 +60,7 @@ async function testOwnerDashboardFlows() {
   // Kill any lingering Chrome processes to avoid user data dir/session errors
   try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
   const userDataDir = getUniqueUserDataDir('testOwnerDashboardFlows');
-  const options = getChromeOptions(userDataDir);
+  const options = getChromeOptions(userDataDir, chrome);
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     // -------------------------

@@ -39,7 +39,7 @@ async function testTenantReviewFlow() {
     // Ignore errors if pkill is not available
   }
   const userDataDir = getUniqueUserDataDir('testTenantReviewFlow');
-  const options = getChromeOptions(userDataDir);
+  const options = getChromeOptions(userDataDir, chrome);
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     // 1) Login as tenant

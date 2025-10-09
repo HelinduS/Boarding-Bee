@@ -26,7 +26,7 @@ async function happyPath() {
   // Kill any lingering Chrome processes to avoid user data dir/session errors
   try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
   const userDataDir = getUniqueUserDataDir('happyPath');
-  const options = getChromeOptions(userDataDir);
+  const options = getChromeOptions(userDataDir, chrome);
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/register-owner`);
@@ -52,7 +52,7 @@ async function testUnmatchedPasswords() {
   const user = getOwnerTestUser();
   try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
   const userDataDir = getUniqueUserDataDir('testUnmatchedPasswords');
-  const options = getChromeOptions(userDataDir);
+  const options = getChromeOptions(userDataDir, chrome);
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/register-owner`);
