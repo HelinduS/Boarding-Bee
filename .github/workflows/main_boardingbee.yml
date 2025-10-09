@@ -125,23 +125,14 @@ jobs:
       - name: Run E2E Selenium tests
         run: ./run-e2e-tests.sh
 
-      # ===================== REPORT GENERATION (CHANGED) =====================
 
-      - name: Install ReportGenerator
-        run: dotnet tool install -g dotnet-reportgenerator-globaltool
+      # ===================== NEW E2E SUMMARY REPORT GENERATION =====================
 
-      - name: Add dotnet tools to PATH
-        run: echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+      - name: Run E2E Selenium tests and capture output
+        run: ./run-e2e-tests.sh | tee e2e-summary.txt
 
-      - name: Generate HTML test report (merge .NET and Selenium results)
-        run: |
-          # Pick up both styles just in case:
-          #  - TRX from .NET
-          #  - JUnit XML from Selenium under either selenium-results/*.xml or selenium-results-*.xml
-          reportgenerator \
-            -reports:"**/test-results.trx;selenium-results/*.xml;selenium-results-*.xml" \
-            -targetdir:TestResultsReport \
-            -reporttypes:Html
+      - name: Generate E2E HTML summary
+        run: node tests/summarize-e2e.js
 
       - name: Install wkhtmltopdf + xvfb
         run: |
