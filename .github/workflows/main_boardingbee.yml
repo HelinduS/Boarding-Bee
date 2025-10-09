@@ -121,13 +121,6 @@ jobs:
       - name: Install mocha-junit-reporter
         run: npm install --save-dev mocha-junit-reporter
 
-      # Run E2E Selenium tests using the runner script (JUnit XML output)
-      - name: Run E2E Selenium tests
-        run: ./run-e2e-tests.sh
-
-
-      # ===================== NEW E2E SUMMARY REPORT GENERATION =====================
-
       - name: Run E2E Selenium tests and capture output
         run: ./run-e2e-tests.sh | tee e2e-summary.txt
 
