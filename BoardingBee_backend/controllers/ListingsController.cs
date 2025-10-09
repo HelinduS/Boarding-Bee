@@ -269,7 +269,9 @@ namespace BoardingBee_backend.Controllers
                 : q.OrderByDescending(r => r.CreatedAt);
 
             var total = await q.CountAsync();
-            var items = await q.Skip((page - 1) * pageSize).Take(pageSize)
+            var items = await q
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(r => new ReviewResponseDto
                 {
                     Id = r.Id,
@@ -309,6 +311,33 @@ namespace BoardingBee_backend.Controllers
                     dto.Histogram[r] = dto.Histogram.GetValueOrDefault(r) + 1;
             }
             return Ok(dto);
+        }
+
+        // ===== NEW: return the current user's review for this listing =====
+        // GET: /api/Listings/{id}/reviews/me
+        [HttpGet("{id:int}/reviews/me")]
+        [Authorize]
+        public async Task<ActionResult<ReviewResponseDto?>> GetMyReview(int id)
+        {
+            var userId = GetUserId();
+            if (userId is null) return Unauthorized();
+
+            var review = await _context.Reviews
+                .Include(r => r.User)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(r => r.ListingId == id && r.UserId == userId.Value);
+
+            if (review == null) return NoContent(); // nothing yet
+
+            return Ok(new ReviewResponseDto
+            {
+                Id = review.Id,
+                UserId = review.UserId,
+                Username = review.User?.Username,
+                Rating = review.Rating,
+                Text = review.Text,
+                CreatedAt = review.CreatedAt
+            });
         }
 
         // POST: /api/Listings/{id}/reviews
@@ -368,7 +397,6 @@ namespace BoardingBee_backend.Controllers
         }
 
         // DELETE: /api/Listings/{id}/reviews/{reviewId}
-        // Owner of review can delete; ADMIN can delete any
         [HttpDelete("{id:int}/reviews/{reviewId:int}")]
         [Authorize]
         public async Task<IActionResult> DeleteReview(int id, int reviewId)
@@ -408,6 +436,8 @@ namespace BoardingBee_backend.Controllers
 
             await _context.SaveChangesAsync();
         }
-        // ===================== END REVIEWS REGION =====================
-    }
-}
+
+
+                // ===================== END REVIEWS REGION =======================
+            }
+        }
