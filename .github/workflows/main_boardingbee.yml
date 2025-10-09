@@ -61,9 +61,8 @@ jobs:
           dotnet build --configuration Release
 
       - name: Run backend unit tests
-        run: dotnet test tests/BoardingBee.Tests.Unit/BoardingBee.Tests.Unit.csproj --no-build --verbosity normal
-
-      # Start backend service
+        run: dotnet test tests/BoardingBee.Tests.Unit/BoardingBee.Tests.Unit.csproj --verbosity normal
+    
       - name: Start backend
         run: |
           cd BoardingBee_backend
