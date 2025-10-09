@@ -1,4 +1,4 @@
-const { getUniqueUserDataDir, getChromeOptions } = require('./seleniumTestUtils');
+const { getChromeOptions } = require('./seleniumTestUtils');
 // owner-registration.test.js
 // Selenium E2E tests for owner registration (happy path and edge cases)
 const { Builder, By, until } = require('selenium-webdriver');
@@ -8,6 +8,7 @@ const path = require('path');
 const fs = require('fs');
 
 const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+const API_URL = process.env.API_URL || 'http://127.0.0.1:5000';
 
 function getOwnerTestUser() {
   return {
@@ -25,8 +26,7 @@ async function happyPath() {
   const user = getOwnerTestUser();
   // Kill any lingering Chrome processes to avoid user data dir/session errors
   try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
-  const userDataDir = getUniqueUserDataDir('happyPath');
-  const options = getChromeOptions(userDataDir, chrome);
+  const options = getChromeOptions('Owner Registration Happy Path');
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/register-owner`);
@@ -51,8 +51,7 @@ async function happyPath() {
 async function testUnmatchedPasswords() {
   const user = getOwnerTestUser();
   try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
-  const userDataDir = getUniqueUserDataDir('testUnmatchedPasswords');
-  const options = getChromeOptions(userDataDir, chrome);
+  const options = getChromeOptions('Owner Registration Unmatched Passwords');
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/register-owner`);
@@ -82,9 +81,7 @@ async function testUnmatchedPasswords() {
 
 async function testRequiredFields() {
   try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
-  const userDataDir = getUserDataDir();
-  console.log('Using Chrome user data dir:', userDataDir);
-  const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
+  const options = getChromeOptions('Owner Registration Required Fields');
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/register-owner`);
@@ -110,9 +107,7 @@ async function testRequiredFields() {
 async function testDuplicateEmail() {
   const user = getOwnerTestUser();
   try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
-  const userDataDir = getUserDataDir();
-  console.log('Using Chrome user data dir:', userDataDir);
-  const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
+  const options = getChromeOptions('Owner Registration Duplicate Email');
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/register-owner`);

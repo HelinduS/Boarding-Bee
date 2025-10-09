@@ -34,6 +34,4 @@ do
   rm -rf "$USER_DATA_DIR"
 done
 
-echo "Cleaning up test user..."
-node tests/selenium/delete-test-user.js
 

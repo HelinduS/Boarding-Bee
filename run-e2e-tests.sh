@@ -1,0 +1,28 @@
+#!/bin/sh
+
+# Run Selenium E2E tests in a specific order with Mocha
+
+# Clean up test users before running tests
+echo "Deleting test users before E2E tests..."
+node tests/selenium/delete-test-user.js
+
+
+for testfile in \
+  tests/selenium/user-registration.test.js \
+  tests/selenium/user-login.test.js \
+  tests/selenium/owner-registration.test.js \
+  tests/selenium/owner-login.test.js \
+  tests/selenium/owner-dashboard.test.js \
+  tests/selenium/tenant-review.test.js
+do
+  echo "\n===== Running $testfile ====="
+  npx mocha "$testfile"
+  # Kill any leftover Chrome/ChromeDriver processes
+  pkill chrome || true
+  pkill chromedriver || true
+  sleep 2
+done
+
+# Clean up test users after running tests
+echo "Deleting test users after E2E tests..."
+node tests/selenium/delete-test-user.js

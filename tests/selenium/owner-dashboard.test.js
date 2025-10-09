@@ -1,4 +1,4 @@
-const { getUniqueUserDataDir, getChromeOptions } = require('./seleniumTestUtils');
+const { getChromeOptions } = require('./seleniumTestUtils');
 // owner-dashboard.test.js
 // Selenium E2E tests for Owner Dashboard (after login)
 const { Builder, By, until, Key } = require('selenium-webdriver');
@@ -8,6 +8,7 @@ const path = require('path');
 const fs = require('fs');
 
 const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+const API_URL = process.env.API_URL || 'http://127.0.0.1:5000';
 
 function getOwnerTestUser() {
   try {
@@ -59,8 +60,7 @@ async function getFirstRowAndButtons(driver, listingTitle = 'Selenium Test Listi
 async function testOwnerDashboardFlows() {
   // Kill any lingering Chrome processes to avoid user data dir/session errors
   try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
-  const userDataDir = getUniqueUserDataDir('testOwnerDashboardFlows');
-  const options = getChromeOptions(userDataDir, chrome);
+  const options = getChromeOptions('Owner Dashboard Flows');
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     // -------------------------
