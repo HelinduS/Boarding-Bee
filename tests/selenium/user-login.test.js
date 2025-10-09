@@ -90,7 +90,7 @@ async function testWrongPassword() {
   const user = getTestUser();
   const userDataDir = getUniqueUserDataDir('testWrongPassword');
   console.log('Using Chrome user data dir:', userDataDir);
-  const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
+  const options = getChromeOptions(userDataDir, chrome);
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/login`);
@@ -119,7 +119,7 @@ async function testNonExistentEmail() {
   } catch (e) {}
   const userDataDir = getUniqueUserDataDir('testNonExistentEmail');
   console.log('Using Chrome user data dir:', userDataDir);
-  const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
+  const options = getChromeOptions(userDataDir, chrome);
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/login`);
@@ -148,7 +148,7 @@ async function testBlankFields() {
   } catch (e) {}
   const userDataDir = getUniqueUserDataDir('testBlankFields');
   console.log('Using Chrome user data dir:', userDataDir);
-  const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
+  const options = getChromeOptions(userDataDir, chrome);
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/login`);

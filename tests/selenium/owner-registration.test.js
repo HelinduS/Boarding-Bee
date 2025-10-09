@@ -84,7 +84,7 @@ async function testRequiredFields() {
   try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
   const userDataDir = getUserDataDir();
   console.log('Using Chrome user data dir:', userDataDir);
-  const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
+  const options = getChromeOptions(userDataDir, chrome);
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/register-owner`);
@@ -112,7 +112,7 @@ async function testDuplicateEmail() {
   try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
   const userDataDir = getUserDataDir();
   console.log('Using Chrome user data dir:', userDataDir);
-  const options = new chrome.Options().addArguments(`--user-data-dir=${userDataDir}`);
+  const options = getChromeOptions(userDataDir, chrome);
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/register-owner`);
