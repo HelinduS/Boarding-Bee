@@ -14,6 +14,7 @@ on:
 
 jobs:
   test:
+    if: github.ref != 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -61,7 +62,45 @@ jobs:
           dotnet build --configuration Release
 
       - name: Run backend unit tests
-        run: dotnet test tests/BoardingBee.Tests.Unit/BoardingBee.Tests.Unit.csproj --verbosity normal
+        run: dotnet test tests/BoardingBee.Tests.Unit/BoardingBee.Tests.Unit.csproj --logger "trx;LogFileName=test-results.trx"
+
+      - name: Install ReportGenerator
+        run: dotnet tool install -g dotnet-reportgenerator-globaltool
+
+      - name: Generate HTML test report
+        run: |
+          reportgenerator -reports:**/test-results.trx -targetdir:TestResultsReport -reporttypes:Html
+
+      - name: Install wkhtmltopdf
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wkhtmltopdf
+
+      - name: Convert HTML report to PDF
+        run: |
+          wkhtmltopdf TestResultsReport/index.html TestResultsReport/report.pdf
+
+      - name: Set up Node.js for email script
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Node.js dependencies for email
+        run: npm install node-fetch@2 nodemailer dotenv
+
+      - name: Send PDF report to contributors
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_OWNER: HelinduS
+          REPO_NAME: Boarding-Bee
+          REPORT_HTML_PATH: TestResultsReport/index.html
+          REPORT_PDF_PATH: TestResultsReport/report.pdf
+        run: node send-report.js
     
       - name: Start backend
         run: |
