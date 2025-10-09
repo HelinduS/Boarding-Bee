@@ -8,9 +8,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BoardingBee_backend.Controllers;
 using BoardingBee_backend.Controllers.Dto;
-using BoardingBee_backend.models;
+using BoardingBee_backend.Models;
 // Add using for ListingStatus enum
-using static BoardingBee_backend.models.Listing;
+using static BoardingBee_backend.Models.Listing;
 using BoardingBee_backend.Models;
 
 namespace BoardingBee.Tests.Unit.Controllers;
