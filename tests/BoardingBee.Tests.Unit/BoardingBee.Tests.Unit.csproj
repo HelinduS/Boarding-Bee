@@ -16,6 +16,6 @@
 			<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
 	</ItemGroup>
 		<ItemGroup>
-			<ProjectReference Include="..\BoardingBee_backend\BoardingBee_backend.csproj" />
+			<ProjectReference Include="../../BoardingBee_backend/BoardingBee_backend.csproj" />
 		</ItemGroup>
 </Project>

@@ -1,13 +1,10 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-// Listing is in BoardingBee_backend.models (lowercase ‘models’)
-using BoardingBee_backend.models;
 
-// User is in BoardingBee_backend.Models (uppercase ‘Models’)
 using BoardingBee_backend.Models;
 
-namespace BoardingBee_backend.models
+namespace BoardingBee_backend.Models
 {
     public class Review
     {

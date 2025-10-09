@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using BoardingBee_backend.models;
+using BoardingBee_backend.Models;
 
 namespace BoardingBee_backend.Controllers.Dto
 {

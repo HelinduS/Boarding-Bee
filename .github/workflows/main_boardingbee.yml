@@ -1,6 +1,5 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
-
 name: Build, Test, and Deploy ASP.Net Core app to Azure Web App - boardingbee
 
 on:
@@ -55,12 +54,15 @@ jobs:
           cd BoardingBee_backend
           dotnet restore
 
+
       - name: Build backend
         run: |
           cd BoardingBee_backend
           dotnet build --configuration Release
 
-      # Start backend service
+      - name: Run backend unit tests
+        run: dotnet test tests/BoardingBee.Tests.Unit/BoardingBee.Tests.Unit.csproj --verbosity normal
+    
       - name: Start backend
         run: |
           cd BoardingBee_backend

@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using BoardingBee_backend.Models;
-using BoardingBee_backend.models;
 using BoardingBee_backend.Controllers.Dto;
 
 namespace BoardingBee_backend.Services
@@ -64,6 +63,76 @@ namespace BoardingBee_backend.Services
             return (true, "Listing created successfully.", listing.Id);
         }
 
-        // Add similar methods for update, delete, fetch, renew, etc.
+        // Browse listings with filters and pagination
+        public async Task<(int Total, List<Listing> Listings)> BrowseListingsAsync(string? location, decimal? minPrice, decimal? maxPrice, int page = 1, int pageSize = 10)
+        {
+            var query = _context.Listings.AsQueryable();
+            if (!string.IsNullOrWhiteSpace(location))
+                query = query.Where(l => l.Location.ToLower().Contains(location.ToLower()));
+            if (minPrice.HasValue)
+                query = query.Where(l => l.Price >= minPrice.Value);
+            if (maxPrice.HasValue)
+                query = query.Where(l => l.Price <= maxPrice.Value);
+            query = query.OrderByDescending(l => l.CreatedAt);
+            var total = await query.CountAsync();
+            var listings = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            return (total, listings);
+        }
+
+        // Get a single listing by ID
+        public async Task<Listing?> GetListingAsync(int id)
+        {
+            return await _context.Listings.FindAsync(id);
+        }
+
+        // Update listing (form or JSON)
+        public async Task<(bool Success, string Message)> UpdateListingAsync(int id, Action<Listing> updateAction)
+        {
+            var listing = await _context.Listings.FirstOrDefaultAsync(l => l.Id == id);
+            if (listing == null) return (false, "Listing not found.");
+            updateAction(listing);
+            listing.LastUpdated = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            return (true, "Listing updated successfully.");
+        }
+
+        // Delete listing
+        public async Task<(bool Success, string Message)> DeleteListingAsync(int id, int? userId, string? userRole)
+        {
+            var listing = await _context.Listings.FirstOrDefaultAsync(l => l.Id == id);
+            if (listing == null) return (false, "Listing not found.");
+            if (userRole != null && userRole != "OWNER" && userRole != "ADMIN")
+                return (false, "You cannot delete another owner's listing.");
+            if (userRole == "OWNER" && (userId == null || listing.OwnerId != userId))
+                return (false, "You cannot delete another owner's listing.");
+            _context.Listings.Remove(listing);
+            await _context.SaveChangesAsync();
+            return (true, "Listing deleted.");
+        }
+
+        // Get listings by owner
+        public async Task<List<Listing>> GetListingsByOwnerAsync(int ownerId)
+        {
+            return await _context.Listings
+                .Where(l => l.OwnerId == ownerId)
+                .OrderByDescending(l => l.CreatedAt)
+                .ToListAsync();
+        }
+
+        // Renew listing
+        public async Task<(bool Success, string Message)> RenewListingAsync(int id, int? userId, string? userRole)
+        {
+            var listing = await _context.Listings.FirstOrDefaultAsync(l => l.Id == id);
+            if (listing == null) return (false, "Listing not found.");
+            if (userRole != null && userRole != "OWNER" && userRole != "ADMIN")
+                return (false, "You cannot renew another owner's listing.");
+            if (userRole == "OWNER" && (userId == null || listing.OwnerId != userId))
+                return (false, "You cannot renew another owner's listing.");
+            listing.ExpiresAt = DateTime.UtcNow.AddMonths(6);
+            listing.Status = ListingStatus.Approved;
+            listing.LastUpdated = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            return (true, "Listing renewed successfully.");
+        }
     }
 }
