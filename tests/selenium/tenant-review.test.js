@@ -1,4 +1,4 @@
-const { getUniqueUserDataDir, getChromeOptions } = require('./seleniumTestUtils');
+const { getChromeOptions } = require('./seleniumTestUtils');
 // tenant-review.test.js
 // Selenium E2E test for review/rating flows as a tenant (not owner)
 const { Builder, By, until, Key } = require('selenium-webdriver');
@@ -8,6 +8,7 @@ const path = require('path');
 const fs = require('fs');
 
 const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+const API_URL = process.env.API_URL || 'http://localhost:5000';
 
 function getTestUser() {
   try {
@@ -38,8 +39,7 @@ async function testTenantReviewFlow() {
   } catch (e) {
     // Ignore errors if pkill is not available
   }
-  const userDataDir = getUniqueUserDataDir('testTenantReviewFlow');
-  const options = getChromeOptions(userDataDir, chrome);
+  const options = getChromeOptions('Tenant Review Flow');
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     // 1) Login as tenant

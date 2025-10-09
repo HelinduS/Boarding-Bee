@@ -3,7 +3,7 @@
 // Deletes both the regular and owner test users created by Selenium tests
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
-const apiUrl = process.env.API_URL || 'http://localhost:5000';
+const API_URL = process.env.API_URL || 'http://localhost:5000';
 const testUsers = [
   'selenium_test_user@example.com',
   'selenium_owner_test@example.com',
@@ -13,7 +13,7 @@ const testUsers = [
   let allOk = true;
   for (const email of testUsers) {
     try {
-      const res = await fetch(`${apiUrl}/api/users/delete-by-email?email=${encodeURIComponent(email)}`, { method: 'DELETE' });
+  const res = await fetch(`${API_URL}/api/users/delete-by-email?email=${encodeURIComponent(email)}`, { method: 'DELETE' });
       const text = await res.text();
       if (res.ok) {
         console.log('Test user deleted:', email);

@@ -1,10 +1,9 @@
 // user-registration.test.js
 // Selenium E2E tests for user registration (happy path and edge cases)
 const { Builder, By, until } = require('selenium-webdriver');
-const chrome = require('selenium-webdriver/chrome');
-const os = require('os');
-const path = require('path');
+const { getChromeOptions } = require('./seleniumTestUtils');
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+const API_URL = process.env.API_URL || 'http://localhost:5000';
 const fs = require('fs');
 
 function getFixedTestUser() {
@@ -24,45 +23,14 @@ function getFixedTestUser() {
   };
 }
 
-// Parse --user-data-dir from process.argv if provided
-function getBaseUserDataDir() {
-  const arg = process.argv.find(a => a.startsWith('--user-data-dir='));
-  if (arg) {
-    const dir = arg.split('=')[1];
-    if (dir) return dir;
-  }
-  // Use /dev/shm in CI if available, else $HOME, else /tmp
-  let baseTmp = os.tmpdir();
-  if (process.env.CI && fs.existsSync('/dev/shm')) {
-    baseTmp = '/dev/shm';
-  } else if (process.env.CI) {
-    baseTmp = process.env.HOME || os.homedir();
-  }
-  return fs.mkdtempSync(path.join(baseTmp, 'chrome-user-data-'));
-}
 
-function getUniqueUserDataDir(testName) {
-  const baseDir = getBaseUserDataDir();
-  const uniqueDir = path.join(baseDir, `${testName}-${Math.random().toString(36).slice(2, 10)}`);
-  fs.mkdirSync(uniqueDir, { recursive: true });
-  return uniqueDir;
-}
 
 // --- Happy Path ---
 async function happyPath() {
   const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
   const user = getFixedTestUser();
   try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
-  const userDataDir = getUniqueUserDataDir('happyPath');
-  console.log('Using Chrome user data dir:', userDataDir);
-  if (fs.existsSync(userDataDir)) {
-    console.log('User data dir exists, removing:', userDataDir);
-    fs.rmSync(userDataDir, { recursive: true, force: true });
-    fs.mkdirSync(userDataDir, { recursive: true });
-  }
-  const options = new chrome.Options()
-    .addArguments(`--user-data-dir=${userDataDir}`)
-    .addArguments('--no-sandbox', '--disable-dev-shm-usage', '--headless=new');
+  const options = getChromeOptions('user-registration-happyPath');
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/register`);
@@ -119,16 +87,7 @@ async function happyPath() {
 // --- Edge Cases ---
 async function testInvalidEmail() {
   try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
-  const userDataDir = getUniqueUserDataDir('testInvalidEmail');
-  console.log('Using Chrome user data dir:', userDataDir);
-  if (fs.existsSync(userDataDir)) {
-    console.log('User data dir exists, removing:', userDataDir);
-    fs.rmSync(userDataDir, { recursive: true, force: true });
-    fs.mkdirSync(userDataDir, { recursive: true });
-  }
-  const options = new chrome.Options()
-    .addArguments(`--user-data-dir=${userDataDir}`)
-    .addArguments('--no-sandbox', '--disable-dev-shm-usage', '--headless=new');
+  const options = getChromeOptions('user-registration-invalidEmail');
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get('http://localhost:3000/register');
@@ -159,16 +118,7 @@ async function testInvalidEmail() {
 
 async function testUnmatchedPasswords() {
   try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
-  const userDataDir = getUniqueUserDataDir('testUnmatchedPasswords');
-  console.log('Using Chrome user data dir:', userDataDir);
-  if (fs.existsSync(userDataDir)) {
-    console.log('User data dir exists, removing:', userDataDir);
-    fs.rmSync(userDataDir, { recursive: true, force: true });
-    fs.mkdirSync(userDataDir, { recursive: true });
-  }
-  const options = new chrome.Options()
-    .addArguments(`--user-data-dir=${userDataDir}`)
-    .addArguments('--no-sandbox', '--disable-dev-shm-usage', '--headless=new');
+  const options = getChromeOptions('user-registration-unmatchedPasswords');
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get('http://localhost:3000/register');
@@ -199,16 +149,7 @@ async function testUnmatchedPasswords() {
 
 async function testRequiredFields() {
   try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
-  const userDataDir = getUniqueUserDataDir('testRequiredFields');
-  console.log('Using Chrome user data dir:', userDataDir);
-  if (fs.existsSync(userDataDir)) {
-    console.log('User data dir exists, removing:', userDataDir);
-    fs.rmSync(userDataDir, { recursive: true, force: true });
-    fs.mkdirSync(userDataDir, { recursive: true });
-  }
-  const options = new chrome.Options()
-    .addArguments(`--user-data-dir=${userDataDir}`)
-    .addArguments('--no-sandbox', '--disable-dev-shm-usage', '--headless=new');
+  const options = getChromeOptions('user-registration-requiredFields');
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get('http://localhost:3000/register');
@@ -232,16 +173,7 @@ async function testRequiredFields() {
 async function testDuplicateEmail() {
   const user = getFixedTestUser();
   try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
-  const userDataDir = getUniqueUserDataDir('testDuplicateEmail');
-  console.log('Using Chrome user data dir:', userDataDir);
-  if (fs.existsSync(userDataDir)) {
-    console.log('User data dir exists, removing:', userDataDir);
-    fs.rmSync(userDataDir, { recursive: true, force: true });
-    fs.mkdirSync(userDataDir, { recursive: true });
-  }
-  const options = new chrome.Options()
-    .addArguments(`--user-data-dir=${userDataDir}`)
-    .addArguments('--no-sandbox', '--disable-dev-shm-usage', '--headless=new');
+  const options = getChromeOptions('user-registration-duplicateEmail');
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get('http://localhost:3000/register');
@@ -281,27 +213,24 @@ async function testDuplicateEmail() {
   }
 }
 
-(async function runUserRegistrationTests() {
-  const failures = [];
-  async function runTest(name, fn) {
-    try {
-      await fn();
-      console.log(`✔ ${name} passed`);
-    } catch (err) {
-      console.error(`✘ ${name} failed:`, err.message);
-      failures.push({ name, error: err.message });
-    }
-  }
-  await runTest('User Registration Happy Path', happyPath);
-  await runTest('Invalid Email', testInvalidEmail);
-  await runTest('Unmatched Passwords', testUnmatchedPasswords);
-  await runTest('Required Fields Blank', testRequiredFields);
-  await runTest('Duplicate Email/Username', testDuplicateEmail);
-  console.log('\nUser Registration Test Summary:');
-  if (failures.length === 0) {
-    console.log('All user registration tests passed!');
-  } else {
-    failures.forEach(f => console.log(`- ${f.name}: ${f.error}`));
-    process.exitCode = 1;
-  }
-})();
+
+const assert = require('assert');
+describe('User Registration E2E', function() {
+  this.timeout(40000);
+
+  it('Happy Path', async function() {
+    await happyPath();
+  });
+  it('Invalid Email', async function() {
+    await testInvalidEmail();
+  });
+  it('Unmatched Passwords', async function() {
+    await testUnmatchedPasswords();
+  });
+  it('Required Fields Blank', async function() {
+    await testRequiredFields();
+  });
+  it('Duplicate Email/Username', async function() {
+    await testDuplicateEmail();
+  });
+});

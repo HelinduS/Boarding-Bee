@@ -1,4 +1,4 @@
-const { getUniqueUserDataDir, getChromeOptions } = require('./seleniumTestUtils');
+const { getChromeOptions } = require('./seleniumTestUtils');
 // owner-login.test.js
 // Selenium E2E tests for owner login (happy path and edge cases)
 const { Builder, By, until } = require('selenium-webdriver');
@@ -8,6 +8,7 @@ const path = require('path');
 const fs = require('fs');
 
 const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+const API_URL = process.env.API_URL || 'http://localhost:5000';
 
 function getOwnerTestUser() {
   return {
@@ -19,8 +20,7 @@ function getOwnerTestUser() {
 async function happyPath() {
   const user = getOwnerTestUser();
   try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
-  const userDataDir = getUniqueUserDataDir('happyPath');
-  const options = getChromeOptions(userDataDir, chrome);
+  const options = getChromeOptions('Owner Login Happy Path');
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/login`);
@@ -38,8 +38,7 @@ async function happyPath() {
 
 async function testInvalidEmail() {
   try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
-  const userDataDir = getUniqueUserDataDir('testInvalidEmail');
-  const options = getChromeOptions(userDataDir, chrome);
+  const options = getChromeOptions('Owner Login Invalid Email');
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/login`);
@@ -66,8 +65,7 @@ async function testInvalidEmail() {
 async function testWrongPassword() {
   const user = getOwnerTestUser();
   try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
-  const userDataDir = getUniqueUserDataDir('testWrongPassword');
-  const options = getChromeOptions(userDataDir, chrome);
+  const options = getChromeOptions('Owner Login Wrong Password');
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/login`);
@@ -93,9 +91,7 @@ async function testWrongPassword() {
 
 async function testNonExistentEmail() {
   try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
-  const userDataDir = getUserDataDir();
-  console.log('Using Chrome user data dir:', userDataDir);
-  const options = getChromeOptions(userDataDir, chrome);
+  const options = getChromeOptions('Owner Login NonExistent Email');
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/login`);
@@ -121,9 +117,7 @@ async function testNonExistentEmail() {
 
 async function testBlankFields() {
   try { require('child_process').execSync('pkill chrome || true'); } catch (e) { console.log('pkill chrome failed:', e.message); }
-  const userDataDir = getUserDataDir();
-  console.log('Using Chrome user data dir:', userDataDir);
-  const options = getChromeOptions(userDataDir, chrome);
+  const options = getChromeOptions('Owner Login Blank Fields');
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/login`);

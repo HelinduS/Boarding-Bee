@@ -1,4 +1,4 @@
-const { getUniqueUserDataDir, getChromeOptions } = require('./seleniumTestUtils');
+const { getChromeOptions } = require('./seleniumTestUtils');
 // user-login.test.js
 // Selenium E2E tests for user login (happy path and edge cases)
 const { Builder, By, until } = require('selenium-webdriver');
@@ -8,6 +8,7 @@ const path = require('path');
 const fs = require('fs');
 
 const baseUrl = process.env.BASE_URL || 'http://localhost:3000';
+const API_URL = process.env.API_URL || 'http://localhost:5000';
 
 function getTestUser() {
   // Load from registration test output
@@ -27,8 +28,7 @@ async function happyPath() {
     require('child_process').execSync('pkill chrome || true');
   } catch (e) {}
   const user = getTestUser();
-  const userDataDir = getUniqueUserDataDir('happyPath');
-  const options = getChromeOptions(userDataDir, chrome);
+  const options = getChromeOptions('user-login-happyPath');
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/login`);
@@ -59,8 +59,7 @@ async function testInvalidEmailFormat() {
   try {
     require('child_process').execSync('pkill chrome || true');
   } catch (e) {}
-  const userDataDir = getUniqueUserDataDir('testInvalidEmailFormat');
-  const options = getChromeOptions(userDataDir, chrome);
+  const options = getChromeOptions('user-login-invalidEmailFormat');
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/login`);
@@ -88,9 +87,7 @@ async function testWrongPassword() {
     require('child_process').execSync('pkill chrome || true');
   } catch (e) {}
   const user = getTestUser();
-  const userDataDir = getUniqueUserDataDir('testWrongPassword');
-  console.log('Using Chrome user data dir:', userDataDir);
-  const options = getChromeOptions(userDataDir, chrome);
+  const options = getChromeOptions('user-login-wrongPassword');
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/login`);
@@ -117,9 +114,7 @@ async function testNonExistentEmail() {
   try {
     require('child_process').execSync('pkill chrome || true');
   } catch (e) {}
-  const userDataDir = getUniqueUserDataDir('testNonExistentEmail');
-  console.log('Using Chrome user data dir:', userDataDir);
-  const options = getChromeOptions(userDataDir, chrome);
+  const options = getChromeOptions('user-login-nonExistentEmail');
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/login`);
@@ -146,9 +141,7 @@ async function testBlankFields() {
   try {
     require('child_process').execSync('pkill chrome || true');
   } catch (e) {}
-  const userDataDir = getUniqueUserDataDir('testBlankFields');
-  console.log('Using Chrome user data dir:', userDataDir);
-  const options = getChromeOptions(userDataDir, chrome);
+  const options = getChromeOptions('user-login-blankFields');
   const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
   try {
     await driver.get(`${baseUrl}/login`);
@@ -170,27 +163,24 @@ async function testBlankFields() {
   }
 }
 
-(async function runUserLoginTests() {
-  const failures = [];
-  async function runTest(name, fn) {
-    try {
-      await fn();
-      console.log(`✔ ${name} passed`);
-    } catch (err) {
-      console.error(`✘ ${name} failed:`, err.message);
-      failures.push({ name, error: err.message });
-    }
-  }
-  await runTest('User Login Happy Path', happyPath);
-  await runTest('Invalid Email Format', testInvalidEmailFormat);
-  await runTest('Wrong Password', testWrongPassword);
-  await runTest('Non-existent Email', testNonExistentEmail);
-  await runTest('Blank Fields', testBlankFields);
-  console.log('\nUser Login Test Summary:');
-  if (failures.length === 0) {
-    console.log('All user login tests passed!');
-  } else {
-    failures.forEach(f => console.log(`- ${f.name}: ${f.error}`));
-    process.exitCode = 1;
-  }
-})();
+
+const assert = require('assert');
+describe('User Login E2E', function() {
+  this.timeout(40000);
+
+  it('Happy Path', async function() {
+    await happyPath();
+  });
+  it('Invalid Email Format', async function() {
+    await testInvalidEmailFormat();
+  });
+  it('Wrong Password', async function() {
+    await testWrongPassword();
+  });
+  it('Non-existent Email', async function() {
+    await testNonExistentEmail();
+  });
+  it('Blank Fields', async function() {
+    await testBlankFields();
+  });
+});
