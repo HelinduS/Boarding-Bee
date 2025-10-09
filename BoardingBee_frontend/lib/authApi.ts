@@ -1,18 +1,23 @@
 // lib/authApi.ts
-const API = process.env.NEXT_PUBLIC_API_URL || "";
-const USE_MOCK =
-  process.env.NEXT_PUBLIC_USE_MOCK === "true" || !API; // fallback to mock if no API base
+const RAW_API = process.env.NEXT_PUBLIC_API_URL || "";
+// Normalize: remove trailing slash to avoid `//api/...`
+const API = RAW_API.replace(/\/+$/, "");
+const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === "true" || !API;
 
+// ---- types (unchanged public surface) ----
 type OkResp = { ok: true };
 type ErrResp = { ok: false; error?: string };
 type ResetReqResp = (OkResp & { code?: string }) | ErrResp;
 type VerifyResp = (OkResp & { token?: string }) | ErrResp;
 type ResetResp = OkResp | ErrResp;
 
-function safeJson(res: Response) {
-  return res
-    .json()
-    .catch(() => ({} as any)); // guard non-JSON bodies
+// Safe JSON helper so non-JSON bodies don’t crash
+async function safeJson(res: Response) {
+  try {
+    return await res.json();
+  } catch {
+    return {} as any;
+  }
 }
 
 async function handleRes(res: Response) {
@@ -21,16 +26,17 @@ async function handleRes(res: Response) {
     const msg =
       data?.message ||
       data?.error ||
-      `Request failed (${res.status})`;
-    return { ok: false, error: msg, data } as const;
+      `${res.status} ${res.statusText}` ||
+      "Request failed";
+    return { ok: false as const, error: msg, data };
   }
-  return { ok: true, data } as const;
+  return { ok: true as const, data };
 }
 
 // ---------------------- MOCK MODE ----------------------
 const mockApi = {
   async requestReset(email: string): Promise<ResetReqResp> {
-    await new Promise((r) => setTimeout(r, 500));
+    await new Promise((r) => setTimeout(r, 400));
     const code = Math.floor(1000 + Math.random() * 9000).toString();
     if (typeof window !== "undefined") {
       // eslint-disable-next-line no-console
@@ -39,21 +45,20 @@ const mockApi = {
     return { ok: true, code };
   },
 
-  async verifyCode(email: string, code: string): Promise<VerifyResp> {
-    await new Promise((r) => setTimeout(r, 400));
+  async verifyCode(_email: string, code: string): Promise<VerifyResp> {
+    await new Promise((r) => setTimeout(r, 300));
     if (code?.length === 4) {
-      const token = `mock-${Date.now()}`;
-      return { ok: true, token };
+      return { ok: true, token: `mock-${Date.now()}` };
     }
     return { ok: false, error: "Invalid code" };
   },
 
   async resetPassword(
-    email: string,
+    _email: string,
     token: string,
     newPassword: string
   ): Promise<ResetResp> {
-    await new Promise((r) => setTimeout(r, 500));
+    await new Promise((r) => setTimeout(r, 400));
     if (!token) return { ok: false, error: "Missing token" };
     if (!newPassword || newPassword.length < 8) {
       return { ok: false, error: "Password must be at least 8 characters" };
@@ -63,6 +68,10 @@ const mockApi = {
 };
 
 // --------------------- REAL BACKEND ---------------------
+// Endpoints expected by your backend:
+//   POST ${API}/api/password/forgot  { email }
+//   POST ${API}/api/password/verify  { email, token }
+//   POST ${API}/api/password/reset   { email, token, newPassword, confirmPassword }
 const realApi = {
   async requestReset(email: string): Promise<ResetReqResp> {
     try {
@@ -72,7 +81,7 @@ const realApi = {
         body: JSON.stringify({ email }),
       });
       const { ok, data, error } = await handleRes(res);
-      // Some backends may return a masked code only in non-prod; ignore if absent
+      // Some environments return a demo code; if absent, just return ok
       return ok ? { ok: true, code: data?.code } : { ok: false, error };
     } catch (e: any) {
       return { ok: false, error: e?.message || "Network error" };
@@ -84,14 +93,13 @@ const realApi = {
       const res = await fetch(`${API}/api/password/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, token: code }), // use "token" as param name
+        body: JSON.stringify({ email, token: code }),
       });
       const { ok, data, error } = await handleRes(res);
       if (!ok) return { ok: false, error };
-      // Expect backend to return { valid: boolean, token?: string }
-      const valid = Boolean(data?.valid);
-      if (!valid) return { ok: false, error: "Invalid or expired code" };
-      return { ok: true, token: data?.token }; // token may be returned or generated on reset
+      // Expecting { valid: boolean, token?: string }
+      if (!data?.valid) return { ok: false, error: "Invalid or expired code" };
+      return { ok: true, token: data?.token };
     } catch (e: any) {
       return { ok: false, error: e?.message || "Network error" };
     }
@@ -110,7 +118,7 @@ const realApi = {
           email,
           token,
           newPassword,
-          confirmPassword: newPassword, // if backend requires confirm
+          confirmPassword: newPassword, // keep if backend expects confirm
         }),
       });
       const { ok, error } = await handleRes(res);
