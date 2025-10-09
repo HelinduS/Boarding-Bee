@@ -7,6 +7,8 @@ echo "Deleting test users before E2E tests..."
 node tests/selenium/delete-test-user.js
 
 
+
+# Run each test file in order, outputting a separate JUnit XML for each
 for testfile in \
   tests/selenium/user-registration.test.js \
   tests/selenium/user-login.test.js \
@@ -15,8 +17,11 @@ for testfile in \
   tests/selenium/owner-dashboard.test.js \
   tests/selenium/tenant-review.test.js
 do
+  base=$(basename "$testfile" .test.js)
   echo "\n===== Running $testfile ====="
-  npx mocha "$testfile"
+  npx mocha "$testfile" \
+    --reporter mocha-junit-reporter \
+    --reporter-options mochaFile=selenium-results-$base.xml,testsuitesTitle="Selenium E2E: $base"
   # Kill any leftover Chrome/ChromeDriver processes
   pkill chrome || true
   pkill chromedriver || true
