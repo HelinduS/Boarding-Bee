@@ -1,8 +1,7 @@
 "use client";
-
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import RatingStars from "@/components/ui/RatingStars";
-import { createOrUpdateReview, getMyReview } from "@/lib/reviewsApi";
+import { createOrUpdateReview } from "@/lib/reviewsApi";
 
 export default function ReviewForm({
   listingId,
@@ -18,29 +17,6 @@ export default function ReviewForm({
   const [rating, setRating] = useState(0);
   const [text, setText] = useState("");
   const [loading, setLoading] = useState(false);
-  const [hasExisting, setHasExisting] = useState(false);
-
-  // Prefill with my previous review (if any)
-  useEffect(() => {
-    let cancelled = false;
-    async function loadMyReview() {
-      if (!isAuthenticated || !token) return;
-      try {
-        const me = await getMyReview(listingId, token); // 200 -> { id, rating, text, ... }
-        if (!cancelled && me) {
-          if (typeof me.rating === "number") setRating(me.rating);
-          if (typeof me.text === "string") setText(me.text);
-          setHasExisting(true);
-        }
-      } catch {
-        // 204 No Content or any error -> ignore silently (no previous review)
-      }
-    }
-    loadMyReview();
-    return () => {
-      cancelled = true;
-    };
-  }, [isAuthenticated, token, listingId]);
 
   const canSubmit = isAuthenticated && rating >= 1 && rating <= 5 && !loading;
 
@@ -49,16 +25,14 @@ export default function ReviewForm({
     setLoading(true);
     try {
       await createOrUpdateReview(listingId, token, { rating, text: text.trim() || undefined });
-      setHasExisting(true);
+      setText("");
       onSaved?.();
     } finally {
       setLoading(false);
     }
   }
 
-  if (!isAuthenticated) {
-    return <div className="text-sm text-gray-600">Please log in to leave a review.</div>;
-  }
+  if (!isAuthenticated) return <div className="text-sm text-gray-600">Please log in to leave a review.</div>;
 
   return (
     <div className="border rounded-lg p-3 space-y-3">
@@ -77,7 +51,7 @@ export default function ReviewForm({
           disabled={!canSubmit}
           className={`px-3 py-1 rounded text-white ${canSubmit ? "bg-blue-600" : "bg-gray-400 cursor-not-allowed"}`}
         >
-          {hasExisting ? "Update review" : "Submit"}
+          Submit
         </button>
       </div>
     </div>

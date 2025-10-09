@@ -77,14 +77,6 @@ export async function getRatingSummary(listingId: number): Promise<RatingSummary
   return fetchJson(url, { cache: "no-store" });
 }
 
-export async function getMyReview(listingId: number, token: string) {
-  return fetchJson(`${API_BASE}/${listingId}/reviews/me`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  }); // -> ReviewItem or empty object when 204
-}
-
-
 export async function createOrUpdateReview(
   listingId: number,
   token: string | undefined,

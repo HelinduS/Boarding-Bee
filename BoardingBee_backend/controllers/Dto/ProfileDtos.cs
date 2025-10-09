@@ -54,8 +54,4 @@ namespace BoardingBee_backend.Controllers.Dto
         public bool ProfileVisibility { get; set; }
         public bool ShowContactInfo { get; set; }
     }
-
-    
-
-    
 }
