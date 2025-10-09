@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using BoardingBee_backend.models;
+using BoardingBee_backend.Models;
 
 namespace BoardingBee_backend.Models
 {

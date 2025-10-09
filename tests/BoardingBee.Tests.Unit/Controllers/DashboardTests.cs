@@ -8,7 +8,6 @@ using BoardingBee_backend.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BoardingBee_backend.Controllers;
-using BoardingBee_backend.models;
 using BoardingBee_backend.Models;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;

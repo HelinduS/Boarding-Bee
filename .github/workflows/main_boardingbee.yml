@@ -55,10 +55,14 @@ jobs:
           cd BoardingBee_backend
           dotnet restore
 
+
       - name: Build backend
         run: |
           cd BoardingBee_backend
           dotnet build --configuration Release
+
+      - name: Run backend unit tests
+        run: dotnet test tests/BoardingBee.Tests.Unit/BoardingBee.Tests.Unit.csproj --no-build --verbosity normal
 
       # Start backend service
       - name: Start backend
