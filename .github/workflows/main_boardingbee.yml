@@ -144,7 +144,7 @@ jobs:
 
       - name: Convert HTML report to PDF
         run: |
-          wkhtmltopdf TestResultsReport/index.html TestResultsReport/report.pdf
+          wkhtmltopdf --enable-local-file-access TestResultsReport/index.html TestResultsReport/report.pdf
 
       - name: Set up Node.js for email script
         uses: actions/setup-node@v4
