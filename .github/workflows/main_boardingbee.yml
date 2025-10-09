@@ -1,20 +1,130 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy ASP.Net Core app to Azure Web App - boardingbee
+name: Build, Test, and Deploy ASP.Net Core app to Azure Web App - boardingbee
 
 on:
   push:
     branches:
       - main
+      - dev
+  pull_request:
+    branches:
+      - dev
   workflow_dispatch:
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
 
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.x'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Create backend .env file
+        run: |
+          echo "Smtp__Host=smtp.gmail.com" > BoardingBee_backend/.env
+          echo "Smtp__Port=587" >> BoardingBee_backend/.env
+          echo "Smtp__User=helindusenadheera@gmail.com" >> BoardingBee_backend/.env
+          echo "Smtp__Pass=uwze hicl smqo bbbz" >> BoardingBee_backend/.env
+          echo "Smtp__From=helindusenadheera@gmail.com" >> BoardingBee_backend/.env
+          echo 'DB_CONNECTION_STRING=Server=tcp:boardingbee.database.windows.net,1433;Initial Catalog=BoardingBeeDB;Persist Security Info=False;User ID=boardingbee;Password=#Boarding1234;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;' >> BoardingBee_backend/.env
+          echo "JWT_SECRET=your-very-strong-secret-key-1234567890abcdef" >> BoardingBee_backend/.env
+
+      - name: Create frontend .env file
+        run: |
+          echo "NEXT_PUBLIC_API_URL=http://localhost:5000" > BoardingBee_frontend/.env
+          echo "BASE_URL=http://localhost:3000" >> BoardingBee_frontend/.env
+
+      # Install root dependencies (Frontend and Backend)
+      - name: Install root dependencies
+        run: npm install
+
+      - name: Install backend dependencies
+        run: |
+          cd BoardingBee_backend
+          dotnet restore
+
+      - name: Build backend
+        run: |
+          cd BoardingBee_backend
+          dotnet build --configuration Release
+
+      # Start backend service
+      - name: Start backend
+        run: |
+          cd BoardingBee_backend
+          nohup dotnet run --urls http://0.0.0.0:5000 > ../backend.log 2>&1 &
+
+      # Ensure backend is running and check process
+      - name: Check backend process
+        run: pgrep -af dotnet || echo "Backend not running"
+
+      - name: Tail backend log
+        run: tail -n 50 ../backend.log || echo "No backend log"
+
+      # Install frontend dependencies
+      - name: Install frontend dependencies
+        run: |
+          cd BoardingBee_frontend
+          npm install
+
+      # Build frontend
+      - name: Build frontend
+        run: |
+          cd BoardingBee_frontend
+          npm run build
+
+      # Start frontend service
+      - name: Start frontend
+        run: |
+          cd BoardingBee_frontend
+          nohup npm run start &
+
+      # Wait for backend to be fully ready before proceeding with the health check
+      - name: Wait for backend to initialize
+        run: |
+          echo "Waiting for backend to be ready..."
+          sleep 30  # Adjust sleep time if needed, or use more advanced retry logic
+
+      # Check backend health endpoint
+      - name: Check backend health endpoint
+        run: |
+          curl --fail http://localhost:5000/api/health || echo "Backend health check failed"
+
+      # Wait for both backend and frontend to be ready before running tests
+      - name: Wait for servers to be ready
+        run: |
+          npx wait-on --timeout 300000 --debug http://localhost:5000/api/health http://localhost:3000
+
+      # Install Chrome for Selenium E2E tests
+      - name: Install Google Chrome
+        run: |
+          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+          sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list'
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+
+
+      # Run E2E Selenium tests (serial)
+      - name: Run E2E Selenium tests
+        run: ./run-e2e-tests.sh
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
 
@@ -36,15 +146,15 @@ jobs:
           path: ${{env.DOTNET_ROOT}}/myapp
 
   deploy:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     needs: build
-    
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: .net-app
-      
+
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3

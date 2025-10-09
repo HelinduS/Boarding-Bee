@@ -47,7 +47,7 @@ namespace BoardingBee_backend.Models
                 .HasOne(typeof(User), "User")
                 .WithMany()
                 .HasForeignKey("UserId")
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Listing>()
                 .Property(l => l.Price)
