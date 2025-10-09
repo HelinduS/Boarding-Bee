@@ -187,6 +187,11 @@ jobs:
           REPORT_PDF_PATH: TestResultsReport/report.pdf
         run: node send-report.js
 
+      # ---- FINAL CLEANUP ----
+      - name: Clean up all generated report files
+        run: |
+          rm -f e2e-summary.txt TestResultsReport/index.html TestResultsReport/report.pdf || true
+
   build:
     runs-on: ubuntu-latest
     needs: test
