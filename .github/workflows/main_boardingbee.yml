@@ -63,44 +63,6 @@ jobs:
 
       - name: Run backend unit tests
         run: dotnet test tests/BoardingBee.Tests.Unit/BoardingBee.Tests.Unit.csproj --logger "trx;LogFileName=test-results.trx"
-
-      - name: Install ReportGenerator
-        run: dotnet tool install -g dotnet-reportgenerator-globaltool
-
-      - name: Generate HTML test report
-        run: |
-          reportgenerator -reports:**/test-results.trx -targetdir:TestResultsReport -reporttypes:Html
-
-      - name: Install wkhtmltopdf
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wkhtmltopdf
-
-      - name: Convert HTML report to PDF
-        run: |
-          wkhtmltopdf TestResultsReport/index.html TestResultsReport/report.pdf
-
-      - name: Set up Node.js for email script
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-
-      - name: Install Node.js dependencies for email
-        run: npm install node-fetch@2 nodemailer dotenv
-
-      - name: Send PDF report to contributors
-        env:
-          SMTP_HOST: ${{ secrets.SMTP_HOST }}
-          SMTP_PORT: ${{ secrets.SMTP_PORT }}
-          SMTP_USER: ${{ secrets.SMTP_USER }}
-          SMTP_PASS: ${{ secrets.SMTP_PASS }}
-          SMTP_FROM: ${{ secrets.SMTP_FROM }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO_OWNER: HelinduS
-          REPO_NAME: Boarding-Bee
-          REPORT_HTML_PATH: TestResultsReport/index.html
-          REPORT_PDF_PATH: TestResultsReport/report.pdf
-        run: node send-report.js
     
       - name: Start backend
         run: |
@@ -157,9 +119,54 @@ jobs:
           sudo apt-get install -y google-chrome-stable
 
 
-      # Run E2E Selenium tests (serial)
+      # Install mocha-junit-reporter for Selenium JUnit XML output
+      - name: Install mocha-junit-reporter
+        run: npm install --save-dev mocha-junit-reporter
+
+      # Run E2E Selenium tests using the runner script (JUnit XML output)
       - name: Run E2E Selenium tests
         run: ./run-e2e-tests.sh
+
+      - name: Install ReportGenerator
+        run: dotnet tool install -g dotnet-reportgenerator-globaltool
+
+      - name: Generate HTML test report (merge .NET and Selenium results)
+        run: |
+          reportgenerator -reports:"**/test-results.trx;selenium-results-*.xml" -targetdir:TestResultsReport -reporttypes:Html
+
+      - name: Clean up test result XML files
+        run: rm -f selenium-results-*.xml
+
+      - name: Install wkhtmltopdf
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wkhtmltopdf
+
+      - name: Convert HTML report to PDF
+        run: |
+          wkhtmltopdf TestResultsReport/index.html TestResultsReport/report.pdf
+
+      - name: Set up Node.js for email script
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Node.js dependencies for email
+        run: npm install node-fetch@2 nodemailer dotenv
+
+      - name: Send PDF report to contributors
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_OWNER: HelinduS
+          REPO_NAME: Boarding-Bee
+          REPORT_HTML_PATH: TestResultsReport/index.html
+          REPORT_PDF_PATH: TestResultsReport/report.pdf
+        run: node send-report.js
 
   build:
     runs-on: ubuntu-latest
