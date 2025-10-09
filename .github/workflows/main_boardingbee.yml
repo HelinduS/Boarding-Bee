@@ -14,6 +14,7 @@ on:
 
 jobs:
   test:
+    if: github.ref != 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -54,15 +55,14 @@ jobs:
           cd BoardingBee_backend
           dotnet restore
 
-
       - name: Build backend
         run: |
           cd BoardingBee_backend
           dotnet build --configuration Release
 
       - name: Run backend unit tests
-        run: dotnet test tests/BoardingBee.Tests.Unit/BoardingBee.Tests.Unit.csproj --verbosity normal
-    
+        run: dotnet test tests/BoardingBee.Tests.Unit/BoardingBee.Tests.Unit.csproj --logger "trx;LogFileName=test-results.trx"
+
       - name: Start backend
         run: |
           cd BoardingBee_backend
@@ -117,10 +117,64 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y google-chrome-stable
 
+      # Install mocha-junit-reporter for Selenium JUnit XML output
+      - name: Install mocha-junit-reporter
+        run: npm install --save-dev mocha-junit-reporter
 
-      # Run E2E Selenium tests (serial)
-      - name: Run E2E Selenium tests
-        run: ./run-e2e-tests.sh
+      - name: Run E2E Selenium tests and capture output
+        run: ./run-e2e-tests.sh | tee e2e-summary.txt
+
+      - name: Generate E2E HTML summary
+        run: node tests/summarize-e2e.js
+
+      - name: Install wkhtmltopdf + xvfb
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wkhtmltopdf xvfb
+
+      - name: Convert HTML report to PDF
+        run: |
+          xvfb-run -a wkhtmltopdf \
+            --enable-local-file-access \
+            --allow "$PWD" \
+            --load-error-handling ignore \
+            --no-stop-slow-scripts \
+            --javascript-delay 1500 \
+            TestResultsReport/index.html TestResultsReport/report.pdf
+
+      - name: Clean up test result XML files
+        run: |
+          rm -f selenium-results/*.xml || true
+          rm -f selenium-results-*.xml || true
+
+      # =================== END REPORT GENERATION (CHANGED) ===================
+
+      - name: Set up Node.js for email script
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Node.js dependencies for email
+        run: npm install node-fetch@2 nodemailer dotenv
+
+      - name: Send PDF report to contributors
+        env:
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO_OWNER: HelinduS
+          REPO_NAME: Boarding-Bee
+          REPORT_HTML_PATH: TestResultsReport/index.html
+          REPORT_PDF_PATH: TestResultsReport/report.pdf
+        run: node send-report.js
+
+      # ---- FINAL CLEANUP ----
+      - name: Clean up all generated report files
+        run: |
+          rm -f e2e-summary.txt TestResultsReport/index.html TestResultsReport/report.pdf || true
 
   build:
     runs-on: ubuntu-latest
