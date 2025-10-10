@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using BoardingBee_backend.Models;
-using BoardingBee_backend.models;
+using BoardingBee_backend.Models;
 using BoardingBee_backend.Controllers.Dto;
 
 namespace BoardingBee_backend.Services

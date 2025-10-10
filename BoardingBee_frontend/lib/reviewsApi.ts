@@ -76,36 +76,6 @@ export async function getRatingSummary(listingId: number): Promise<RatingSummary
   return fetchJson(url, { cache: "no-store" });
 }
 
-/**
- * Return the current user's review for this listing, or null if none.
- * Important: handle 204 explicitly so the UI doesn't treat `{}` as "has a review".
- */
-export async function getMyReview(listingId: number, token: string): Promise<ReviewItem | null> {
-  const res = await fetch(`${API_BASE}/${listingId}/reviews/me`, {
-    headers: { Authorization: `Bearer ${token}` },
-    cache: "no-store",
-  });
-
-  if (res.status === 204) return null; // no review yet
-
-  if (!res.ok) {
-    // propagate proper error
-    const text = await res.text().catch(() => "");
-    let msg = text;
-    try { msg = (JSON.parse(text)?.message as string) || text; } catch {}
-    throw new Error(`GET ${res.url} -> ${res.status} ${res.statusText} — ${msg || "no error body"}`);
-  }
-
-  // Some servers may send 200 with empty body; guard that too
-  const body = await res.text();
-  if (!body) return null;
-
-  const data = JSON.parse(body);
-  // sanity check: require an id/ rating to consider it a real review
-  if (data && typeof data.id === "number") return data as ReviewItem;
-  return null;
-}
-
 export async function createOrUpdateReview(
   listingId: number,
   token: string | undefined,
