@@ -63,10 +63,15 @@ jobs:
       - name: Run backend unit tests
         run: dotnet test tests/BoardingBee.Tests.Unit/BoardingBee.Tests.Unit.csproj --logger "trx;LogFileName=test-results.trx"
 
-      - name: Convert .trx to HTML
+      - name: Install ReportGenerator
+        run: dotnet tool install -g dotnet-reportgenerator-globaltool
+
+      - name: Convert .trx to HTML with ReportGenerator
         run: |
-          dotnet tool install -g trx2html
-          ~/.dotnet/tools/trx2html test-results.trx test-results.html
+          ~/.dotnet/tools/reportgenerator \
+            -reports:test-results.trx \
+            -targetdir:TestResultsReport/unit \
+            -reporttypes:Html
 
       - name: Start backend
         run: |
