@@ -7,6 +7,7 @@ const path = require('path');
 
 const INPUT = 'e2e-summary.txt';
 const OUTPUT = 'TestResultsReport/index.html';
+const UNIT_HTML = 'test-results.html'; // Path to unit test HTML
 
 function escapeHtml(str) {
   return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -71,7 +72,19 @@ function main() {
     process.exit(1);
   }
   const lines = fs.readFileSync(INPUT, 'utf-8').split(/\r?\n/);
-  const html = generateHtmlReport(lines);
+  let html = generateHtmlReport(lines);
+
+  // If unit test HTML exists, append it as a section
+  if (fs.existsSync(UNIT_HTML)) {
+    const unitHtmlRaw = fs.readFileSync(UNIT_HTML, 'utf-8');
+    // Extract <body> contents from unitHtmlRaw
+    const match = unitHtmlRaw.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+    const unitBody = match ? match[1] : unitHtmlRaw;
+    // Insert before </body> in main html
+    html = html.replace(/<\/body>\s*<\/html>\s*$/i,
+      `<hr><h1>Unit Test Results</h1>\n<div>${unitBody}</div>\n</body></html>`);
+  }
+
   fs.mkdirSync(path.dirname(OUTPUT), { recursive: true });
   fs.writeFileSync(OUTPUT, html);
   console.log(`HTML summary written to ${OUTPUT}`);

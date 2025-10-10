@@ -59,8 +59,14 @@ jobs:
           cd BoardingBee_backend
           dotnet build --configuration Release
 
+
       - name: Run backend unit tests
         run: dotnet test tests/BoardingBee.Tests.Unit/BoardingBee.Tests.Unit.csproj --logger "trx;LogFileName=test-results.trx"
+
+      - name: Convert .trx to HTML
+        run: |
+          dotnet tool install -g trx2html
+          ~/.dotnet/tools/trx2html test-results.trx test-results.html
 
       - name: Start backend
         run: |
