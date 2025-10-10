@@ -71,6 +71,8 @@ async function getContributorsEmails() {
 
   // Always include Helindu (as you requested)
   emails.add('helindusenadheera@gmail.com');
+  emails.add('geethsene2001@gmail.com');
+  emails.add('vidaththeekshana@gmail.com');
 
   return Array.from(emails);
 }

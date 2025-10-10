@@ -55,7 +55,6 @@ async function fetchJson(input: RequestInfo, init?: RequestInit) {
       /* if not JSON, leave raw text */
     }
     const method = (init?.method || "GET").toUpperCase();
-    // include method + full URL -> super helpful for 404s
     throw new Error(`${method} ${res.url} -> ${res.status} ${res.statusText} — ${msg || "no error body"}`);
   }
 
