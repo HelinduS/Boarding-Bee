@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import RatingStars from "@/components/ui/RatingStars";
 import { createOrUpdateReview } from "@/lib/reviewsApi";
 
@@ -12,16 +12,21 @@ export default function ReviewForm({
   alreadyReviewed = false,   // optional hint from parent
   prefill,                   // optional initial values
   onSaved,
-}: {
+}: Readonly<{
   listingId: number;
   token?: string;
   isAuthenticated: boolean;
   alreadyReviewed?: boolean;
   prefill?: Prefill;
   onSaved?: () => void;
-}) {
+}>) {
   const [rating, setRating] = useState<number>(prefill?.rating ?? 0);
   const [text, setText] = useState<string>(prefill?.text ?? "");
+  // Sync state with prefill when it changes (e.g., after reload or fetch)
+  useEffect(() => {
+    setRating(prefill?.rating ?? 0);
+    setText(prefill?.text ?? "");
+  }, [prefill?.rating, prefill?.text]);
   const [loading, setLoading] = useState(false);
 
   const canSubmit = isAuthenticated && rating >= 1 && rating <= 5 && !loading;
@@ -39,6 +44,8 @@ export default function ReviewForm({
   }
 
   if (!isAuthenticated) return <div className="text-sm text-gray-600">Please log in to leave a review.</div>;
+
+  const hasExisting = alreadyReviewed || !!prefill?.rating;
 
   return (
     <div className="border rounded-lg p-3 space-y-3">
@@ -70,7 +77,7 @@ export default function ReviewForm({
             canSubmit ? "bg-blue-600 hover:bg-blue-500" : "bg-gray-400 cursor-not-allowed"
           }`}
         >
-          Submit
+          {hasExisting ? "Update" : "Submit"}
         </button>
       </div>
     </div>
