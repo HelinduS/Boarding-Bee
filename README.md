@@ -37,7 +37,7 @@ Boarding owners can post and maintain listings, tenants can search and review, a
 
 - **Frontend:** Next.js (React, TypeScript), TailwindCSS, ShadCN UI, Lucide Icons  
 - **Backend:** ASP.NET Core (C#), Entity Framework Core  
-- **Database:** PostgreSQL (local + cloud hosting)  
+- **Database:** SQL (cloud hosted on Azure)  
 - **Other:** Google Maps API (for location), Framer Motion animations  
 
 ---

@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace BoardingBee_backend.models
+namespace BoardingBee_backend.Models
 {
     public class Listing
     {

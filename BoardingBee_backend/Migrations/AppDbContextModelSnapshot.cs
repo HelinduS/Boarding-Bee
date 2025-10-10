@@ -384,7 +384,7 @@ namespace BoardingBee_backend.Migrations
                     b.HasOne("BoardingBee_backend.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Listing");
