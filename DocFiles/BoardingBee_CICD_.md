@@ -1,9 +1,37 @@
-
 # CI/CD Pipeline Documentation for Boarding Bee
 
 ## Overview
 
 The Boarding Bee project uses GitHub Actions for comprehensive continuous integration and deployment (CI/CD), featuring a full-stack application with automated testing and Azure deployment. The pipeline includes backend API deployment, frontend build processes, comprehensive testing suites (unit and E2E), and sophisticated environment management.
+
+## Branching strategy
+
+A simple, practical branching strategy to support CI/CD and safe releases:
+
+- Branches
+  - `main`: production-ready code. All deploys to production come from `main`.
+  - `dev`: integration branch where feature branches are merged for integration testing and staging builds.
+  - `feature/*`: short-lived feature branches (naming: `feature/<jira>-short-desc` or `feature/<dev>-<desc>`).
+  - `hotfix/*`: emergency fixes that must be applied directly to `main` and merged back to `dev`.
+
+- Pull Requests
+  - All merges into `dev` or `main` must use Pull Requests with at least one approving review.
+  - PRs into `main` must have passing CI (unit + E2E smoke tests) and a maintainer approval.
+  - Use descriptive PR titles and link to ticket/issue IDs.
+
+- Protection Rules
+  - Protect `main` with branch protection: require status checks, require PR reviews, and disable force pushes.
+  - Protect `dev` with status checks (build + tests) and require at least one approval.
+
+- Merge Flow
+  - Feature branches → open PR → CI runs (lint, unit tests, preview deploy for PR) → merge to `dev`.
+  - When `dev` is validated and ready, open PR from `dev` → `main` for release (include changelog and release notes).
+  - Hotfix: branch from `main`, open PR to `main`, then merge to `dev` after deployment.
+
+- Naming and lifetime
+  - Keep feature branches short-lived (few days). Delete branches after merge.
+
+This strategy keeps releases predictable, enables PR preview deploys for frontend features, and ensures production safety.
 
 ## Pipeline Architecture
 
@@ -396,4 +424,41 @@ cd BoardingBee_frontend && npm run build
 #### Monitoring & Observability
 - **Health Checks:** Basic endpoint monitoring implemented
 - **Logging:** Application logs captured during CI/CD runs
+ 
+## Frontend Continuous Deployment (CD) — next DevOps sprint (brief)
+
+Add a lightweight, reliable CD flow for the Next.js frontend so the next DevOps can implement and operate it quickly:
+
+- Goal: build, test and deploy the frontend automatically on pushes to `main`, and create preview deploys for PRs.
+- Recommended target: Azure Static Web Apps (preferred for Next.js) or Azure App Service (if SSR required).
+- Pipeline steps (concise):
+  1. Checkout repository
+  2. Setup Node.js 18
+  3. Install dependencies: `npm ci` (use cache)
+  4. Run lint & unit tests (fast fail on critical errors)
+  5. Build: `npm run build`
+  6. Upload artifacts or use native Static Web Apps action
+  7. Deploy using `azure/static-web-apps-deploy` or `azure/webapps-deploy` with publish profile or token
+  8. Post-deploy smoke tests and healthcheck
+  9. Notify team on success/failure (GitHub PR comment or Slack)
+
+- Required secrets / env (examples):
+  - NEXT_PUBLIC_API_URL
+  - AZURE_STATIC_WEBAPP_API_TOKEN or AZUREAPPSERVICE_PUBLISHPROFILE_XXXXX
+
+- Post-deploy tasks:
+  - Run a small set of smoke/e2e checks (home page loads, login endpoint reachable)
+  - Invalidate CDN or flush cache if used
+  - Provide manual rollback instructions (redeploy previous artifact or swap slots)
+
+## Sprint DevOps Tasks (brief)
+
+Add these recurring items to the sprint backlog for the DevOps engineer:
+
+- CI/CD housekeeping: dependency updates, pipeline caching, add frontend PR preview deploys, and improve job parallelism.
+- Security & maintenance: rotate secrets, apply OS/runtime patches, and update vulnerable packages.
+- Backups & DR: verify DB backups, publish restore runbook.
+- Observability: add browser telemetry (App Insights or RUM), synthetic uptime checks for frontend.
+- Testing: add quick frontend unit tests and linting in CI; include frontend smoke tests post-deploy.
+- Documentation & handover: update README with deploy steps, contact list, and runbook for rollbacks.
 
