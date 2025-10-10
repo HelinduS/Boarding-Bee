@@ -76,11 +76,82 @@ function main() {
   let html = generateHtmlReport(lines);
 
   // If unit test summary exists, append it as a section
+
   if (fs.existsSync(UNIT_SUMMARY)) {
     const unitLines = fs.readFileSync(UNIT_SUMMARY, 'utf-8').split(/\r?\n/);
-    const unitHtml = unitLines.map(colorize).join('<br>');
+    // Extract summary line (Passed! - ...)
+    const summaryLine = unitLines.find(l => /Passed!\s*-\s*Failed:/i.test(l));
+    // Extract warnings
+    const warningLines = unitLines.filter(l => /warning|warn|error|CS\d{4}|NU\d{4}/i.test(l));
+    // Everything else (build output, etc.)
+    const otherLines = unitLines.filter(l => l && l !== summaryLine && !warningLines.includes(l));
+
+    // Extract test case results (works for xUnit and MSTest)
+    // Example: [xUnit.net 00:00:01.234]   Passed MyNamespace.MyTestClass.MyTestMethod [1 ms]
+    // Example: [xUnit.net 00:00:01.234]   Failed MyNamespace.MyTestClass.MyFailingTest [2 ms]
+    const testCaseRegex = /\s+(Passed|Failed|Skipped)\s+([\w.]+)\s*\[(\d+\s*ms|[\d.]+\s*s)\]/i;
+    const testCases = unitLines
+      .map(l => {
+        const m = l.match(testCaseRegex);
+        if (m) {
+          return {
+            result: m[1],
+            name: m[2],
+            duration: m[3],
+            raw: l
+          };
+        }
+        return null;
+      })
+      .filter(Boolean);
+
+    // Try to extract error messages for failed tests
+    let errorMap = {};
+    let lastFail = null;
+    unitLines.forEach((l) => {
+      const failMatch = l.match(/Failed\s+([\w.]+)/);
+      if (failMatch) {
+        lastFail = failMatch[1];
+        errorMap[lastFail] = '';
+      } else if (lastFail && l.trim() && !l.match(testCaseRegex)) {
+        errorMap[lastFail] += (errorMap[lastFail] ? '\n' : '') + l.trim();
+      } else if (!l.trim()) {
+        lastFail = null;
+      }
+    });
+
+    let summaryHtml = '';
+    if (summaryLine) {
+      const failedMatch = summaryLine.match(/Failed:\s*(\d+)/i);
+      const failedCount = failedMatch ? parseInt(failedMatch[1], 10) : 0;
+      summaryHtml = `<div style="font-size:1.2em;font-weight:bold;color:${failedCount === 0 ? 'green' : 'red'};margin-bottom:0.5em;">${escapeHtml(summaryLine)}</div>`;
+    }
+
+    // Business-friendly test case table
+    let tableHtml = '';
+    if (testCases.length) {
+      tableHtml = `<table style="border-collapse:collapse;margin-bottom:1em;"><thead><tr><th style="border:1px solid #ccc;padding:4px 8px;">Test Name</th><th style="border:1px solid #ccc;padding:4px 8px;">Result</th><th style="border:1px solid #ccc;padding:4px 8px;">Duration</th><th style="border:1px solid #ccc;padding:4px 8px;">Error</th></tr></thead><tbody>`;
+      for (const tc of testCases) {
+        const color = tc.result === 'Passed' ? 'green' : tc.result === 'Failed' ? 'red' : 'orange';
+        const icon = tc.result === 'Passed' ? '✅' : tc.result === 'Failed' ? '❌' : '⚠️';
+        const error = tc.result === 'Failed' && errorMap[tc.name] ? `<pre style="color:red;font-size:0.95em;white-space:pre-wrap;">${escapeHtml(errorMap[tc.name])}</pre>` : '';
+        tableHtml += `<tr><td style="border:1px solid #ccc;padding:4px 8px;">${escapeHtml(tc.name)}</td><td style="border:1px solid #ccc;padding:4px 8px;color:${color};font-weight:bold;">${icon} ${tc.result}</td><td style="border:1px solid #ccc;padding:4px 8px;">${escapeHtml(tc.duration)}</td><td style="border:1px solid #ccc;padding:4px 8px;">${error}</td></tr>`;
+      }
+      tableHtml += '</tbody></table>';
+    }
+
+    let warningsHtml = '';
+    if (warningLines.length) {
+      warningsHtml = `<details style="margin-bottom:0.5em;"><summary style="color:orange;font-weight:bold;">Show Warnings & Build Output</summary><pre style="font-size:0.95em;color:#b8860b;">${warningLines.map(escapeHtml).join('\n')}</pre></details>`;
+    }
+
+    let otherHtml = '';
+    if (otherLines.length) {
+      otherHtml = `<details><summary>Show Full Unit Test Log</summary><pre style="font-size:0.95em;">${otherLines.map(escapeHtml).join('\n')}</pre></details>`;
+    }
+
     html = html.replace(/<\/body>\s*<\/html>\s*$/i,
-      `<hr><h1>Unit Test Results</h1>\n<div>${unitHtml}</div>\n</body></html>`);
+      `<hr><h1>Unit Test Results</h1>\n${summaryHtml}${tableHtml}${warningsHtml}${otherHtml}\n</body></html>`);
   }
 
   fs.mkdirSync(path.dirname(OUTPUT), { recursive: true });
