@@ -5,14 +5,20 @@ using Microsoft.EntityFrameworkCore;
 using BoardingBee_backend.Models;
 using DotNetEnv;
 using BoardingBee_backend.Auth.Services;
-// ⬇️ NEW: so we can register ReviewsService
-using BoardingBee_backend.Services;
+using BoardingBee_backend.Services;                 // ReviewsService, ListingService
+using BoardingBee_backend.Services.Notifications;   // ⬅️ EmailNotifier, NotificationService
 
 DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddScoped<BoardingBee_backend.Services.ListingService>();
+// App services
+builder.Services.AddScoped<BoardingBee_backend.Services.ListingService>(); // keep as-is
+builder.Services.AddScoped<ReviewsService>();
+
+// ⬇️ Email-only notifications (no SMS)
+builder.Services.AddScoped<EmailNotifier>();
+builder.Services.AddScoped<NotificationService>();
 
 // JWT Authentication setup
 var jwtKey = Environment.GetEnvironmentVariable("JWT_SECRET") ?? "your_dev_secret_key";
@@ -33,8 +39,6 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = jwtIssuer,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
         ClockSkew = TimeSpan.Zero,
-
-        // ⬇️ NEW (optional): make sure role checks work (Admin delete, etc.)
         RoleClaimType = "role" // change to "roles" if your token uses that
     };
     options.RequireHttpsMetadata = false; // for local dev only
@@ -42,9 +46,6 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddControllers();
 builder.Services.AddScoped<IAuthService, AuthService>();
-
-// ⬇️ NEW: register the reviews service for DI
-builder.Services.AddScoped<ReviewsService>();
 
 // DB connection (SQL Server). Set DB_CONNECTION_STRING env var.
 var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");

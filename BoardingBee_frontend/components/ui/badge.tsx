@@ -6,7 +6,7 @@ export function Badge({
   variant = "default",
   ...props
 }: React.HTMLAttributes<HTMLDivElement> & {
-  variant?: "default" | "secondary" | "destructive";
+  variant?: "default" | "secondary" | "destructive" | "outline";
 }) {
   return (
     <div
@@ -16,6 +16,7 @@ export function Badge({
           "bg-primary text-primary-foreground": variant === "default",
           "bg-secondary text-secondary-foreground": variant === "secondary",
           "bg-destructive text-destructive-foreground": variant === "destructive",
+          "bg-transparent border-muted text-muted-foreground": variant === "outline",
         },
         className
       )}
