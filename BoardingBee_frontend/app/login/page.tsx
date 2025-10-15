@@ -63,7 +63,7 @@ export default function LoginPage() {
         token: accessToken,
       })
 
-      if (userRole === "ADMIN") router.push("/admindas/dashboard")
+      if (userRole === "ADMIN") router.push("/admin-dashboard")
       else if (userRole === "USER") router.push("/")
       else if (userRole === "OWNER") router.push("/owner-dashboard")
       else throw new Error("Unknown role")
