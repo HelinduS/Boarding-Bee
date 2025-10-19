@@ -10,7 +10,7 @@ namespace BoardingBee_backend.Services.Notifications
         public NotificationService(AppDbContext db, EmailNotifier email)
         { _db = db; _email = email; }
 
-        public async Task QueueAndSendAsync(
+        public virtual async Task QueueAndSendAsync(
             NotificationType type, int userId, string subject, string body,
             string? linkUrl = null, int? listingId = null, int? inquiryId = null)
         {

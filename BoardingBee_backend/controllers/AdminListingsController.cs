@@ -38,9 +38,19 @@ namespace BoardingBee_backend.Controllers
             await _db.SaveChangesAsync();
 
             if (listing.OwnerId.HasValue)
-                await _notify.QueueAndSendAsync(NotificationType.ListingApproved, listing.OwnerId.Value,
-                    "Listing approved", $"Your listing '{listing.Title}' was approved.",
-                    $"https://your-frontend/listings/{listing.Id}", listingId: listing.Id);
+            {
+                try
+                {
+                    await _notify.QueueAndSendAsync(NotificationType.ListingApproved, listing.OwnerId.Value,
+                        "Listing approved", $"Your listing '{listing.Title}' was approved.",
+                        $"https://your-frontend/listings/{listing.Id}", listingId: listing.Id);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Notification failed: " + ex.Message);
+                    // swallow notification errors to keep admin flow resilient
+                }
+            }
 
             return Ok(new { ok = true });
         }
@@ -57,9 +67,18 @@ namespace BoardingBee_backend.Controllers
             await _db.SaveChangesAsync();
 
             if (listing.OwnerId.HasValue)
-                await _notify.QueueAndSendAsync(NotificationType.ListingRejected, listing.OwnerId.Value,
-                    "Listing needs changes", $"Your listing '{listing.Title}' needs updates. Reason: {dto.Reason}",
-                    $"https://your-frontend/edit-listing/{listing.Id}", listingId: listing.Id);
+            {
+                try
+                {
+                    await _notify.QueueAndSendAsync(NotificationType.ListingRejected, listing.OwnerId.Value,
+                        "Listing needs changes", $"Your listing '{listing.Title}' needs updates. Reason: {dto.Reason}",
+                        $"https://your-frontend/edit-listing/{listing.Id}", listingId: listing.Id);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Notification failed: " + ex.Message);
+                }
+            }
 
             return Ok(new { ok = true });
         }

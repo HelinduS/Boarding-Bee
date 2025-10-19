@@ -1,8 +1,11 @@
-export const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "";
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL|| "";
 
 /** Replace this with your real auth-token source if different */
 export function getToken(): string | null {
-  if (typeof window !== "undefined") return localStorage.getItem("access_token");
+  if (typeof window !== "undefined") {
+    // historic variants: some code writes 'token' while older code expects 'access_token'
+    return localStorage.getItem("access_token") || localStorage.getItem("token");
+  }
   return null;
 }
 

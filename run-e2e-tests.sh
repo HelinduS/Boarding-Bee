@@ -15,6 +15,7 @@ for testfile in \
   tests/selenium/owner-registration.test.js \
   tests/selenium/owner-login.test.js \
   tests/selenium/owner-dashboard.test.js \
+  tests/selenium/admin-listings.test.js \
   tests/selenium/tenant-review.test.js
 do
   base=$(basename "$testfile" .test.js)
