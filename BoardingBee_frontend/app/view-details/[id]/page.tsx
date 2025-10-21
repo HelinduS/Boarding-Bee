@@ -11,7 +11,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { fetchListing } from "@/lib/listingsApi";
 import { useAuth } from "@/context/authContext"
 
-// ⤵️ NEW: import the composed reviews widget from ui
 import ReviewsSection from "@/components/ui/ReviewsSection";
 
 const amenityIcons = {
