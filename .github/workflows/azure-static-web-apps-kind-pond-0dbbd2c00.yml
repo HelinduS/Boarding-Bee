@@ -55,6 +55,8 @@ jobs:
         id: closepullrequest
         uses: Azure/static-web-apps-deploy@v1
         with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_KIND_POND_0DBBD2C00 }}
           action: "close"
+          app_location: "./BoardingBee_frontend"
 
           
