@@ -39,6 +39,23 @@ export default function LoginPage() {
     setLoading(true)
     setError("")
 
+    if (!identifier.trim()) {
+      setError("Identifier is required.")
+      setLoading(false)
+      return
+    }
+    if (!password.trim()) {
+      setError("Password is required.")
+      setLoading(false)
+      return
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(identifier)) {
+      setError("Invalid email format.")
+      setLoading(false)
+      return
+    }
+
     try {
       const API = process.env.NEXT_PUBLIC_API_URL;
       const response = await fetch(`${API}/api/auth/login`, {
@@ -107,7 +124,7 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <Alert variant="destructive" className="mb-6">
+              <Alert variant="destructive" className="mb-6 error">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
@@ -122,7 +139,6 @@ export default function LoginPage() {
                   type="text"
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
-                  required
                   placeholder="Enter Email or Username"
                   className="h-12 rounded-lg border-gray-300 px-4 
                              outline-none focus:outline-none 
@@ -138,7 +154,6 @@ export default function LoginPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  required
                   placeholder="Enter Your Password"
                   className="h-12 rounded-lg border-gray-300 px-4 
                              outline-none focus:outline-none 
