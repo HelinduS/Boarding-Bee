@@ -21,7 +21,13 @@ jobs:
         with:
           submodules: true
           lfs: false
-
+      - name: Check SWA token visibility
+        run: |
+          if [ -z "${{ secrets.SWA_TOKEN }}" ]; then
+            echo "❌ SWA token secret is empty or not available in this workflow context"; exit 1;
+          else
+            echo "✅ SWA token is present (value is masked)";
+          fi
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
