@@ -1,10 +1,8 @@
+
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
-/** Replace this with your real auth-token source if different */
-export function getToken(): string | null {
-  if (typeof window !== "undefined") return localStorage.getItem("access_token");
-  return null;
-}
+// Use getToken from lib/auth.ts for consistent token access
+import { getToken } from "@/lib/auth";
 
 export async function apiGet<T>(path: string): Promise<T> {
   const token = getToken();

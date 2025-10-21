@@ -39,7 +39,7 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = jwtIssuer,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
         ClockSkew = TimeSpan.Zero,
-        RoleClaimType = "role" // change to "roles" if your token uses that
+        //RoleClaimType = "role" // change to "roles" if your token uses that
     };
     options.RequireHttpsMetadata = false; // for local dev only
 });

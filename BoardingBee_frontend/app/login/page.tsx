@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useAuth } from "@/context/authContext"
+import { extractUserRole } from "@/lib/auth"
 
 interface JwtPayload {
   sub: string
@@ -52,16 +53,17 @@ export default function LoginPage() {
       const accessToken = data.token || data.access_token;
       localStorage.setItem("token", accessToken)
 
-      const decodedToken = jwtDecode<JwtPayload>(accessToken)
-      const userRole = decodedToken.role
-      const userId = decodedToken.sub
+  const decodedToken = jwtDecode<JwtPayload & { [key: string]: any }>(accessToken)
+  const userRole = extractUserRole(decodedToken)
+  const userId = decodedToken.sub
       // You may want to fetch user details from backend if needed
+
 
       login({
         id: Number(userId),
         username: identifier,
         email: identifier,
-        role: userRole,
+        role: userRole || "", // Ensure string type
         token: accessToken,
       })
 
