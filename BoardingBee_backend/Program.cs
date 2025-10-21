@@ -58,7 +58,7 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(
             "http://localhost:3000",
             "http://127.0.0.1:3000",
-            "https://kind-pond-0dbbd2c00.3.azurestaticapps.net"
+            "https://delightful-ground-0f0c8b400.3.azurestaticapps.net"
         )
         .AllowAnyHeader()
         .AllowAnyMethod();
