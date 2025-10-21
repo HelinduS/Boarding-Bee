@@ -66,8 +66,10 @@ jobs:
           cd BoardingBee_backend
           dotnet build --configuration Release
 
+
+
       - name: Run backend unit tests
-        run: dotnet test tests/BoardingBee.Tests.Unit/BoardingBee.Tests.Unit.csproj --logger "console;verbosity=detailed" | tee unit-summary.txt
+        run: dotnet test tests/BoardingBee.Tests.Unit/BoardingBee.Tests.Unit.csproj | tee unit-summary.txt
 
       - name: Start backend
         run: |
