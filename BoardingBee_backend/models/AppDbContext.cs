@@ -17,6 +17,12 @@ namespace BoardingBee_backend.Models
         // NEW: reviews table
         public DbSet<Review> Reviews => Set<Review>();
 
+        //admin
+        public DbSet<Inquiry> Inquiries => Set<Inquiry>();
+        public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
+        public DbSet<Notification> Notifications => Set<Notification>();
+
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
