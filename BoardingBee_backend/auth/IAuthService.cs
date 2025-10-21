@@ -6,7 +6,8 @@ namespace BoardingBee_backend.Auth.Services
     {
         string HashPassword(string password);
         bool VerifyPassword(string password, string passwordHash);
-    string GenerateJwtToken(User user);
-    User Authenticate(string username, string password);
+        string GenerateJwtToken(User user);
+        User Authenticate(string username, string password);
+        User GetUserByIdentifier(string identifier);
     }
 }
