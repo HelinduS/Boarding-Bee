@@ -1,9 +1,0 @@
-{
-  "routes": [
-    {
-      "route": "/api/*",
-      "allowedRoles": ["anonymous"],
-      "rewrite": "https://boardingbee-atf5gegteud8hpc0.southindia-01.azurewebsites.net/api/{*rest}"
-    }
-  ]
-}

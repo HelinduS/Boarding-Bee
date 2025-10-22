@@ -139,7 +139,7 @@ export default function ListingDetails() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
                 <img
-                  src={listing.images?.[0] || "/images/boarding.jpeg"}
+                  src={listing.images?.[0] || "https://boardingbee.blob.core.windows.net/images/boarding.jpeg"}
                   alt={listing.title}
                   className="w-full h-96 object-cover rounded-lg"
                 />
@@ -147,7 +147,7 @@ export default function ListingDetails() {
               {listing.images?.slice(1).map((image: string, index: number) => (
                 <img
                   key={index}
-                  src={image || "/placeholder.svg"}
+                  src={image || "https://boardingbee.blob.core.windows.net/images/boarding.jpeg"}
                   alt={`${listing.title} - Image ${index + 2}`}
                   className="w-full h-48 object-cover rounded-lg"
                 />
