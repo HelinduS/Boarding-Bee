@@ -62,7 +62,11 @@ namespace BoardingBee_backend.Controllers
             var listing = await _db.Listings.FirstOrDefaultAsync(l => l.Id == dto.ListingId);
             if (listing == null) return NotFound();
 
-            // Keep Pending state, but record reason in activity log (no behavior change)
+            // Mark listing as rejected and persist
+            listing.Status = ListingStatus.Rejected;
+            await _db.SaveChangesAsync();
+
+            // Record activity with optional reason
             await _db.ActivityLogs.AddAsync(new ActivityLog { Kind = ActivityKind.ListingReject, ListingId = listing.Id, Meta = dto.Reason });
             await _db.SaveChangesAsync();
 
