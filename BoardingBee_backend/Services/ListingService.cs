@@ -81,7 +81,9 @@ namespace BoardingBee_backend.Services
         // Get a single listing by ID
         public async Task<Listing?> GetListingAsync(int id)
         {
-            return await _context.Listings.FindAsync(id);
+            return await _context.Listings
+                .Include(l => l.Owner)
+                .FirstOrDefaultAsync(l => l.Id == id);
         }
 
         // Update listing (form or JSON)
@@ -114,6 +116,7 @@ namespace BoardingBee_backend.Services
         {
             return await _context.Listings
                 .Where(l => l.OwnerId == ownerId)
+                .Include(l => l.Owner)
                 .OrderByDescending(l => l.CreatedAt)
                 .ToListAsync();
         }
