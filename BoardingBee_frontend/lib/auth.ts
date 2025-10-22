@@ -1,3 +1,11 @@
+// Utility to extract user role from a decoded JWT
+export function extractUserRole(decodedToken: any): string | undefined {
+  // Standard .NET role claim type
+  return (
+    decodedToken["http://schemas.microsoft.com/ws/2008/06/identity/claims/role"] ||
+    decodedToken.role
+  );
+}
 // Check if user is authenticated
 export const isAuthenticated = (): boolean => {
   if (typeof window === "undefined") return false

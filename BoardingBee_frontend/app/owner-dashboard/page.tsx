@@ -70,6 +70,7 @@ function OwnerDashboardPage() {
     approved: listings.filter((l) => l.status === "Approved").length,
     pending: listings.filter((l) => l.status === "Pending").length,
     expired: listings.filter((l) => l.status === "Expired").length,
+    rejected: listings.filter((l) => l.status === "Rejected").length,
   }), [listings])
 
   // Pagination
@@ -210,6 +211,14 @@ function OwnerDashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-red-600">{stats.expired}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Rejected</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-700">{stats.rejected}</div>
             </CardContent>
           </Card>
         </div>
