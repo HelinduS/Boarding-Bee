@@ -65,16 +65,25 @@ export default function LoginPage() {
       })
 
       const data = await response.json()
-      if (!response.ok) throw new Error(data.message || "Authentication failed")
+      if (!response.ok) {
+        // Map backend error messages to user-friendly frontend messages for E2E test detection
+        if (data.message === "No account found with this email or username.") {
+          setError("No account found with this email or username.")
+        } else if (data.message === "Wrong password.") {
+          setError("Wrong password.")
+        } else {
+          setError(data.message || "Authentication failed")
+        }
+        setLoading(false)
+        return
+      }
 
       const accessToken = data.token || data.access_token;
       localStorage.setItem("token", accessToken)
 
-  const decodedToken = jwtDecode<JwtPayload & { [key: string]: any }>(accessToken)
-  const userRole = extractUserRole(decodedToken)
-  const userId = decodedToken.sub
-      // You may want to fetch user details from backend if needed
-
+      const decodedToken = jwtDecode<JwtPayload & { [key: string]: any }>(accessToken)
+      const userRole = extractUserRole(decodedToken)
+      const userId = decodedToken.sub
 
       login({
         id: Number(userId),

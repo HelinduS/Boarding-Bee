@@ -108,16 +108,19 @@ namespace BoardingBee_backend.Controllers
             if (user == null) return NotFound();
             if (file == null || file.Length == 0) return BadRequest("No file uploaded");
 
-            var env = HttpContext.RequestServices.GetService(typeof(IWebHostEnvironment)) as IWebHostEnvironment;
-            var root = Path.Combine(env?.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"), "uploads", "avatars");
-            Directory.CreateDirectory(root);
+            // Azure Blob Storage upload
+            var connectionString = Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING");
+            var containerName = "images";
+            var blobServiceClient = new Azure.Storage.Blobs.BlobServiceClient(connectionString);
+            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+            await containerClient.CreateIfNotExistsAsync();
             var fileName = $"u{userId}_{Guid.NewGuid():N}{Path.GetExtension(file.FileName)}";
-            var path = Path.Combine(root, fileName);
-            using (var stream = System.IO.File.Create(path))
+            var blobClient = containerClient.GetBlobClient(fileName);
+            using (var stream = file.OpenReadStream())
             {
-                await file.CopyToAsync(stream);
+                await blobClient.UploadAsync(stream, overwrite: true);
             }
-            user.ProfileImageUrl = $"/uploads/avatars/{fileName}";
+            user.ProfileImageUrl = blobClient.Uri.ToString();
             await _context.SaveChangesAsync();
             return Ok(ToProfileResponse(user));
         }

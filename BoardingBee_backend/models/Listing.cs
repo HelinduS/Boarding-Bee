@@ -36,6 +36,6 @@ namespace BoardingBee_backend.Models
         public string? ImagesCsv { get; set; }
     }
 
-    public enum ListingStatus { Pending, Approved, Expired }
+    public enum ListingStatus { Pending, Approved, Expired, Rejected }
     public enum Availability { Available, Occupied }
 }

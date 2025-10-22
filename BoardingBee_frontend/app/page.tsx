@@ -49,7 +49,7 @@ export default function Home() {
             location: l.location,
             price: Number(l.price),
             availability,
-            thumbnailUrl: images.length > 0 ? images[0] : "/images/images.jpg",
+            thumbnailUrl: images.length > 0 ? images[0] : "https://boardingbee.blob.core.windows.net/images/boarding.jpeg",
             rating: typeof l.rating === "number" ? l.rating : null, // from backend DTO
             reviewCount: Number(l.reviewCount ?? 0),                 // from backend DTO
             description: l.description ?? null,
