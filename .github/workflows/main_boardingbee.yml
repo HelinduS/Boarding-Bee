@@ -47,7 +47,7 @@ jobs:
           echo 'DB_CONNECTION_STRING=Server=tcp:boardingbee.database.windows.net,1433;Initial Catalog=BoardingBeeDB;Persist Security Info=False;User ID=boardingbee;Password=#Boarding1234;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;' >> BoardingBee_backend/.env
           echo "JWT_SECRET=your-very-strong-secret-key-1234567890abcdef" >> BoardingBee_backend/.env
           echo "AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=https;AccountName=boardingbee;AccountKey=XiIJwZFpDQMG1w2DFMCWCat73PSKnAA3LEXESJZ/sk9fMyAZ0K2eZCWvSUHHdkJAOulAc3juIv9e+ASt3aly4w==;EndpointSuffix=core.windows.net" >> BoardingBee_backend/.env
-
+          
       - name: Create frontend .env file
         run: |
           echo "NEXT_PUBLIC_API_URL=http://localhost:5000" > BoardingBee_frontend/.env

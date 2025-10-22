@@ -29,11 +29,12 @@ namespace BoardingBee_backend.Auth.Controllers
             if (string.IsNullOrEmpty(request.Password))
                 return BadRequest(new { message = "Password is required." });
 
+
             var user = _authService.GetUserByIdentifier(request.Identifier);
             if (user == null)
-                return Unauthorized(new { message = "User not found." });
+                return Unauthorized(new { message = "User not found" });
             if (!_authService.VerifyPassword(request.Password, user.PasswordHash))
-                return Unauthorized(new { message = "Invalid password." });
+                return Unauthorized(new { message = "Wrong password." });
 
             var token = _authService.GenerateJwtToken(user);
             return Ok(new { token, role = user.Role });
