@@ -1,4 +1,4 @@
-export type ListingStatus = "Pending" | "Approved" | "Expired";
+export type ListingStatus = "Pending" | "Approved" | "Expired" | "Rejected";
 
 export interface Listing {
   id: number;

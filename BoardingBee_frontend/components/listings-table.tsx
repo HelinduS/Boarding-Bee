@@ -57,6 +57,8 @@ export function ListingsTable({ listings, onEditAction, onDeleteAction, onViewAc
         return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Pending</Badge>
       case "Expired":
         return <Badge variant="destructive" className="bg-red-400">Expired</Badge>
+      case "Rejected":
+        return <Badge variant="destructive" className="bg-red-600">Rejected</Badge>
       default:
         return <Badge variant="secondary">{status}</Badge>
     }
