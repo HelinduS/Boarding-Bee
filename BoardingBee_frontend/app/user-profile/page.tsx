@@ -153,7 +153,7 @@ export default function UserProfile() {
 
             <div className="flex items-center gap-6">
               <Avatar className="h-24 w-24 ring-2 ring-white">
-                <AvatarImage src={userData.profileImage || "/placeholder.svg"} />
+                <AvatarImage src={userData.profileImage || "https://boardingbee.blob.core.windows.net/images/boarding.jpeg"} />
                 <AvatarFallback className="text-lg bg-blue-200 text-blue-700">
                   {userData.firstName[0]}
                   {userData.lastName[0]}
