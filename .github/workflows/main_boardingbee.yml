@@ -7,20 +7,20 @@ on:
     branches:
       - main
       - dev
-      - testing
+      - 'testing/**'
   pull_request:
     branches:
       - dev
-      - testing
+      - 'testing/**'
   workflow_dispatch:
 
 jobs:
   test:
     if: >
       (github.event_name == 'push' &&
-        (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/testing')) ||
+        (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/testing/**')) ||
       (github.event_name == 'pull_request' &&
-        (github.base_ref == 'dev' || github.base_ref == 'testing'))
+        (github.base_ref == 'dev' || github.base_ref == 'testing/**'))
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -185,7 +185,7 @@ jobs:
           rm -f e2e-summary.txt TestResultsReport/index.html TestResultsReport/report.pdf || true
 
   build:
-    if: github.ref != 'refs/heads/testing'
+    if: github.ref != 'refs/heads/testing/**'
     runs-on: ubuntu-latest
     permissions:
       contents: read
