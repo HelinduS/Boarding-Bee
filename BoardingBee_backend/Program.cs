@@ -39,7 +39,7 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = jwtIssuer,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
         ClockSkew = TimeSpan.Zero,
-        RoleClaimType = "role" // change to "roles" if your token uses that
+        //RoleClaimType = "role" // change to "roles" if your token uses that
     };
     options.RequireHttpsMetadata = false; // for local dev only
 });
@@ -56,9 +56,13 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("NextJs", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "http://127.0.0.1:3000")
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        policy.WithOrigins(
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "https://delightful-ground-0f0c8b400.3.azurestaticapps.net"
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod();
     });
 });
 

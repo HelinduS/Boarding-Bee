@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useAuth } from "@/context/authContext"
+import { extractUserRole } from "@/lib/auth"
 
 interface JwtPayload {
   sub: string
@@ -24,6 +25,8 @@ interface JwtPayload {
 export default function LoginPage() {
   const { login } = useAuth()
   const router = useRouter()
+  // Debug: log the API URL at build time
+  console.log("NEXT_PUBLIC_API_URL:", process.env.NEXT_PUBLIC_API_URL)
   // Accepts either email or username
   const [identifier, setIdentifier] = useState("")
   const [password, setPassword] = useState("")
@@ -37,7 +40,7 @@ export default function LoginPage() {
     setError("")
 
     try {
-      const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const API = process.env.NEXT_PUBLIC_API_URL;
       const response = await fetch(`${API}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -50,16 +53,17 @@ export default function LoginPage() {
       const accessToken = data.token || data.access_token;
       localStorage.setItem("token", accessToken)
 
-      const decodedToken = jwtDecode<JwtPayload>(accessToken)
-      const userRole = decodedToken.role
-      const userId = decodedToken.sub
+  const decodedToken = jwtDecode<JwtPayload & { [key: string]: any }>(accessToken)
+  const userRole = extractUserRole(decodedToken)
+  const userId = decodedToken.sub
       // You may want to fetch user details from backend if needed
+
 
       login({
         id: Number(userId),
         username: identifier,
         email: identifier,
-        role: userRole,
+        role: userRole || "", // Ensure string type
         token: accessToken,
       })
 

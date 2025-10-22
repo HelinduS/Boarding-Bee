@@ -16,6 +16,11 @@ on:
 
 jobs:
   test:
+    if: >
+      (github.event_name == 'push' &&
+        (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/testing')) ||
+      (github.event_name == 'pull_request' &&
+        (github.base_ref == 'dev' || github.base_ref == 'testing'))
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -61,8 +66,10 @@ jobs:
           cd BoardingBee_backend
           dotnet build --configuration Release
 
+
+
       - name: Run backend unit tests
-        run: dotnet test tests/BoardingBee.Tests.Unit/BoardingBee.Tests.Unit.csproj --logger "console;verbosity=detailed" | tee unit-summary.txt
+        run: dotnet test tests/BoardingBee.Tests.Unit/BoardingBee.Tests.Unit.csproj | tee unit-summary.txt
 
       - name: Start backend
         run: |
@@ -180,7 +187,6 @@ jobs:
   build:
     if: github.ref != 'refs/heads/testing'
     runs-on: ubuntu-latest
-    needs: test
     permissions:
       contents: read
     steps:

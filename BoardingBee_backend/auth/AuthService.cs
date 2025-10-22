@@ -41,7 +41,7 @@ namespace BoardingBee_backend.Auth.Services
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.UniqueName, user.Username ?? string.Empty),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
-                new Claim("role", (user.Role ?? "USER").ToUpperInvariant())
+                new Claim(ClaimTypes.Role, (user.Role ?? "USER").ToUpperInvariant())
             };
 
             var token = new JwtSecurityToken(

@@ -1,3 +1,4 @@
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -27,7 +28,7 @@ namespace BoardingBee_backend.Controllers
 
         [HttpGet("activity/series")]
         [Authorize(Roles = "ADMIN")]
-        public async Task<IActionResult> ActivitySeries([FromQuery] int days=14)
+        public async Task<IActionResult> ActivitySeries([FromQuery] int days = 14)
         {
             var since = DateTime.UtcNow.AddDays(-days);
             var items = await _db.ActivityLogs
@@ -36,6 +37,16 @@ namespace BoardingBee_backend.Controllers
                 .Select(g => new { g.Key.d, g.Key.Kind, Count = g.Count() })
                 .OrderBy(x => x.d).ToListAsync();
             return Ok(items);
+        }
+        
+
+                // DEBUG: Returns the current user's claims for troubleshooting
+        [HttpGet("debug/claims")]
+        [Authorize]
+        public IActionResult DebugClaims()
+        {
+            var claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList();
+            return Ok(claims);
         }
     }
 }
