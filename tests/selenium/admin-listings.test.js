@@ -23,12 +23,26 @@ async function createListing(token, payload) {
   return json;
 }
 
+async function deleteListing(token, id) {
+  // DELETE /api/listings/{id} requires owner token
+  try {
+    const res = await fetch(`${API_URL}/api/listings/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+    return res;
+  } catch (e) {
+    // swallow - cleanup should best-effort
+    return null;
+  }
+}
+
 describe('Admin moderation E2E', function() {
   this.timeout(60000);
 
   it('admin can approve a pending listing and perform bulk/reject flows', async function() {
     const owner = { username: `e2e_owner_${Date.now()}`, email: `e2e_owner_${Date.now()}@example.com`, password: 'TestPass123!', firstName: 'Owner', lastName: 'E2E', userType: 'owner', role: 'OWNER' };
     const admin = { username: `e2e_admin_${Date.now()}`, email: `e2e_admin_${Date.now()}@example.com`, password: 'AdminPass123!', firstName: 'Admin', lastName: 'E2E', userType: 'admin', role: 'ADMIN' };
+
+  // track created listings so we can clean them up after the test
+  const createdListings = [];
 
   // create owner and assert registration success
   const regOwnerRes = await registerUser({ ...owner, phoneNumber: '1234567890', permanentAddress: 'addr', gender: 'other', emergencyContact: '0987654321', institutionCompany: '', location: '' });
@@ -43,6 +57,7 @@ describe('Admin moderation E2E', function() {
   const createRes = await createListing(ownerToken, listingPayload);
   assert(createRes.listingId, 'listingId should be returned');
   const listingId = createRes.listingId;
+  createdListings.push(listingId);
 
   // create admin user and assert
   const regAdminRes = await registerUser({ ...admin, phoneNumber: '111222333', permanentAddress: 'admin addr', gender: 'other', emergencyContact: '111222333', institutionCompany: '', location: '' });
@@ -82,6 +97,7 @@ describe('Admin moderation E2E', function() {
           const listing2 = await createListing(ownerToken, { title: title + ' 2', location: 'Test City', price: 5, description: 'to reject' });
           assert(listing2.listingId, 'second listing creation failed');
           const id2 = listing2.listingId;
+          createdListings.push(id2);
           const card2 = `[data-testid="listing-card-${id2}"]`;
           await driver.wait(until.elementLocated(By.css(card2)), 40000);
           const rejectBtn = await driver.findElement(By.css(`[data-testid="reject-button-${id2}"]`));
@@ -100,6 +116,7 @@ describe('Admin moderation E2E', function() {
             const r = await createListing(ownerToken, { title: title + ' bulk ' + i, location: 'City', price: 1+i, description: 'bulk' });
             assert(r.listingId, 'bulk seed failed');
             bulkIds.push(r.listingId);
+            createdListings.push(r.listingId);
           }
           // wait for them to appear
           await Promise.all(bulkIds.map(id => driver.wait(until.elementLocated(By.css(`[data-testid="listing-card-${id}"]`)), 40000)));
@@ -117,7 +134,22 @@ describe('Admin moderation E2E', function() {
             return n.length === 0;
           }, 20000)));
     } finally {
-      await driver.quit();
+      // Best-effort cleanup: delete any created listings using the owner's token
+      try {
+        if (typeof ownerToken !== 'undefined' && ownerToken) {
+          for (const id of createdListings) {
+            try {
+              await deleteListing(ownerToken, id);
+            } catch (e) {
+              // ignore individual delete errors
+            }
+          }
+        }
+      } catch (e) {
+        // ignore cleanup failure
+      }
+
+      try { if (driver) await driver.quit(); } catch (e) { /* ignore */ }
     }
   });
 });

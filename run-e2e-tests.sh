@@ -15,8 +15,8 @@ for testfile in \
   tests/selenium/owner-registration.test.js \
   tests/selenium/owner-login.test.js \
   tests/selenium/owner-dashboard.test.js \
-  tests/selenium/admin-listings.test.js \
-  tests/selenium/tenant-review.test.js
+  tests/selenium/tenant-review.test.js \
+  tests/selenium/admin-listings.test.js
 do
   base=$(basename "$testfile" .test.js)
   echo "\n===== Running $testfile ====="
@@ -32,3 +32,7 @@ done
 # Clean up test users after running tests
 echo "Deleting test users after E2E tests..."
 node tests/selenium/delete-test-user.js
+
+# Clean up test listings created by E2E runs (requires TEST_API_KEY env var)
+echo "Cleaning up test listings..."
+node tests/selenium/cleanup-test-listings.js || true

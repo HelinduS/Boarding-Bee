@@ -222,6 +222,32 @@ namespace BoardingBee_backend.Controllers
             return NoContent();
         }
 
+        // ----------------- Test-only cleanup endpoint -----------------
+        // POST: api/Listings/test/cleanup
+        // Body: { "prefix": "E2E" }
+        // Requires header X-TEST-KEY matching environment variable TEST_API_KEY
+        [HttpPost("test/cleanup")]
+        [AllowAnonymous]
+        public async Task<IActionResult> CleanupTestListings([FromBody] CleanupRequest? req)
+        {
+            var testKey = Environment.GetEnvironmentVariable("TEST_API_KEY");
+            var provided = Request.Headers["X-TEST-KEY"].FirstOrDefault();
+            if (string.IsNullOrEmpty(testKey) || provided != testKey)
+            {
+                return Forbid("Test cleanup disabled or invalid key.");
+            }
+
+            var prefix = req?.Prefix ?? "E2E";
+            var q = _context.Listings.Where(l => l.Title != null && l.Title.Contains(prefix));
+            var toDelete = await q.ToListAsync();
+            if (toDelete.Count == 0) return Ok(new { deleted = 0 });
+            _context.Listings.RemoveRange(toDelete);
+            await _context.SaveChangesAsync();
+            return Ok(new { deleted = toDelete.Count });
+        }
+
+        public record CleanupRequest(string? Prefix);
+
         // ----------------- Owner's listings -----------------
 
         // GET: api/Listings/owner/{ownerId}
