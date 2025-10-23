@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -6,12 +7,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ArrowLeft, MapPin, Phone, Mail, Wifi, Car, Utensils, Shirt, Star, Calendar } from "lucide-react"
+import { ArrowLeft, MapPin, Phone, Mail, Wifi, Car, Utensils, Shirt, Star, Calendar as CalendarIcon } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { fetchListing } from "@/lib/listingsApi";
 import { useAuth } from "@/context/authContext"
-
 import ReviewsSection from "@/components/ui/ReviewsSection";
+import { Calendar } from "@/components/ui/calendar"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { format } from "date-fns"
+import { toast } from "@/components/ui/use-toast"
+import { createAppointment } from "@/lib/appointmentsApi"
 
 const amenityIcons = {
   WiFi: Wifi,
@@ -23,6 +28,10 @@ const amenityIcons = {
 }
 
 export default function ListingDetails() {
+  // Appointment booking state
+  const [appointmentDialogOpen, setAppointmentDialogOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [booking, setBooking] = useState(false);
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
@@ -113,6 +122,31 @@ export default function ListingDetails() {
   }
 
   if (!listing) return null;
+  // Helper: restrict calendar to current month
+  const today = new Date();
+  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+  // Book appointment handler
+  const handleBookAppointment = async () => {
+    if (!selectedDate) return;
+    setBooking(true);
+    try {
+      await createAppointment({
+        listingId: numericListingId,
+        date: selectedDate,
+        userEmail: user?.email ?? "",
+        token: user?.token,
+      });
+      toast({ title: "Appointment requested!", description: `Your appointment for ${format(selectedDate, "dd MMMM yyyy")} has been requested.` });
+      setAppointmentDialogOpen(false);
+      setSelectedDate(undefined);
+    } catch (err: any) {
+      toast({ title: "Failed to book appointment", description: err?.message || "Please try again later.", variant: "destructive" });
+    } finally {
+      setBooking(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -199,6 +233,7 @@ export default function ListingDetails() {
                 </CardContent>
               </Card>
             )}
+
           </div>
 
           {/* Sidebar */}
@@ -288,9 +323,61 @@ export default function ListingDetails() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Book Appointment Section (moved here) */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Book a Viewing Appointment</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Button className="bg-primary" onClick={() => setAppointmentDialogOpen(true)}>
+                  <CalendarIcon className="h-4 w-4 mr-2" />
+                  Book Appointment
+                </Button>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
+      {/* Appointment Booking Dialog */}
+      <Dialog open={appointmentDialogOpen} onOpenChange={setAppointmentDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Select a date to book your appointment</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="relative w-full max-w-xs mx-auto">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => {
+                  // Only allow dates within current month
+                  if (date && date >= startOfMonth && date <= endOfMonth) {
+                    setSelectedDate(date);
+                  } else {
+                    setSelectedDate(undefined);
+                  }
+                }}
+                // @ts-ignore: pass min/max for native input
+                min={startOfMonth.toISOString().slice(0, 10)}
+                // @ts-ignore: pass min/max for native input
+                max={endOfMonth.toISOString().slice(0, 10)}
+                className="pl-10 pr-3 py-2 border rounded w-full focus:ring-2 focus:ring-primary/50 bg-white text-gray-900"
+              />
+              <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={handleBookAppointment}
+              disabled={!selectedDate || booking}
+              className="bg-primary"
+            >
+              {booking ? "Booking..." : "Confirm Appointment"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -25,7 +25,10 @@ namespace BoardingBee_backend.Models
 
         public UserSettings? UserSettings { get; set; } // Navigation property
 
-        // Navigation property for listings owned by this user
-        public ICollection<Listing> Listings { get; set; } = new List<Listing>();
+    // Navigation property for listings owned by this user
+    public ICollection<Listing> Listings { get; set; } = new List<Listing>();
+
+    // Navigation property for appointments booked by this user
+    public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
     }
 }

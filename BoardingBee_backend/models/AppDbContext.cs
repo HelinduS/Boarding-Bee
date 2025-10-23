@@ -1,5 +1,6 @@
-using Microsoft.EntityFrameworkCore;
-using BoardingBee_backend.Models;
+
+            using Microsoft.EntityFrameworkCore;
+            using BoardingBee_backend.Models;
 
 namespace BoardingBee_backend.Models
 {
@@ -12,7 +13,10 @@ namespace BoardingBee_backend.Models
         public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
         public DbSet<TestTable> TestTables => Set<TestTable>();
         public DbSet<PasswordResetTestToken> PasswordResetTestTokens => Set<PasswordResetTestToken>();
+
+
         public DbSet<Listing> Listings => Set<Listing>();
+        public DbSet<Appointment> Appointments => Set<Appointment>();
 
         // NEW: reviews table
         public DbSet<Review> Reviews => Set<Review>();
@@ -55,6 +59,13 @@ namespace BoardingBee_backend.Models
                 .HasForeignKey("UserId")
                 .OnDelete(DeleteBehavior.Cascade);
 
+
+            // Appointment-User relationship: One User has many Appointments, Appointment has one User
+            modelBuilder.Entity<Appointment>()
+                .HasOne(a => a.User)
+                .WithMany(u => u.Appointments)
+                .HasForeignKey(a => a.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Listing-Owner (User) relationship: One User has many Listings, Listing has one Owner
             modelBuilder.Entity<Listing>()
