@@ -207,9 +207,6 @@ export function ModerationQueue() {
         ) : (
           items.map(l => (
             <div key={l.id} className="w-full rounded-xl border p-4 flex items-center gap-4 transition-shadow duration-150 hover:shadow-md hover:border-gray-200 dark:hover:border-slate-700 bg-white dark:bg-slate-900">
-              <div>
-                <input type="checkbox" checked={!!selected[l.id]} onChange={() => toggleSelect(l.id)} />
-              </div>
               <div className="w-28 h-20 bg-gray-100 rounded overflow-hidden flex-shrink-0">
                 <img src={l.imagesCsv ? l.imagesCsv.split(',')[0] : '/placeholder.svg'} alt={l.title} className="w-full h-full object-cover" />
               </div>
