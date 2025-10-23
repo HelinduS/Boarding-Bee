@@ -56,39 +56,6 @@ namespace BoardingBee_backend.Migrations
                     b.ToTable("ActivityLogs");
                 });
 
-            modelBuilder.Entity("BoardingBee_backend.Models.Appointment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("ListingId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ListingTitle")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Status")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserEmail")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Appointments");
-                });
-
             modelBuilder.Entity("BoardingBee_backend.Models.Inquiry", b =>
                 {
                     b.Property<int>("Id")
@@ -189,8 +156,6 @@ namespace BoardingBee_backend.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("OwnerId");
 
                     b.ToTable("Listings");
                 });
@@ -491,17 +456,6 @@ namespace BoardingBee_backend.Migrations
                     b.ToTable("UserSettings");
                 });
 
-            modelBuilder.Entity("BoardingBee_backend.Models.Appointment", b =>
-                {
-                    b.HasOne("BoardingBee_backend.Models.User", "User")
-                        .WithMany("Appointments")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("BoardingBee_backend.Models.Inquiry", b =>
                 {
                     b.HasOne("BoardingBee_backend.Models.Listing", "Listing")
@@ -511,16 +465,6 @@ namespace BoardingBee_backend.Migrations
                         .IsRequired();
 
                     b.Navigation("Listing");
-                });
-
-            modelBuilder.Entity("BoardingBee_backend.Models.Listing", b =>
-                {
-                    b.HasOne("BoardingBee_backend.Models.User", "Owner")
-                        .WithMany("Listings")
-                        .HasForeignKey("OwnerId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Owner");
                 });
 
             modelBuilder.Entity("BoardingBee_backend.Models.Notification", b =>
@@ -588,10 +532,6 @@ namespace BoardingBee_backend.Migrations
 
             modelBuilder.Entity("BoardingBee_backend.Models.User", b =>
                 {
-                    b.Navigation("Appointments");
-
-                    b.Navigation("Listings");
-
                     b.Navigation("UserSettings");
                 });
 #pragma warning restore 612, 618

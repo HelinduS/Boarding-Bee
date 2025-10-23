@@ -103,9 +103,8 @@ namespace BoardingBee_backend.Controllers.Dto
             Price = (int)l.Price,
             Availability = l.IsAvailable ? "Available" : "Occupied",
             Status = l.Status.ToString(),
-            Amenities = !string.IsNullOrWhiteSpace(l.AmenitiesCsv)
-                ? (l.AmenitiesCsv ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                : (!string.IsNullOrWhiteSpace(l.Facilities) ? l.Facilities.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) : Array.Empty<string>()),
+            Amenities = (l.AmenitiesCsv ?? "")
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
             Images = (l.ImagesCsv ?? "")
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
             ContactPhone = l.ContactPhone,
@@ -117,12 +116,12 @@ namespace BoardingBee_backend.Controllers.Dto
             Rating = l.Rating,
             ReviewCount = l.ReviewCount,
 
-            // Real owner data if available, fallback to placeholders
-            OwnerName = l.Owner != null ? $"{l.Owner.FirstName} {l.Owner.LastName}".Trim() : "Owner",
-            OwnerAvatar = l.Owner?.ProfileImageUrl ?? "/sri-lankan-woman.jpg",
-            OwnerJoinedDate = l.Owner?.CreatedAt.ToString("yyyy-MM-dd") ?? DateTime.UtcNow.ToString("yyyy-MM-dd"),
-                OwnerRating = 0, // No rating property available
-                OwnerTotalReviews = 0 // No review count property available
+            // Your placeholders
+            OwnerName = "Owner",
+            OwnerAvatar = "/sri-lankan-woman.jpg",
+            OwnerJoinedDate = DateTime.UtcNow.ToString("yyyy-MM-dd"),
+            OwnerRating = 4.8,
+            OwnerTotalReviews = 24
         };
     }
 }

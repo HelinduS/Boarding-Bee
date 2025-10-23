@@ -22,19 +22,14 @@ namespace BoardingBee_backend.Auth.Controllers
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginRequest request)
         {
-            if (string.IsNullOrEmpty(request.Identifier) && string.IsNullOrEmpty(request.Password))
-                return BadRequest(new { message = "Identifier and password are required." });
-            if (string.IsNullOrEmpty(request.Identifier))
-                return BadRequest(new { message = "Identifier is required." });
-            if (string.IsNullOrEmpty(request.Password))
-                return BadRequest(new { message = "Password is required." });
-
-
-            var user = _authService.GetUserByIdentifier(request.Identifier);
+            // Accepts either username or email as the identifier
+            if (string.IsNullOrEmpty(request.Identifier) || string.IsNullOrEmpty(request.Password))
+            {
+                return BadRequest("Identifier and password are required.");
+            }
+            var user = _authService.Authenticate(request.Identifier, request.Password);
             if (user == null)
-                return Unauthorized(new { message = "User not found" });
-            if (!_authService.VerifyPassword(request.Password, user.PasswordHash))
-                return Unauthorized(new { message = "Wrong password." });
+                return Unauthorized();
 
             var token = _authService.GenerateJwtToken(user);
             return Ok(new { token, role = user.Role });

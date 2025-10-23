@@ -57,15 +57,10 @@ namespace BoardingBee_backend.Auth.Services
 
         public User Authenticate(string username, string password)
         {
-            var user = _db.Users.FirstOrDefault(u => u.Username == username || u.Email == username);
+        var user = _db.Users.FirstOrDefault(u => u.Username == username || u.Email == username);
             if (user == null) return null;
             if (!VerifyPassword(password, user.PasswordHash)) return null;
             return user;
-        }
-
-        public User GetUserByIdentifier(string identifier)
-        {
-            return _db.Users.FirstOrDefault(u => u.Username == identifier || u.Email == identifier);
         }
     }
 }

@@ -13,13 +13,7 @@ export async function apiGet<T>(path: string): Promise<T> {
     },
     cache: "no-store",
   });
-  if (!res.ok) {
-    const body = await res.text();
-    const err = new Error(body || res.statusText || "Request failed");
-    // attach status for callers that want to inspect it
-    (err as any).status = res.status;
-    throw err;
-  }
+  if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
 
@@ -33,11 +27,6 @@ export async function apiPost<T = any>(path: string, body: unknown): Promise<T> 
     },
     body: JSON.stringify(body),
   });
-  if (!res.ok) {
-    const text = await res.text();
-    const err = new Error(text || res.statusText || "Request failed");
-    (err as any).status = res.status;
-    throw err;
-  }
+  if (!res.ok) throw new Error(await res.text());
   return res.json();
 }

@@ -39,23 +39,6 @@ export default function LoginPage() {
     setLoading(true)
     setError("")
 
-    if (!identifier.trim()) {
-      setError("Identifier is required.")
-      setLoading(false)
-      return
-    }
-    if (!password.trim()) {
-      setError("Password is required.")
-      setLoading(false)
-      return
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(identifier)) {
-      setError("Invalid email format.")
-      setLoading(false)
-      return
-    }
-
     try {
       const API = process.env.NEXT_PUBLIC_API_URL;
       const response = await fetch(`${API}/api/auth/login`, {
@@ -65,25 +48,16 @@ export default function LoginPage() {
       })
 
       const data = await response.json()
-      if (!response.ok) {
-        // Map backend error messages to user-friendly frontend messages for E2E test detection
-        if (data.message === "No account found with this email or username.") {
-          setError("No account found with this email or username.")
-        } else if (data.message === "Wrong password.") {
-          setError("Wrong password.")
-        } else {
-          setError(data.message || "Authentication failed")
-        }
-        setLoading(false)
-        return
-      }
+      if (!response.ok) throw new Error(data.message || "Authentication failed")
 
       const accessToken = data.token || data.access_token;
       localStorage.setItem("token", accessToken)
 
-      const decodedToken = jwtDecode<JwtPayload & { [key: string]: any }>(accessToken)
-      const userRole = extractUserRole(decodedToken)
-      const userId = decodedToken.sub
+  const decodedToken = jwtDecode<JwtPayload & { [key: string]: any }>(accessToken)
+  const userRole = extractUserRole(decodedToken)
+  const userId = decodedToken.sub
+      // You may want to fetch user details from backend if needed
+
 
       login({
         id: Number(userId),
@@ -133,7 +107,7 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <Alert variant="destructive" className="mb-6 error">
+              <Alert variant="destructive" className="mb-6">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
@@ -148,6 +122,7 @@ export default function LoginPage() {
                   type="text"
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
+                  required
                   placeholder="Enter Email or Username"
                   className="h-12 rounded-lg border-gray-300 px-4 
                              outline-none focus:outline-none 
@@ -163,6 +138,7 @@ export default function LoginPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  required
                   placeholder="Enter Your Password"
                   className="h-12 rounded-lg border-gray-300 px-4 
                              outline-none focus:outline-none 
