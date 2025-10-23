@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState, useEffect } from "react";
 import ListingCard from "@/components/ui/ListingCard";
+import RecentReviews from "@/components/ui/RecentReviews";
 import ListingsLoadingSkeleton from "@/components/ListingsLoadingSkeleton";
 import { useRouter } from "next/navigation";
 import { fetchAllListings } from "@/lib/listingsApi";
@@ -164,6 +165,15 @@ export default function Home() {
               Browse the latest listings and filter by your needs
             </p>
           </div>
+
+          {/* Recent reviews */}
+          <section className="mt-4">
+            <h2 className="text-xl font-semibold">Recent Reviews</h2>
+            <p className="text-sm text-muted-foreground">What people are saying</p>
+            <div className="mt-3">
+              <RecentReviews listingIds={listings.map(l=>l.id)} />
+            </div>
+          </section>
 
           {/* Filter Bar */}
           <section className="sticky top-[88px] z-10 -mx-2 px-2">
