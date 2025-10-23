@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -44,13 +44,17 @@ export default function ListingDetails() {
   // helper for numeric id to pass to ReviewsSection
   const numericListingId = Array.isArray(listingId) ? Number(listingId[0]) : Number(listingId);
 
+  // Lightbox state for image viewing
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxImg, setLightboxImg] = useState<string | null>(null);
+
   useEffect(() => {
     async function loadListing() {
       setLoading(true);
       try {
         if (listingId) {
           const id = Array.isArray(listingId) ? Number(listingId[0]) : Number(listingId);
-          if (!isNaN(id)) {
+          if (!Number.isNaN(id)) {
             const data = await fetchListing(id, user?.token);
             setListing(data);
           } else {
@@ -85,20 +89,20 @@ export default function ListingDetails() {
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-6">
-              <div className="h-96 bg-muted animate-pulse rounded-lg" />
-              <Card>
+              <div className="h-96 bg-muted animate-pulse rounded-2xl" />
+              <Card className="rounded-2xl shadow-lg">
                 <CardContent className="p-6 space-y-4">
                   {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="h-4 bg-muted animate-pulse rounded" />
+                    <div key={`main-skel-${i}`} className="h-4 bg-muted animate-pulse rounded" />
                   ))}
                 </CardContent>
               </Card>
             </div>
             <div className="space-y-6">
-              <Card>
+              <Card className="rounded-2xl shadow-lg">
                 <CardContent className="p-6 space-y-4">
                   {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="h-4 bg-muted animate-pulse rounded" />
+                    <div key={`side-skel-${i}`} className="h-4 bg-muted animate-pulse rounded" />
                   ))}
                 </CardContent>
               </Card>
@@ -113,6 +117,13 @@ export default function ListingDetails() {
     return (
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-6 py-8">
+          <div className="flex items-center gap-4 mb-8">
+            <Button variant="ghost" size="sm" onClick={() => router.back()}>
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+            <div className="h-8 w-48 bg-muted animate-pulse rounded" />
+          </div>
           <Alert variant="destructive">
             <AlertDescription>{error}</AlertDescription>
           </Alert>
@@ -138,7 +149,7 @@ export default function ListingDetails() {
         userEmail: user?.email ?? "",
         token: user?.token,
       });
-      toast({ title: "Appointment requested!", description: `Your appointment for ${format(selectedDate, "dd MMMM yyyy")} has been requested.` });
+      toast({ title: "Appointment requested!", description: `Your appointment for ${format(selectedDate, "dd MMMM yyyy")}` });
       setAppointmentDialogOpen(false);
       setSelectedDate(undefined);
     } catch (err: any) {
@@ -151,194 +162,171 @@ export default function ListingDetails() {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-6 py-8">
-        {/* Header */}
         <div className="flex items-center gap-4 mb-8">
           <Button variant="ghost" size="sm" onClick={() => router.back()}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-balance">{listing.title}</h1>
+            <h1 className="text-3xl font-bold text-balance">{listing.title}</h1>
             <p className="text-muted-foreground flex items-center gap-2 mt-1">
               <MapPin className="h-4 w-4" />
               {listing.location}
             </p>
           </div>
         </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="flex flex-col lg:flex-row gap-12">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="flex-1 min-w-0">
             {/* Image Gallery */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="md:col-span-2">
-                <img
-                  src={listing.images?.[0] || "https://boardingbee.blob.core.windows.net/images/boarding.jpeg"}
-                  alt={listing.title}
-                  className="w-full h-96 object-cover rounded-lg"
-                />
+            <div className="mb-8">
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-full max-w-3xl mx-auto cursor-zoom-in" onClick={() => {
+                  setLightboxImg(listing.images?.[0] || "https://boardingbee.blob.core.windows.net/images/boarding.jpeg");
+                  setLightboxOpen(true);
+                }}>
+                  <img
+                    src={listing.images?.[0] || "https://boardingbee.blob.core.windows.net/images/boarding.jpeg"}
+                    alt={listing.title}
+                    className="w-full h-[34rem] object-cover rounded-2xl shadow-lg border border-slate-200 transition hover:brightness-90"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4 w-full max-w-3xl mx-auto">
+                  {listing.images?.slice(1).map((image: string) => (
+                    <div
+                      key={image}
+                      className="cursor-zoom-in"
+                      onClick={() => {
+                        setLightboxImg(image || "https://boardingbee.blob.core.windows.net/images/boarding.jpeg");
+                        setLightboxOpen(true);
+                      }}
+                    >
+                      <img
+                        src={image || "https://boardingbee.blob.core.windows.net/images/boarding.jpeg"}
+                        alt={listing.title}
+                        className="w-full h-40 object-cover rounded-2xl shadow border border-slate-100 transition hover:brightness-90"
+                      />
+                    </div>
+                  ))}
+                </div>
               </div>
-              {listing.images?.slice(1).map((image: string, index: number) => (
-                <img
-                  key={index}
-                  src={image || "https://boardingbee.blob.core.windows.net/images/boarding.jpeg"}
-                  alt={`${listing.title} - Image ${index + 2}`}
-                  className="w-full h-48 object-cover rounded-lg"
-                />
-              ))}
             </div>
+      {/* Lightbox Dialog for full image view */}
+      <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
+        <DialogContent className="max-w-3xl p-0 bg-transparent shadow-none border-none flex items-center justify-center">
+          {lightboxImg && (
+            <img
+              src={lightboxImg}
+              alt="Full size"
+              className="max-h-[80vh] max-w-full rounded-2xl shadow-xl"
+              style={{ margin: "0 auto" }}
+              onClick={() => setLightboxOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
 
-            {/* Description */}
-            <Card>
-              <CardHeader>
-                <CardTitle>About this place</CardTitle>
-              </CardHeader>
-              <CardContent>
+            {/* About and Amenities moved to sidebar */}
+
+            {/* Ratings & Reviews */}
+            {!Number.isNaN(numericListingId) && (
+              <section className="mb-10">
+                <h2 className="text-2xl font-semibold text-indigo-900 mb-4">Ratings & Reviews</h2>
+                <ReviewsSection
+                  listingId={numericListingId}
+                  token={user?.token}
+                  isAuthenticated={!!user?.token}
+                  renderSummary={({ average, count }: { average: number; count: number }) => (
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 p-6 rounded-xl bg-indigo-50 border border-indigo-100 shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <Star className="h-6 w-6 text-yellow-400" />
+                        <span className="text-2xl font-bold text-indigo-900">{typeof average === 'number' ? average.toFixed(1) : "-"}</span>
+                        <span className="text-base text-indigo-700">({count} review{count === 1 ? "" : "s"})</span>
+                      </div>
+                      <Button className="bg-indigo-700 hover:bg-indigo-800 text-white shadow-md" size="sm">
+                        Write a Review
+                      </Button>
+                    </div>
+                  )}
+                />
+              </section>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <aside className="w-full lg:w-[480px] flex-shrink-0 lg:sticky lg:top-24 self-start">
+            <div className="bg-gradient-to-br from-white via-indigo-50 to-purple-50 rounded-2xl shadow-xl border border-slate-200 p-10 mb-8">
+              <div className="mb-6">
+                <div className="text-3xl font-bold text-indigo-900">{formatPrice(listing.price)}</div>
+                <div className="text-base text-indigo-700">per month</div>
+              </div>
+              <div className="flex items-center gap-2 mb-6">
+                <span className="text-base font-medium text-indigo-900">Status:</span>
+                <Badge
+                  variant={listing.availability === "Available" ? "default" : "secondary"}
+                  className={listing.availability === "Available" ? "bg-green-100 text-green-800" : "bg-slate-200 text-slate-600"}
+                >
+                  {listing.availability}
+                </Badge>
+              </div>
+              <Button className="w-full bg-indigo-700 hover:bg-indigo-800 text-white shadow-md mb-6" size="lg">
+                Contact Owner
+              </Button>
+              <div className="flex items-center gap-5 mb-4">
+                <Avatar className="h-16 w-16 border-2 border-white shadow-lg">
+                  <AvatarImage
+                    src={listing.ownerAvatar && listing.ownerAvatar.trim() !== "" ? listing.ownerAvatar : "/placeholder.jpg"}
+                    alt={listing.ownerName}
+                    className="object-cover w-full h-full"
+                    onError={(e) => { e.currentTarget.src = "/placeholder.jpg"; }}
+                  />
+                </Avatar>
+                <div className="flex flex-col min-w-0 gap-1">
+                  <div className="font-semibold text-lg text-indigo-900 truncate">{listing.ownerName}</div>
+                  <div className="flex items-center gap-2 text-sm text-indigo-700">
+                    <Phone className="h-4 w-4" />
+                    <span className="truncate">{listing.contactPhone}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-indigo-700">
+                    <Mail className="h-4 w-4" />
+                    <span className="truncate">{listing.contactEmail}</span>
+                  </div>
+                </div>
+              </div>
+              <Button className="bg-indigo-700 hover:bg-indigo-800 text-white shadow-md w-full" onClick={() => setAppointmentDialogOpen(true)}>
+                <CalendarIcon className="h-4 w-4 mr-2" />
+                Book Appointment
+              </Button>
+            </div>
+            {/* About this place card */}
+            <Card className="rounded-2xl shadow-xl border border-slate-200 mb-8">
+              <CardContent className="p-6 space-y-3">
+                <h3 className="text-xl font-semibold text-indigo-900">About this place</h3>
                 <p className="text-muted-foreground leading-relaxed">{listing.description}</p>
               </CardContent>
             </Card>
 
-            {/* Amenities */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Amenities</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            {/* Amenities card */}
+            <Card className="rounded-2xl shadow-xl border border-slate-200">
+              <CardContent className="p-6">
+                <h3 className="text-xl font-semibold text-indigo-900 mb-4">Amenities</h3>
+                <div className="grid grid-cols-2 gap-3">
                   {listing.amenities?.map((amenity: string) => {
                     const IconComponent = amenityIcons[amenity as keyof typeof amenityIcons] || Star;
                     return (
-                      <div key={amenity} className="flex items-center gap-2">
-                        <IconComponent className="h-4 w-4 text-primary" />
-                        <span className="text-sm">{amenity}</span>
+                      <div key={amenity} className="flex items-center gap-2 bg-indigo-50 rounded-lg px-3 py-2 shadow-sm">
+                        <IconComponent className="h-4 w-4 text-indigo-700" />
+                        <span className="text-sm text-indigo-900 font-medium">{amenity}</span>
                       </div>
                     );
                   })}
                 </div>
               </CardContent>
             </Card>
-
-            {/* ⤵️ NEW: Ratings & Reviews */}
-            {!isNaN(numericListingId) && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Ratings & Reviews</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ReviewsSection
-                    listingId={numericListingId}
-                    token={user?.token}
-                    isAuthenticated={!!user?.token}
-                  />
-                </CardContent>
-              </Card>
-            )}
-
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Pricing & Availability */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div>
-                    <div className="text-2xl font-bold">
-                      {new Intl.NumberFormat("en-LK", { style: "currency", currency: "LKR", minimumFractionDigits: 0 }).format(listing.price)}
-                    </div>
-                    <div className="text-sm text-muted-foreground">per month</div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">Status:</span>
-                    <Badge
-                      variant={listing.availability === "Available" ? "default" : "secondary"}
-                      className={listing.availability === "Available" ? "bg-green-100 text-green-800" : ""}
-                    >
-                      {listing.availability}
-                    </Badge>
-                  </div>
-
-                  <div className="pt-4 border-t">
-                    <Button className="w-full bg-primary hover:bg-primary/90" size="lg">
-                      Contact Owner
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Owner Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Owner</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage
-                        src={listing.ownerAvatar && listing.ownerAvatar.trim() !== "" ? listing.ownerAvatar : "/placeholder-avatar.png"}
-                        alt={listing.ownerName}
-                        onError={(e) => { e.currentTarget.src = "/placeholder.jpg"; }}
-                      />
-                      <AvatarFallback>
-                        {listing.ownerName?.split(" ").map((n: string) => n[0]).join("")}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <div className="font-medium">{listing.ownerName}</div>
-                      <div className="text-sm text-muted-foreground flex items-center gap-1">
-                        <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                        {listing.ownerRating} ({listing.ownerTotalReviews} reviews)
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span>Joined {listing.ownerJoinedDate ? formatDate(listing.ownerJoinedDate) : "-"}</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Contact Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Contact Information</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{listing.contactPhone}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm">{listing.contactEmail}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Book Appointment Section (moved here) */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Book a Viewing Appointment</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Button className="bg-primary" onClick={() => setAppointmentDialogOpen(true)}>
-                  <CalendarIcon className="h-4 w-4 mr-2" />
-                  Book Appointment
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+          </aside>
         </div>
       </div>
+
       {/* Appointment Booking Dialog */}
       <Dialog open={appointmentDialogOpen} onOpenChange={setAppointmentDialogOpen}>
         <DialogContent>
@@ -362,7 +350,7 @@ export default function ListingDetails() {
                 min={startOfMonth.toISOString().slice(0, 10)}
                 // @ts-ignore: pass min/max for native input
                 max={endOfMonth.toISOString().slice(0, 10)}
-                className="pl-10 pr-3 py-2 border rounded w-full focus:ring-2 focus:ring-primary/50 bg-white text-gray-900"
+                className="pl-10 pr-3 py-2 border rounded w-full focus:ring-2 focus:ring-indigo-400 bg-white text-gray-900"
               />
               <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none" />
             </div>
@@ -371,7 +359,7 @@ export default function ListingDetails() {
             <Button
               onClick={handleBookAppointment}
               disabled={!selectedDate || booking}
-              className="bg-primary"
+              className="bg-indigo-700 hover:bg-indigo-800 text-white shadow-md"
             >
               {booking ? "Booking..." : "Confirm Appointment"}
             </Button>

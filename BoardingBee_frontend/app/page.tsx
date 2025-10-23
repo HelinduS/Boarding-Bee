@@ -4,7 +4,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import ListingCard from "@/components/ui/ListingCard";
 import ListingsLoadingSkeleton from "@/components/ListingsLoadingSkeleton";
 import { useRouter } from "next/navigation";
-import { fetchListings } from "@/lib/listingsApi";
+import { fetchAllListings } from "@/lib/listingsApi";
 
 type Listing = {
   id: number;
@@ -12,6 +12,7 @@ type Listing = {
   location: string;
   price: number;
   availability: "Available" | "Unavailable" | "Occupied";
+  status: "Approved" | "Pending" | "Expired" | string;
   thumbnailUrl: string;
   rating: number | null;
   reviewCount: number;
@@ -29,9 +30,9 @@ export default function Home() {
     setLoadingListings(true);
     setFetchError(null);
 
-    fetchListings()
+    fetchAllListings()
       .then((data: any) => {
-        const apiListings = Array.isArray(data?.listings) ? data.listings : [];
+        const apiListings = Array.isArray(data?.listings) ? data.listings : (Array.isArray(data) ? data : []);
 
         const mapped: Listing[] = apiListings.map((l: any) => {
           const availability =
@@ -50,6 +51,7 @@ export default function Home() {
             location: l.location,
             price: Number(l.price),
             availability,
+            status: String(l.status || ""),
             thumbnailUrl: images.length > 0 ? images[0] : "https://boardingbee.blob.core.windows.net/images/boarding.jpeg",
             rating: typeof l.rating === "number" ? l.rating : null, // from backend DTO
             reviewCount: Number(l.reviewCount ?? 0),                 // from backend DTO
@@ -87,7 +89,10 @@ export default function Home() {
     const min = toNumberOrNull(minPrice);
     const max = toNumberOrNull(maxPrice);
 
-    let out = listings.filter((l) => {
+    // Always show only Approved listings on Home
+    let out = listings.filter((l) => String(l.status).toLowerCase() === "approved");
+
+    out = out.filter((l) => {
       const matchesLocation =
         debouncedLocation.trim() === "" ||
         l.location.toLowerCase().includes(debouncedLocation.trim().toLowerCase()) ||
