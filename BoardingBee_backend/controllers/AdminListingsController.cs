@@ -22,6 +22,26 @@ namespace BoardingBee_backend.Controllers
             return Ok(new { total, items });
         }
 
+        [HttpGet("approved")]
+        [Authorize(Roles = "ADMIN")]
+        public async Task<IActionResult> Approved([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+        {
+            var q = _db.Listings.AsNoTracking().Where(l => l.Status == ListingStatus.Approved).OrderByDescending(l => l.CreatedAt);
+            var total = await q.CountAsync();
+            var items = await q.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            return Ok(new { total, items });
+        }
+
+        [HttpGet("rejected")]
+        [Authorize(Roles = "ADMIN")]
+        public async Task<IActionResult> Rejected([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+        {
+            var q = _db.Listings.AsNoTracking().Where(l => l.Status == ListingStatus.Rejected).OrderByDescending(l => l.CreatedAt);
+            var total = await q.CountAsync();
+            var items = await q.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            return Ok(new { total, items });
+        }
+
         public record ActionDto(int ListingId, string? Reason);
 
         [HttpPost("approve")]

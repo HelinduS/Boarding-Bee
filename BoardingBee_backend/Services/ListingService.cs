@@ -60,6 +60,10 @@ namespace BoardingBee_backend.Services
             };
             _context.Listings.Add(listing);
             await _context.SaveChangesAsync();
+
+            // Activity log: owner created listing
+            await _context.ActivityLogs.AddAsync(new ActivityLog { Kind = ActivityKind.ListingCreate, ActorUserId = ownerId, ListingId = listing.Id });
+            await _context.SaveChangesAsync();
             return (true, "Listing created successfully.", listing.Id);
         }
 
@@ -107,6 +111,14 @@ namespace BoardingBee_backend.Services
                 return (false, "You cannot delete another owner's listing.");
             _context.Listings.Remove(listing);
             await _context.SaveChangesAsync();
+
+            // Activity log: listing deleted
+            try
+            {
+                await _context.ActivityLogs.AddAsync(new ActivityLog { Kind = ActivityKind.ListingDelete, ActorUserId = userId, ListingId = id });
+                await _context.SaveChangesAsync();
+            }
+            catch { /* don't block deletion on logging errors */ }
             return (true, "Listing deleted.");
         }
 

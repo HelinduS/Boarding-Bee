@@ -18,6 +18,29 @@ export interface Listing {
   imagesCsv?: string | null;
 }
 
+export interface ListingDetail {
+  id: string | number;
+  title: string;
+  description?: string | null;
+  location?: string | null;
+  price?: number | null;
+  availability?: string | null;
+  status?: string | null;
+  amenities?: string[];
+  images?: string[];
+  contactPhone?: string | null;
+  contactEmail?: string | null;
+  createdAt?: string | null;
+  lastUpdated?: string | null;
+  rating?: number | null;
+  reviewCount?: number | null;
+  ownerName?: string | null;
+  ownerAvatar?: string | null;
+  ownerJoinedDate?: string | null;
+  ownerRating?: number | null;
+  ownerTotalReviews?: number | null;
+}
+
 export interface AdminPendingResponse {
   total: number;
   items: Listing[];
@@ -40,7 +63,10 @@ export interface ActivityLog {
   at: string;
   kind: ActivityKind;
   actorUserId?: number | null;
+  actorEmail?: string | null;
+  actorUsername?: string | null;
   listingId?: number | null;
+  listingTitle?: string | null;
   reviewId?: number | null;
   inquiryId?: number | null;
   meta?: string | null;

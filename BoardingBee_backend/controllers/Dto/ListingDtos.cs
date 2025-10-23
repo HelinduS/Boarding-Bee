@@ -103,8 +103,9 @@ namespace BoardingBee_backend.Controllers.Dto
             Price = (int)l.Price,
             Availability = l.IsAvailable ? "Available" : "Occupied",
             Status = l.Status.ToString(),
-            Amenities = (l.AmenitiesCsv ?? "")
-                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
+            Amenities = !string.IsNullOrWhiteSpace(l.AmenitiesCsv)
+                ? (l.AmenitiesCsv ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                : (!string.IsNullOrWhiteSpace(l.Facilities) ? l.Facilities.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) : Array.Empty<string>()),
             Images = (l.ImagesCsv ?? "")
                 .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries),
             ContactPhone = l.ContactPhone,
