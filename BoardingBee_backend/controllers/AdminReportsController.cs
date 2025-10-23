@@ -38,6 +38,122 @@ namespace BoardingBee_backend.Controllers
                 .OrderBy(x => x.d).ToListAsync();
             return Ok(items);
         }
+
+        // Public debug/activity endpoints so frontend development can fetch sample series/monthly data without auth
+        [HttpGet("debug/public/activity/series")]
+        public async Task<IActionResult> PublicActivitySeries([FromQuery] string? entity, [FromQuery] int days = 180, [FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null)
+        {
+            // map entity to DB source
+            // supported entities: users, listings, reviews, activity
+            DateTime fromDt = from ?? DateTime.UtcNow.AddDays(-days);
+            DateTime toDt = to ?? DateTime.UtcNow;
+            entity = (entity ?? string.Empty).ToLower();
+
+            if (entity == "users")
+            {
+                var items = await _db.Users
+                    .Where(u => u.CreatedAt >= fromDt && u.CreatedAt <= toDt)
+                    .GroupBy(u => u.CreatedAt.Date)
+                    .Select(g => new { d = g.Key, Kind = "UserCreate", Count = g.Count() })
+                    .OrderBy(x => x.d).ToListAsync();
+                return Ok(items);
+            }
+
+            if (entity == "listings")
+            {
+                var items = await _db.Listings
+                    .Where(l => l.CreatedAt >= fromDt && l.CreatedAt <= toDt)
+                    .GroupBy(l => l.CreatedAt.Date)
+                    .Select(g => new { d = g.Key, Kind = "ListingCreate", Count = g.Count() })
+                    .OrderBy(x => x.d).ToListAsync();
+                return Ok(items);
+            }
+
+            // default -> reviews/activity
+            if (entity == "reviews")
+            {
+                var items = await _db.Reviews
+                    .Where(r => r.CreatedAt >= fromDt && r.CreatedAt <= toDt)
+                    .GroupBy(r => r.CreatedAt.Date)
+                    .Select(g => new { d = g.Key, Kind = "ReviewCreate", Count = g.Count() })
+                    .OrderBy(x => x.d).ToListAsync();
+                return Ok(items);
+            }
+
+            // fallback: activity logs
+            var act = await _db.ActivityLogs
+                .Where(a => a.At >= fromDt && a.At <= toDt)
+                .GroupBy(a => new { d = a.At.Date, a.Kind })
+                .Select(g => new { d = g.Key.d, Kind = g.Key.Kind, Count = g.Count() })
+                .OrderBy(x => x.d).ToListAsync();
+            return Ok(act);
+        }
+
+        [HttpGet("debug/public/activity/monthly")]
+        public async Task<IActionResult> PublicActivityMonthly([FromQuery] string? entity, [FromQuery] int months = 6, [FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null)
+        {
+            DateTime toDt = to ?? DateTime.UtcNow;
+            DateTime fromDt = from ?? toDt.AddMonths(-months + 1);
+            entity = (entity ?? string.Empty).ToLower();
+
+            if (entity == "users")
+            {
+                var q = _db.Users.Where(u => u.CreatedAt >= fromDt && u.CreatedAt <= toDt)
+                    .GroupBy(u => new { year = u.CreatedAt.Year, month = u.CreatedAt.Month })
+                    .Select(g => new { label = "", year = g.Key.year, month = g.Key.month, count = g.Count() });
+                var list = await q.ToListAsync();
+                var outp = new List<object>();
+                for (var dt = new DateTime(fromDt.Year, fromDt.Month, 1); dt <= toDt; dt = dt.AddMonths(1))
+                {
+                    var found = list.FirstOrDefault(x => x.year == dt.Year && x.month == dt.Month);
+                    outp.Add(new { label = dt.ToString("MMM"), year = dt.Year, month = dt.Month, count = found?.count ?? 0 });
+                }
+                return Ok(outp);
+            }
+
+            if (entity == "listings")
+            {
+                var q = _db.Listings.Where(l => l.CreatedAt >= fromDt && l.CreatedAt <= toDt)
+                    .GroupBy(l => new { year = l.CreatedAt.Year, month = l.CreatedAt.Month })
+                    .Select(g => new { label = "", year = g.Key.year, month = g.Key.month, count = g.Count() });
+                var list = await q.ToListAsync();
+                var outp = new List<object>();
+                for (var dt = new DateTime(fromDt.Year, fromDt.Month, 1); dt <= toDt; dt = dt.AddMonths(1))
+                {
+                    var found = list.FirstOrDefault(x => x.year == dt.Year && x.month == dt.Month);
+                    outp.Add(new { label = dt.ToString("MMM"), year = dt.Year, month = dt.Month, count = found?.count ?? 0 });
+                }
+                return Ok(outp);
+            }
+
+            if (entity == "reviews")
+            {
+                var q = _db.Reviews.Where(r => r.CreatedAt >= fromDt && r.CreatedAt <= toDt)
+                    .GroupBy(r => new { year = r.CreatedAt.Year, month = r.CreatedAt.Month })
+                    .Select(g => new { label = "", year = g.Key.year, month = g.Key.month, count = g.Count() });
+                var list = await q.ToListAsync();
+                var outp = new List<object>();
+                for (var dt = new DateTime(fromDt.Year, fromDt.Month, 1); dt <= toDt; dt = dt.AddMonths(1))
+                {
+                    var found = list.FirstOrDefault(x => x.year == dt.Year && x.month == dt.Month);
+                    outp.Add(new { label = dt.ToString("MMM"), year = dt.Year, month = dt.Month, count = found?.count ?? 0 });
+                }
+                return Ok(outp);
+            }
+
+            // fallback: activity logs monthly aggregated
+            var aq = _db.ActivityLogs.Where(a => a.At >= fromDt && a.At <= toDt)
+                .GroupBy(a => new { year = a.At.Year, month = a.At.Month })
+                .Select(g => new { label = "", year = g.Key.year, month = g.Key.month, count = g.Count() });
+            var alist = await aq.ToListAsync();
+            var aout = new List<object>();
+            for (var dt = new DateTime(fromDt.Year, fromDt.Month, 1); dt <= toDt; dt = dt.AddMonths(1))
+            {
+                var found = alist.FirstOrDefault(x => x.year == dt.Year && x.month == dt.Month);
+                aout.Add(new { label = dt.ToString("MMM"), year = dt.Year, month = dt.Month, count = found?.count ?? 0 });
+            }
+            return Ok(aout);
+        }
         
 
                 // DEBUG: Returns the current user's claims for troubleshooting
