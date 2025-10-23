@@ -72,12 +72,6 @@ export function ModerationQueue() {
     setActiveTab(tab);
   };
 
-  const [selected, setSelected] = useState<number[]>([]);
-
-  const toggleSelect = (id: number, checked: boolean) => {
-    setSelected(s => checked ? Array.from(new Set([...s, id])) : s.filter(x => x !== id));
-  };
-
   const approve = async (listingId: number) => {
     try {
       await apiPost(`/api/admin/listings/approve`, { listingId });
@@ -167,22 +161,6 @@ export function ModerationQueue() {
       case 3: return "Rejected";
       default: return String(status);
     }
-  };
-
-  const bulkApprove = async () => {
-    if (selected.length === 0) return;
-    // call approve for each selected id (backend bulk endpoints optional)
-    await Promise.all(selected.map(id => apiPost(`/api/admin/listings/approve`, { listingId: id })));
-    setSelected([]);
-    await load();
-  };
-
-  const bulkReject = async () => {
-    if (selected.length === 0) return;
-    const reason = prompt("Reason for bulk rejection (optional):") || "";
-    await Promise.all(selected.map(id => apiPost(`/api/admin/listings/reject`, { listingId: id, reason })));
-    setSelected([]);
-    await load();
   };
 
   if (loading) return <div className="text-sm text-muted-foreground">Loading moderation queue…</div>;
