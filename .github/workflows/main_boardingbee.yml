@@ -18,9 +18,11 @@ jobs:
   test:
     if: >
       (github.event_name == 'push' &&
-        (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/testing/**')) ||
+        (github.ref == 'refs/heads/dev' ||
+        startsWith(github.ref, 'refs/heads/testing/'))) ||
       (github.event_name == 'pull_request' &&
-        (github.base_ref == 'dev' || github.base_ref == 'testing/**'))
+        (github.base_ref == 'dev' ||
+        startsWith(github.base_ref, 'testing/')))
     runs-on: ubuntu-latest
     permissions:
       contents: read
