@@ -20,8 +20,6 @@
 
   "dependencies": {
 
-    "date-fns": "^4.1.0",
-
     "lucide-react": "^0.543.0",
 
     "node-fetch": "^3.3.2",

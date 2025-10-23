@@ -16,27 +16,7 @@ namespace BoardingBee_backend.Controllers
         [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Recent([FromQuery] int limit=50)
         {
-            // Return activity rows with actor email and listing title for the admin UI
-            var items = await (
-                from a in _db.ActivityLogs.AsNoTracking()
-                join u in _db.Users.AsNoTracking() on a.ActorUserId equals u.Id into au
-                from u in au.DefaultIfEmpty()
-                join l in _db.Listings.AsNoTracking() on a.ListingId equals l.Id into al
-                from l in al.DefaultIfEmpty()
-                orderby a.At descending
-                select new {
-                    id = a.Id,
-                    at = a.At,
-                    kind = a.Kind.ToString(),
-                    actorUserId = a.ActorUserId,
-                    actorEmail = u != null ? u.Email : null,
-                    actorUsername = u != null ? u.Username : null,
-                    listingId = a.ListingId,
-                    listingTitle = l != null ? l.Title : null,
-                    meta = a.Meta
-                }
-            ).Take(limit).ToListAsync();
-
+            var items = await _db.ActivityLogs.AsNoTracking().OrderByDescending(a => a.At).Take(limit).ToListAsync();
             return Ok(items);
         }
     }

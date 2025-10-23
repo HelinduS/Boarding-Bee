@@ -119,10 +119,6 @@ namespace BoardingBee_backend.Controllers
             _context.Listings.Add(listing);
             await _context.SaveChangesAsync();
 
-            // Activity log: owner created listing
-            await _context.ActivityLogs.AddAsync(new ActivityLog { Kind = ActivityKind.ListingCreate, ActorUserId = ownerId, ListingId = listing.Id });
-            await _context.SaveChangesAsync();
-
             return Ok(new { message = "Listing created successfully.", listingId = listing.Id });
         }
 
@@ -149,21 +145,6 @@ namespace BoardingBee_backend.Controllers
             var listing = await _listingService.GetListingAsync(id);
             if (listing == null) return NotFound();
             var dto = BoardingBee_backend.Controllers.Dto.ListingMappings.ToDetailDto(listing);
-            // populate owner info if available
-            if (listing.OwnerId.HasValue)
-            {
-                var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == listing.OwnerId.Value);
-                if (user != null)
-                {
-                    dto.OwnerName = string.IsNullOrWhiteSpace(user.FirstName) && string.IsNullOrWhiteSpace(user.LastName)
-                        ? user.Username
-                        : $"{user.FirstName} {user.LastName}".Trim();
-                    dto.OwnerAvatar = string.IsNullOrWhiteSpace(user.ProfileImageUrl) ? dto.OwnerAvatar : user.ProfileImageUrl;
-                    // prefer listing contact email if present, otherwise user's email
-                    if (string.IsNullOrWhiteSpace(dto.ContactEmail) && !string.IsNullOrWhiteSpace(user.Email))
-                        dto.ContactEmail = user.Email;
-                }
-            }
             return Ok(dto);
         }
 

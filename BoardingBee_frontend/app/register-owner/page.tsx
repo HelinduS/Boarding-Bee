@@ -30,15 +30,6 @@ export default function RegisterOwnerPage() {
     e.preventDefault();
     setError("");
     setSuccess("");
-    if (!form.username.trim() || !form.firstName.trim() || !form.lastName.trim() || !form.email.trim() || !form.password.trim() || !form.confirmPassword.trim()) {
-      setError("Please fill in all required fields.");
-      return;
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(form.email)) {
-      setError("Invalid email format.");
-      return;
-    }
     if (form.password !== form.confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -94,17 +85,17 @@ export default function RegisterOwnerPage() {
 
       <div className="max-w-lg mx-auto mt-10 bg-white/80 rounded-xl shadow-lg p-8 backdrop-blur-md">
         <h1 className="text-2xl font-bold mb-6 text-indigo-700">Register as Owner</h1>
-        {error && <Alert variant="destructive" className="mb-4 error">{error}</Alert>}
+        {error && <Alert variant="destructive" className="mb-4">{error}</Alert>}
         {success && <Alert className="mb-4">{success}</Alert>}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Input name="username" placeholder="Username" value={form.username} onChange={handleChange} />
+          <Input name="username" placeholder="Username" value={form.username} onChange={handleChange} required />
           <div className="flex gap-2">
-            <Input name="firstName" placeholder="First Name" value={form.firstName} onChange={handleChange} />
-            <Input name="lastName" placeholder="Last Name" value={form.lastName} onChange={handleChange} />
+            <Input name="firstName" placeholder="First Name" value={form.firstName} onChange={handleChange} required />
+            <Input name="lastName" placeholder="Last Name" value={form.lastName} onChange={handleChange} required />
           </div>
-          <Input name="email" type="email" placeholder="Email" value={form.email} onChange={handleChange} />
-          <Input name="password" type="password" placeholder="Password" value={form.password} onChange={handleChange} />
-          <Input name="confirmPassword" type="password" placeholder="Confirm Password" value={form.confirmPassword} onChange={handleChange} />
+          <Input name="email" type="email" placeholder="Email" value={form.email} onChange={handleChange} required />
+          <Input name="password" type="password" placeholder="Password" value={form.password} onChange={handleChange} required />
+          <Input name="confirmPassword" type="password" placeholder="Confirm Password" value={form.confirmPassword} onChange={handleChange} required />
           <Input name="business" placeholder="Business/Company (optional)" value={form.business} onChange={handleChange} />
           <Input name="location" placeholder="Location (optional)" value={form.location} onChange={handleChange} />
           <Button type="submit" disabled={loading} className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-lg shadow">

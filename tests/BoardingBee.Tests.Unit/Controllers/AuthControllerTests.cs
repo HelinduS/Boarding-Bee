@@ -69,10 +69,7 @@ public class AuthControllerTests
         var result = _controller.Login(request);
 
         // Assert
-        var unauthorizedResult = result.Should().BeOfType<UnauthorizedObjectResult>().Subject;
-        var response = unauthorizedResult.Value;
-        response.Should().NotBeNull();
-        response!.GetType().GetProperty("message")!.GetValue(response).Should().Be("User not found.");
+        result.Should().BeOfType<UnauthorizedResult>();
     }
 
     [Fact]
@@ -90,9 +87,7 @@ public class AuthControllerTests
 
         // Assert
         var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
-        var response = badRequestResult.Value;
-        response.Should().NotBeNull();
-        response!.GetType().GetProperty("message")!.GetValue(response).Should().Be("Identifier and password are required.");
+    badRequestResult.Value.Should().Be("Identifier and password are required.");
     }
 
     [Fact]
@@ -110,9 +105,7 @@ public class AuthControllerTests
 
         // Assert
         var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
-        var response = badRequestResult.Value;
-        response.Should().NotBeNull();
-        response!.GetType().GetProperty("message")!.GetValue(response).Should().Be("Identifier and password are required.");
+    badRequestResult.Value.Should().Be("Identifier and password are required.");
     }
 
     [Fact]
