@@ -35,6 +35,53 @@ interface SettingsData {
 }
 
 export default function UserProfile() {
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  // Profile image upload logic
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFile) return;
+    setUploading(true);
+    setUploadError(null);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) throw new Error("No auth token found");
+      // Get userId from token
+      let userId = "";
+      try {
+        const { jwtDecode } = await import("jwt-decode");
+        const decoded: any = jwtDecode(token);
+        userId = decoded.sub;
+      } catch {
+        userId = "1";
+      }
+      const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      // Upload file as multipart/form-data to backend
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      const uploadRes = await fetch(`${API}/api/users/${userId}/profile/avatar`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+      if (!uploadRes.ok) throw new Error("Failed to upload image");
+      const data = await uploadRes.json();
+      setUserData((prev) => ({ ...prev, profileImage: data.profileImage }));
+      setSelectedFile(null);
+    } catch (err: any) {
+      setUploadError(err.message || "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
   const [userData, setUserData] = useState<UserData>({
     firstName: "",
     lastName: "",
@@ -221,10 +268,30 @@ export default function UserProfile() {
           <aside className="lg:col-span-3 space-y-6 lg:sticky lg:top-24 self-start">
             <Card className="shadow-sm border-indigo-100">
               <CardContent className="p-5">
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col items-center gap-2">
                   <Avatar className="h-14 w-14 border-2 border-white shadow">
                     <AvatarImage src={userData.profileImage || "/placeholder.jpg"} />
                   </Avatar>
+                  {isEditing && (
+                    <div className="mt-2 flex flex-col items-center gap-1">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="block w-full text-sm text-slate-600 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                        disabled={uploading}
+                      />
+                      <Button
+                        size="sm"
+                        className="mt-1 bg-indigo-600 hover:bg-indigo-700 text-white"
+                        onClick={handleUpload}
+                        disabled={!selectedFile || uploading}
+                      >
+                        {uploading ? "Uploading..." : "Upload Photo"}
+                      </Button>
+                      {uploadError && <span className="text-xs text-red-600 mt-1">{uploadError}</span>}
+                    </div>
+                  )}
                   <div>
                     <p className="text-base font-medium text-slate-900">
                       {userData.firstName} {userData.lastName}
@@ -245,7 +312,7 @@ export default function UserProfile() {
                       <button
                         key={item.id}
                         onClick={() => setActiveSection(item.id)}
-                        className={`w-full px-3 py-2 text-sm flex items-center gap-2 rounded-md transition-all text-left ${
+                        className={`w-full px-3 py-2 text-sm flex items-center gap-2 rounded-md transition-all text-left hover:shadow-sm ${
                           active
                             ? "bg-indigo-600 text-white shadow-sm"
                             : "text-indigo-800 hover:bg-indigo-50 hover:text-indigo-900"
@@ -283,7 +350,7 @@ export default function UserProfile() {
               <CardContent className="p-4 space-y-2">
                 <Button
                   size="sm"
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white"
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white transition-colors duration-200 hover:shadow-sm"
                   onClick={() => setIsEditing(true)}
                   disabled={isEditing}
                 >
@@ -292,7 +359,7 @@ export default function UserProfile() {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="w-full border-indigo-300 text-indigo-700 hover:bg-indigo-50"
+                  className="w-full border-indigo-300 text-indigo-700 hover:bg-indigo-50 transition-colors duration-200 hover:shadow-sm"
                   onClick={handleSave}
                   disabled={!isEditing || isSaving}
                 >
@@ -301,7 +368,7 @@ export default function UserProfile() {
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="w-full text-indigo-800 hover:bg-indigo-50"
+                  className="w-full text-indigo-800 hover:bg-indigo-50 transition-colors duration-200 hover:shadow-sm"
                   onClick={() => setActiveSection("account")}
                 >
                   Go to Account
@@ -319,7 +386,7 @@ export default function UserProfile() {
           </aside>
 
           {/* Main content */}
-          <main className="lg:col-span-9">
+          <main className="lg:col-span-9 pt-16">
             {isEditing && (
               <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-amber-800 text-sm">
                 You have unsaved changes. Don’t forget to save.
@@ -328,7 +395,7 @@ export default function UserProfile() {
 
     {/* Content Card */}
   <Card className="shadow-sm border-indigo-100">
-          <CardContent className="p-6">
+          <CardContent className="p-8">
             {/* Profile Section */}
             {activeSection === "profile" && (
               <div className="space-y-8">
@@ -515,10 +582,12 @@ export default function UserProfile() {
                             <p className="text-sm text-slate-600">Receive updates about new listings and inquiries</p>
                           </div>
                         </div>
-                        <Switch
-                          checked={settings.emailNotifications}
-                          onCheckedChangeAction={handleSwitchEvent("emailNotifications")}
-                        />
+                        <div className="rounded-full ring-0 ring-transparent hover:ring-2 hover:ring-indigo-200 transition-all duration-200">
+                          <Switch
+                            checked={settings.emailNotifications}
+                            onCheckedChangeAction={handleSwitchEvent("emailNotifications")}
+                          />
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -535,10 +604,12 @@ export default function UserProfile() {
                             <p className="text-sm text-slate-600">Get text messages for urgent updates</p>
                           </div>
                         </div>
-                        <Switch
-                          checked={settings.smsNotifications}
-                          onCheckedChangeAction={handleSwitchEvent("smsNotifications")}
-                        />
+                        <div className="rounded-full ring-0 ring-transparent hover:ring-2 hover:ring-indigo-200 transition-all duration-200">
+                          <Switch
+                            checked={settings.smsNotifications}
+                            onCheckedChangeAction={handleSwitchEvent("smsNotifications")}
+                          />
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -567,10 +638,12 @@ export default function UserProfile() {
                             <p className="text-sm text-slate-600">Allow boarding owners to view your profile</p>
                           </div>
                         </div>
-                        <Switch
-                          checked={settings.profileVisibility}
-                          onCheckedChangeAction={handleSwitchEvent("profileVisibility")}
-                        />
+                        <div className="rounded-full ring-0 ring-transparent hover:ring-2 hover:ring-indigo-200 transition-all duration-200">
+                          <Switch
+                            checked={settings.profileVisibility}
+                            onCheckedChangeAction={handleSwitchEvent("profileVisibility")}
+                          />
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -587,10 +660,12 @@ export default function UserProfile() {
                             <p className="text-sm text-slate-600">Display your phone and email to verified owners</p>
                           </div>
                         </div>
-                        <Switch
-                          checked={settings.showContactInfo}
-                          onCheckedChangeAction={handleSwitchEvent("showContactInfo")}
-                        />
+                        <div className="rounded-full ring-0 ring-transparent hover:ring-2 hover:ring-indigo-200 transition-all duration-200">
+                          <Switch
+                            checked={settings.showContactInfo}
+                            onCheckedChangeAction={handleSwitchEvent("showContactInfo")}
+                          />
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -623,6 +698,7 @@ export default function UserProfile() {
                       variant="destructive" 
                       onClick={handleDeleteAccount}
                       size="sm"
+                      className="transition-colors duration-200 hover:shadow-sm"
                     >
                       Delete Account
                     </Button>

@@ -134,8 +134,10 @@ function OwnerDashboardPage() {
     router.push(`/view-details/${listingId}`)
   }
 
+
+
   if (loading) {
-    return <DashboardSkeleton />
+    return <DashboardSkeleton />;
   }
 
   return (
@@ -148,7 +150,7 @@ function OwnerDashboardPage() {
             <div className="flex flex-col h-full justify-between gap-12">
               <div className="flex items-center gap-10">
                 <Avatar className="h-28 w-28 border-4 border-purple-200">
-                  <AvatarImage src={"/placeholder.jpg"} alt={user?.username ?? "User"} />
+                  <AvatarImage src={user?.profileImage || "/placeholder.jpg"} alt={user?.username ?? "User"} />
                   <AvatarFallback className="bg-purple-200 text-purple-700 text-3xl">
                     {user?.firstName || user?.lastName
                       ? `${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`.toUpperCase() || user?.username?.[0] || "U"
