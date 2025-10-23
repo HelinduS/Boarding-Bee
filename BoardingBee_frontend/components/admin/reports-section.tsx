@@ -206,21 +206,14 @@ export function ReportsSection() {
   const yTicks = [0, 6, 12, 18, 24, 30];
 
   function downloadCsv() {
-    // Calculate date range based on selected year and month
-    const from = new Date(selectedYear, selectedMonth - 1, 1);
-    // Get last day of the selected month correctly
-    const lastDay = new Date(selectedYear, selectedMonth, 0).getDate();
-    const to = new Date(selectedYear, selectedMonth - 1, lastDay, 23, 59, 59, 999);
-    
-    console.log('CSV Export - Selected:', { year: selectedYear, month: selectedMonth });
-    console.log('CSV Export - Date range:', { from: from.toISOString(), to: to.toISOString() });
-    
-    // Use the selected report type directly for CSV generation
-    // Pass year and month explicitly to avoid timezone issues
-    const path = `/api/admin/reports/export/csv?reportType=${encodeURIComponent(reportType)}&from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&year=${selectedYear}&month=${selectedMonth}`;
-    const url = `${API_BASE}${path}`;
-    console.log('Downloading CSV from', url);
-    
+    // build from/to based on selectedRange
+  const to = new Date();
+  const fromD = new Date(Date.now() - 1000*60*60*24*30); // default to 30 days
+  const from = fromD.toISOString();
+  const ent = getEntityForReportType(reportType);
+  const path = `/api/admin/reports/export/csv?reportType=${encodeURIComponent(reportType)}&entity=${encodeURIComponent(ent)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to.toISOString())}`;
+  const url = `${API_BASE}${path}`;
+  console.log('Downloading CSV from', url);
     // Trigger file download
     const token = getToken();
     const tryUrl = async (u: string, headers?: Record<string,string>) => {
@@ -240,7 +233,7 @@ export function ReportsSection() {
           const blob = await tryUrl(url, { Authorization: `Bearer ${token}` });
           const link = document.createElement('a');
           link.href = URL.createObjectURL(blob);
-          link.download = `${reportType}_report_${selectedYear}_${selectedMonth}.csv`;
+          link.download = 'report.csv';
           document.body.appendChild(link);
           link.click();
           link.remove();
@@ -248,12 +241,12 @@ export function ReportsSection() {
         }
 
         // if no token or the above failed, try the public debug CSV endpoint
-        const publicUrl = `${API_BASE}/api/admin/reports/debug/public/export/csv?reportType=${encodeURIComponent(reportType)}&from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&year=${selectedYear}&month=${selectedMonth}`;
+  const publicUrl = `${API_BASE}/api/admin/reports/debug/public/export/csv?reportType=${encodeURIComponent(reportType)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to.toISOString())}`;
         console.log('No auth token; attempting public CSV at', publicUrl);
         const blob2 = await tryUrl(publicUrl);
         const link2 = document.createElement('a');
         link2.href = URL.createObjectURL(blob2);
-        link2.download = `${reportType}_report_${selectedYear}_${selectedMonth}.csv`;
+        link2.download = 'public-report.csv';
         document.body.appendChild(link2);
         link2.click();
         link2.remove();
@@ -284,32 +277,29 @@ export function ReportsSection() {
         setMonthlyData(mJson);
         setUsingSample(false);
         // Don't call recomputeMonthly here - we have real data from server
-        // Always fetch growth data (listings + users) for last 6 months - completely independent of selected month
-        try {
-          // Growth Trends always shows last 6 months, not the selected month
-          const growthTo = new Date();
-          const growthFrom = new Date();
-          growthFrom.setMonth(growthFrom.getMonth() - 5);
-          growthFrom.setDate(1);
-          const lf = `${API_BASE}/api/admin/reports/debug/public/activity/monthly?from=${encodeURIComponent(growthFrom.toISOString())}&to=${encodeURIComponent(growthTo.toISOString())}&entity=listings`;
-          const uf = `${API_BASE}/api/admin/reports/debug/public/activity/monthly?from=${encodeURIComponent(growthFrom.toISOString())}&to=${encodeURIComponent(growthTo.toISOString())}&entity=users`;
-          const [lm, um] = await Promise.all([fetch(lf), fetch(uf)]);
-          const ljson = lm.ok ? await lm.json() : [];
-          const ujson = um.ok ? await um.json() : [];
-          const joined: typeof growthData = [];
-          const monthsArr: Date[] = [];
-          for (let d = new Date(growthFrom.getFullYear(), growthFrom.getMonth(), 1); d <= growthTo; d.setMonth(d.getMonth() + 1)) monthsArr.push(new Date(d));
-          for (const d of monthsArr) {
-            const label = d.toLocaleString(undefined, { month: 'short' });
-            const year = d.getFullYear();
-            const mth = d.getMonth() + 1;
-            const l = (ljson.find((x:any)=>x.year===year && x.month===mth)?.count) || 0;
-            const u = (ujson.find((x:any)=>x.year===year && x.month===mth)?.count) || 0;
-            joined.push({ label, year, month: mth, listings: l, users: u });
+        // also fetch growth data (listings + users) for the same range when Overview
+        if (reportType === 'Overview') {
+          try {
+            const lf = `${API_BASE}/api/admin/reports/debug/public/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=listings`;
+            const uf = `${API_BASE}/api/admin/reports/debug/public/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=users`;
+            const [lm, um] = await Promise.all([fetch(lf), fetch(uf)]);
+            const ljson = lm.ok ? await lm.json() : [];
+            const ujson = um.ok ? await um.json() : [];
+            const joined: typeof growthData = [];
+            const monthsArr: Date[] = [];
+            for (let d = new Date(from.getFullYear(), from.getMonth(), 1); d <= to; d.setMonth(d.getMonth() + 1)) monthsArr.push(new Date(d));
+            for (const d of monthsArr) {
+              const label = d.toLocaleString(undefined, { month: 'short' });
+              const year = d.getFullYear();
+              const mth = d.getMonth() + 1;
+              const l = (ljson.find((x:any)=>x.year===year && x.month===mth)?.count) || 0;
+              const u = (ujson.find((x:any)=>x.year===year && x.month===mth)?.count) || 0;
+              joined.push({ label, year, month: mth, listings: l, users: u });
+            }
+            setGrowthData(joined);
+          } catch (e) {
+            console.warn('fetch growth for range failed', e);
           }
-          setGrowthData(joined);
-        } catch (e) {
-          console.warn('fetch growth for range failed', e);
         }
         setApplyStatus('Loaded');
         setTimeout(()=>setApplyStatus(null),800);
@@ -342,27 +332,29 @@ export function ReportsSection() {
         setMonthlyData(mJson);
         setUsingSample(false);
         // Don't call recomputeMonthly here - we have real data from server
-        // Always fetch growth data (listings + users) for Growth Trends graph - independent of report type filter
-        try {
-          const lf = `${API_BASE}/api/admin/reports/debug/public/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=listings`;
-          const uf = `${API_BASE}/api/admin/reports/debug/public/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=users`;
-          const [lm, um] = await Promise.all([fetch(lf), fetch(uf)]);
-          const ljson = lm.ok ? await lm.json() : [];
-          const ujson = um.ok ? await um.json() : [];
-          const joined: typeof growthData = [];
-          const monthsArr: Date[] = [];
-          for (let d = new Date(from.getFullYear(), from.getMonth(), 1); d <= to; d.setMonth(d.getMonth() + 1)) monthsArr.push(new Date(d));
-          for (const d of monthsArr) {
-            const label = d.toLocaleString(undefined, { month: 'short' });
-            const year = d.getFullYear();
-            const mth = d.getMonth() + 1;
-            const l = (ljson.find((x:any)=>x.year===year && x.month===mth)?.count) || 0;
-            const u = (ujson.find((x:any)=>x.year===year && x.month===mth)?.count) || 0;
-            joined.push({ label, year, month: mth, listings: l, users: u });
+        // fetch growth data for the same range when Overview
+        if (reportType === 'Overview') {
+          try {
+            const lf = `${API_BASE}/api/admin/reports/debug/public/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=listings`;
+            const uf = `${API_BASE}/api/admin/reports/debug/public/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=users`;
+            const [lm, um] = await Promise.all([fetch(lf), fetch(uf)]);
+            const ljson = lm.ok ? await lm.json() : [];
+            const ujson = um.ok ? await um.json() : [];
+            const joined: typeof growthData = [];
+            const monthsArr: Date[] = [];
+            for (let d = new Date(from.getFullYear(), from.getMonth(), 1); d <= to; d.setMonth(d.getMonth() + 1)) monthsArr.push(new Date(d));
+            for (const d of monthsArr) {
+              const label = d.toLocaleString(undefined, { month: 'short' });
+              const year = d.getFullYear();
+              const mth = d.getMonth() + 1;
+              const l = (ljson.find((x:any)=>x.year===year && x.month===mth)?.count) || 0;
+              const u = (ujson.find((x:any)=>x.year===year && x.month===mth)?.count) || 0;
+              joined.push({ label, year, month: mth, listings: l, users: u });
+            }
+            setGrowthData(joined);
+          } catch (e) {
+            console.warn('fetch growth for range failed', e);
           }
-          setGrowthData(joined);
-        } catch (e) {
-          console.warn('fetch growth for range failed', e);
         }
         setApplyStatus('Loaded');
         setTimeout(()=>setApplyStatus(null),800);

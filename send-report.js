@@ -73,6 +73,7 @@ async function getContributorsEmails() {
   emails.add('helindusenadheera@gmail.com');
   emails.add('geethsene2001@gmail.com');
   emails.add('vidaththeekshana@gmail.com');
+  emails.add('shenaldimantha30@gmail.com')
 
   return Array.from(emails);
 }

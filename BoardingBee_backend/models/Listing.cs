@@ -28,7 +28,9 @@ namespace BoardingBee_backend.Models
         public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
         public DateTime ExpiresAt { get; set; } = DateTime.UtcNow.AddMonths(6);
 
-        public int? OwnerId { get; set; }
+    public int? OwnerId { get; set; }
+    // Navigation property for the owner (User)
+    public User? Owner { get; set; }
 
         public string? ContactPhone { get; set; }
         public string? ContactEmail { get; set; }
@@ -36,6 +38,6 @@ namespace BoardingBee_backend.Models
         public string? ImagesCsv { get; set; }
     }
 
-    public enum ListingStatus { Pending, Approved, Expired }
+    public enum ListingStatus { Pending, Approved, Expired, Rejected }
     public enum Availability { Available, Occupied }
 }

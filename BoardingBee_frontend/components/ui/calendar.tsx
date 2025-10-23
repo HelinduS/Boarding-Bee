@@ -7,9 +7,12 @@ type CalendarProps = {
   selected?: Date | undefined
   onSelect?: (date: Date) => void
   className?: string
+  min?: string
+  max?: string
 }
 
-export function Calendar({ mode = "single", selected, onSelect, className }: CalendarProps) {
+
+export function Calendar({ mode = "single", selected, onSelect, className, min, max }: CalendarProps) {
   const formatForInput = (d?: Date) => (d ? d.toISOString().slice(0, 10) : "")
 
   return (
@@ -18,6 +21,8 @@ export function Calendar({ mode = "single", selected, onSelect, className }: Cal
       <input
         type="date"
         value={formatForInput(selected)}
+        min={min}
+        max={max}
         onChange={(e) => {
           const v = e.target.value
           if (!v) return onSelect?.(undefined as any)
