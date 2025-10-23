@@ -4,6 +4,20 @@ import { apiGet, API_BASE } from "@/lib/api";
 import { getToken } from "@/lib/auth";
 import type { ActivitySeriesPoint } from "@/types/admin";
 
+type MonthlyItem = { label: string; year: number; month: number; count: number };
+import {
+  ResponsiveContainer,
+  ComposedChart,
+  Line,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  CartesianGrid,
+  BarChart,
+} from 'recharts';
+
 export function ReportsSection() {
   const [rows, setRows] = useState<ActivitySeriesPoint[]>([]);
   const [allRows, setAllRows] = useState<ActivitySeriesPoint[]>([]); // keep unfiltered copy
@@ -13,6 +27,7 @@ export function ReportsSection() {
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth() + 1); // 1-12
   const [monthlyData, setMonthlyData] = useState<{ label: string; year: number; month: number; count: number }[]>([]);
+  const [growthData, setGrowthData] = useState<{ label: string; year: number; month: number; listings: number; users: number }[]>([]);
   const [usingSample, setUsingSample] = useState(false);
   const [applyStatus, setApplyStatus] = useState<string | null>(null);
   const [applyPressed, setApplyPressed] = useState(false);
@@ -30,102 +45,67 @@ export function ReportsSection() {
 
   useEffect(() => {
     let alive = true;
+    let dataLoadedSuccessfully = false; // Track if we successfully loaded data
+    
     (async () => {
       try {
-        // Prefer public debug endpoints (no auth) so dev sees charts reliably
-        let seriesLoaded = false;
-        try {
-          const ent = getEntityForReportType(reportType);
-          const sres = await fetch(`${API_BASE}/api/admin/reports/debug/public/activity/series?days=180&entity=${encodeURIComponent(ent)}`);
-          if (sres.ok) {
-            const dbg = await sres.json();
-            if (!alive) return;
-            console.debug('Activity series loaded (public debug):', dbg?.length ?? 0);
-            setRows(dbg || []);
-            setAllRows(dbg || []);
-            recomputeMonthly(dbg || []);
-            seriesLoaded = true;
-            setUsingSample(false);
-          }
-        } catch (e) {
-          console.warn('Public debug series request failed:', e);
-        }
-
-        if (!seriesLoaded) {
-          // try authenticated endpoint
-          try {
-            const ent = getEntityForReportType(reportType);
-            const series = await apiGet<ActivitySeriesPoint[]>(`/api/admin/reports/activity/series?days=180&entity=${encodeURIComponent(ent)}`);
-            if (!alive) return;
-            console.debug('Activity series loaded (auth):', series?.length ?? 0);
-            setRows(series || []);
-            setAllRows(series || []);
-            recomputeMonthly(series || []);
-            seriesLoaded = true;
-            setUsingSample(false);
-          } catch (e) {
-            console.warn('Failed to load activity series (auth):', e);
-          }
-        }
-
-        // Monthly: prefer public debug
+        // Monthly: prefer public debug - ALWAYS fetch reviews for Overview/Monthly Activity chart FIRST
         let monthlyLoaded = false;
         try {
-          const ent = getEntityForReportType(reportType);
-          const mres = await fetch(`${API_BASE}/api/admin/reports/debug/public/activity/monthly?months=6&entity=${encodeURIComponent(ent)}`);
+          const monthlyEnt = 'reviews'; // Always use reviews for Monthly Activity chart
+          const mres = await fetch(`${API_BASE}/api/admin/reports/debug/public/activity/monthly?months=6&entity=${encodeURIComponent(monthlyEnt)}`);
+          console.log('Monthly fetch response status:', mres.status, 'URL:', `${API_BASE}/api/admin/reports/debug/public/activity/monthly?months=6&entity=reviews`);
           if (mres.ok) {
             const dbg = await mres.json();
             if (!alive) return;
-            console.debug('Monthly activity loaded (public debug):', dbg?.length ?? 0);
-            setMonthlyData(dbg || []);
-            // also ensure rows/allRows contain corresponding series points if missing
-            if ((allRows.length === 0 || rows.length === 0) && (dbg && dbg.length > 0)) {
+            console.log('✅ Monthly activity REAL DATA loaded - reviews:', dbg);
+            if (dbg && dbg.length > 0) {
+              setMonthlyData(dbg);
+              // also ensure rows/allRows contain corresponding series points
               const synth = (dbg as any[]).map(m => ({ d: new Date(`${m.year}-${String(m.month).padStart(2,'0')}-15`).toISOString(), kind: ('ReviewCreate' as any), count: m.count })) as ActivitySeriesPoint[];
               setRows(synth);
               setAllRows(synth);
+              monthlyLoaded = true;
+              dataLoadedSuccessfully = true;
+              setUsingSample(false);
             }
-            monthlyLoaded = true;
-            setUsingSample(false);
+          } else {
+            console.error('❌ Monthly fetch failed with status:', mres.status);
           }
         } catch (e) {
-          console.warn('Public debug monthly request failed:', e);
+          console.error('❌ Public debug monthly request error:', e);
         }
 
         if (!monthlyLoaded) {
           try {
-            const ent = getEntityForReportType(reportType);
-            const monthly = await apiGet<{ label: string; year: number; month: number; count: number }[]>(`/api/admin/reports/activity/monthly?months=6&entity=${encodeURIComponent(ent)}`);
+            const monthlyEnt = 'reviews'; // Always use reviews for Monthly Activity chart
+            const monthly = await apiGet<{ label: string; year: number; month: number; count: number }[]>(`/api/admin/reports/activity/monthly?months=6&entity=${encodeURIComponent(monthlyEnt)}`);
             if (!alive) return;
-            console.debug('Monthly activity loaded (auth):', monthly?.length ?? 0);
-            setMonthlyData(monthly || []);
-            if ((allRows.length === 0 || rows.length === 0) && (monthly && monthly.length > 0)) {
+            console.log('✅ Monthly activity REAL DATA loaded (auth) - reviews:', monthly);
+            if (monthly && monthly.length > 0) {
+              setMonthlyData(monthly);
               const synth = (monthly as any[]).map(m => ({ d: new Date(`${m.year}-${String(m.month).padStart(2,'0')}-15`).toISOString(), kind: ('ReviewCreate' as any), count: m.count })) as ActivitySeriesPoint[];
               setRows(synth);
               setAllRows(synth);
-              recomputeMonthly(synth);
+              monthlyLoaded = true;
+              dataLoadedSuccessfully = true;
+              setUsingSample(false);
             }
-            monthlyLoaded = true;
-            setUsingSample(false);
           } catch (e) {
-            console.warn('Failed to load monthly activity (auth):', e);
+            console.error('❌ Failed to load monthly activity (auth):', e);
           }
         }
 
-        // If we have series but monthlyData wasn't provided, compute it from the series so charts render
-        if ((rows.length > 0 || (allRows && allRows.length > 0)) && (monthlyData.length === 0)) {
-          const src = (allRows && allRows.length > 0) ? allRows : rows;
-          recomputeMonthly(src);
-        }
-
-        // If no data obtained from server, populate safe sample so UI shows something during development
-  if (alive && rows.length === 0 && monthlyData.length === 0) {
+        // Don't compute or use sample data if we successfully loaded monthly data
+        if (!dataLoadedSuccessfully && alive) {
+          console.warn('⚠️ No data from server - using SAMPLE data. Check if backend is running at:', API_BASE);
           const sampleSeries: ActivitySeriesPoint[] = Array.from({ length: 14 }).map((_, i) => {
             const d = new Date(); d.setDate(d.getDate() - (13 - i));
             return { d: d.toISOString(), kind: ("Review" as any), count: Math.round(100 + Math.random() * 50) } as ActivitySeriesPoint;
           });
           setRows(sampleSeries);
           setAllRows(sampleSeries);
-          recomputeMonthly(sampleSeries);
+          // Don't call recomputeMonthly - we set sample monthly data directly below
 
           const sampleMonthly = [] as { label: string; year: number; month: number; count: number }[];
           for (let i = 5; i >= 0; i--) {
@@ -134,10 +114,53 @@ export function ReportsSection() {
           }
           setMonthlyData(sampleMonthly);
           setUsingSample(true);
-          console.warn('Reports: using sample data because server data is not available');
+          console.warn('📊 Reports: using sample data because server data is not available');
+        } else if (alive && dataLoadedSuccessfully) {
+          console.log('✅ Using REAL database data for monthly activity.');
         }
   // ensure we have a fallback allRows (if none of the above paths set it)
-  setAllRows(prev => (prev.length === 0 ? (rows.length ? rows : prev) : prev));
+  if (!dataLoadedSuccessfully) {
+    setAllRows(prev => (prev.length === 0 ? (rows.length ? rows : prev) : prev));
+  }
+
+      // If we're in Overview mode, attempt to fetch both listings/users monthly series to show Growth Trends
+      try {
+        if (alive && reportType === 'Overview') {
+          const months = 6;
+          const fetchMonthlyFor = async (entity: string): Promise<MonthlyItem[]> => {
+            try {
+              const url = `${API_BASE}/api/admin/reports/debug/public/activity/monthly?months=${months}&entity=${encodeURIComponent(entity)}`;
+              const res = await fetch(url);
+              if (res.ok) return (await res.json()) as { label: string; year: number; month: number; count: number }[];
+            } catch (e) {
+              // ignore
+            }
+            // try auth fallback
+            try {
+              return await apiGet<{ label: string; year: number; month: number; count: number }[]>(`/api/admin/reports/activity/monthly?months=${months}&entity=${encodeURIComponent(entity)}`) || [];
+            } catch (e) {
+              return [] as any;
+            }
+          };
+
+          const [listingsM, usersM] = await Promise.all([fetchMonthlyFor('listings'), fetchMonthlyFor('users')]);
+          if (!alive) return;
+          // join by year+month
+          const joined: typeof growthData = [];
+          for (let i = 5; i >= 0; i--) {
+            const d = new Date(); d.setMonth(d.getMonth() - i);
+            const label = d.toLocaleString(undefined, { month: 'short' });
+            const year = d.getFullYear();
+            const month = d.getMonth() + 1;
+            const l = listingsM.find(x => x.year === year && x.month === month)?.count || 0;
+            const u = usersM.find(x => x.year === year && x.month === month)?.count || 0;
+            joined.push({ label, year, month, listings: l, users: u });
+          }
+          setGrowthData(joined);
+        }
+      } catch (e) {
+        console.warn('Failed to load growthData', e);
+      }
 
       } catch (errAll) {
         console.error('Reports fetch unexpected error:', errAll);
@@ -152,14 +175,6 @@ export function ReportsSection() {
   // Always render the UI; show non-blocking error/status messages above the controls
   if (loading) return <div className="text-sm text-muted-foreground">Loading report…</div>;
 
-  // Aggregate rows by month for the right-side monthly activity chart
-  const monthlyCounts = rows.reduce<Record<string, number>>((acc, r) => {
-    const dt = new Date(r.d);
-    const key = dt.toLocaleString(undefined, { month: "short" }) + " " + dt.getFullYear();
-    acc[key] = (acc[key] || 0) + (r.count || 0);
-    return acc;
-  }, {});
-
   // Build last 6 months labels (short month names) to match the mock (always show 6 bars)
   const lastSixMonths: { key: string; label: string; year: number; month: number }[] = [];
   for (let i = 5; i >= 0; i--) {
@@ -172,22 +187,23 @@ export function ReportsSection() {
     lastSixMonths.push({ key, label, year, month });
   }
 
-  // If monthlyData is present use it; otherwise fallback to aggregating from rows
-  if (monthlyData.length === 0) {
-    // fill monthlyCounts from rows (existing fallback)
-    // monthlyCounts already computed above from rows
-  }
-
+  // Use monthlyData (real database counts) if available, otherwise aggregate from rows as fallback
   const monthValues = lastSixMonths.map(m => {
     const md = monthlyData.find(x => x.year === m.year && x.month === m.month);
     if (md) return md.count;
+    // Fallback: aggregate from rows
+    const monthlyCounts = rows.reduce<Record<string, number>>((acc, r) => {
+      const dt = new Date(r.d);
+      const ky = dt.toLocaleString(undefined, { month: "short" }) + " " + dt.getFullYear();
+      acc[ky] = (acc[ky] || 0) + (r.count || 0);
+      return acc;
+    }, {});
     return monthlyCounts[m.key] || 0;
   });
-  // Compute the real max from data so bars fill visibly. For display ticks we can still show up to 300,
-  // but scale bars to the actual data max so small datasets are visible.
-  const dataMax = Math.max(1, ...monthValues);
-  const displayTickMax = Math.max(300, dataMax);
-  const maxCount = dataMax;
+  // Set fixed Y-axis maximum to 30 for consistent scaling
+  const displayTickMax = 30;
+  const yStep = 6; // 6 * 5 = 30
+  const yTicks = [0, 6, 12, 18, 24, 30];
 
   function downloadCsv() {
     // build from/to based on selectedRange
@@ -247,8 +263,9 @@ export function ReportsSection() {
     const to = new Date(year, month - 1, new Date(year, month, 0).getDate(), 23, 59, 59, 999);
     try {
   const ent = getEntityForReportType(reportType);
-  const sUrl = `${API_BASE}/api/admin/reports/debug/public/activity/series?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=${encodeURIComponent(ent)}`;
-  const mUrl = `${API_BASE}/api/admin/reports/debug/public/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=${encodeURIComponent(ent)}`;
+  const monthlyEnt = 'reviews'; // Always fetch reviews for Monthly Activity chart
+  const sUrl = `${API_BASE}/api/admin/reports/debug/public/activity/series?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=${encodeURIComponent(monthlyEnt)}`;
+  const mUrl = `${API_BASE}/api/admin/reports/debug/public/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=${encodeURIComponent(monthlyEnt)}`;
       const [sRes, mRes] = await Promise.all([fetch(sUrl), fetch(mUrl)]);
       if (sRes.ok && mRes.ok) {
         const sJson = await sRes.json();
@@ -256,9 +273,34 @@ export function ReportsSection() {
         const s = (sJson as any[]).map(x => ({ d: x.d, kind: ('ReviewCreate' as any), count: x.count })) as ActivitySeriesPoint[];
         setRows(s);
         setAllRows(s);
+        console.debug('loadByMonth - Monthly data (reviews):', mJson);
         setMonthlyData(mJson);
         setUsingSample(false);
-        recomputeMonthly(s);
+        // Don't call recomputeMonthly here - we have real data from server
+        // also fetch growth data (listings + users) for the same range when Overview
+        if (reportType === 'Overview') {
+          try {
+            const lf = `${API_BASE}/api/admin/reports/debug/public/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=listings`;
+            const uf = `${API_BASE}/api/admin/reports/debug/public/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=users`;
+            const [lm, um] = await Promise.all([fetch(lf), fetch(uf)]);
+            const ljson = lm.ok ? await lm.json() : [];
+            const ujson = um.ok ? await um.json() : [];
+            const joined: typeof growthData = [];
+            const monthsArr: Date[] = [];
+            for (let d = new Date(from.getFullYear(), from.getMonth(), 1); d <= to; d.setMonth(d.getMonth() + 1)) monthsArr.push(new Date(d));
+            for (const d of monthsArr) {
+              const label = d.toLocaleString(undefined, { month: 'short' });
+              const year = d.getFullYear();
+              const mth = d.getMonth() + 1;
+              const l = (ljson.find((x:any)=>x.year===year && x.month===mth)?.count) || 0;
+              const u = (ujson.find((x:any)=>x.year===year && x.month===mth)?.count) || 0;
+              joined.push({ label, year, month: mth, listings: l, users: u });
+            }
+            setGrowthData(joined);
+          } catch (e) {
+            console.warn('fetch growth for range failed', e);
+          }
+        }
         setApplyStatus('Loaded');
         setTimeout(()=>setApplyStatus(null),800);
         return;
@@ -276,8 +318,9 @@ export function ReportsSection() {
     const from = new Date(Date.now() - 1000*60*60*24*days);
     try {
   const ent = getEntityForReportType(reportType);
-  const sUrl = `${API_BASE}/api/admin/reports/debug/public/activity/series?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=${encodeURIComponent(ent)}`;
-  const mUrl = `${API_BASE}/api/admin/reports/debug/public/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=${encodeURIComponent(ent)}`;
+  const monthlyEnt = 'reviews'; // Always fetch reviews for Monthly Activity chart
+  const sUrl = `${API_BASE}/api/admin/reports/debug/public/activity/series?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=${encodeURIComponent(monthlyEnt)}`;
+  const mUrl = `${API_BASE}/api/admin/reports/debug/public/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=${encodeURIComponent(monthlyEnt)}`;
       const [sRes, mRes] = await Promise.all([fetch(sUrl), fetch(mUrl)]);
       if (sRes.ok && mRes.ok) {
         const sJson = await sRes.json();
@@ -285,9 +328,34 @@ export function ReportsSection() {
         const s = (sJson as any[]).map(x => ({ d: x.d, kind: ('ReviewCreate' as any), count: x.count })) as ActivitySeriesPoint[];
         setRows(s);
         setAllRows(s);
+        console.debug('loadRange - Monthly data (reviews):', mJson);
         setMonthlyData(mJson);
         setUsingSample(false);
-        recomputeMonthly(s);
+        // Don't call recomputeMonthly here - we have real data from server
+        // fetch growth data for the same range when Overview
+        if (reportType === 'Overview') {
+          try {
+            const lf = `${API_BASE}/api/admin/reports/debug/public/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=listings`;
+            const uf = `${API_BASE}/api/admin/reports/debug/public/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=users`;
+            const [lm, um] = await Promise.all([fetch(lf), fetch(uf)]);
+            const ljson = lm.ok ? await lm.json() : [];
+            const ujson = um.ok ? await um.json() : [];
+            const joined: typeof growthData = [];
+            const monthsArr: Date[] = [];
+            for (let d = new Date(from.getFullYear(), from.getMonth(), 1); d <= to; d.setMonth(d.getMonth() + 1)) monthsArr.push(new Date(d));
+            for (const d of monthsArr) {
+              const label = d.toLocaleString(undefined, { month: 'short' });
+              const year = d.getFullYear();
+              const mth = d.getMonth() + 1;
+              const l = (ljson.find((x:any)=>x.year===year && x.month===mth)?.count) || 0;
+              const u = (ujson.find((x:any)=>x.year===year && x.month===mth)?.count) || 0;
+              joined.push({ label, year, month: mth, listings: l, users: u });
+            }
+            setGrowthData(joined);
+          } catch (e) {
+            console.warn('fetch growth for range failed', e);
+          }
+        }
         setApplyStatus('Loaded');
         setTimeout(()=>setApplyStatus(null),800);
         return;
@@ -348,7 +416,6 @@ export function ReportsSection() {
               <option>Listings</option>
               <option>Users</option>
               <option>Reviews</option>
-              <option>Revenue</option>
             </select>
           </div>
 
@@ -420,29 +487,29 @@ export function ReportsSection() {
             </div>
           </div>
 
-          {/* Growth sparkline as compact bars instead of dots */}
-          <div className="h-40 flex items-end">
-            <div className="w-full flex items-end gap-1" style={{ alignItems: 'flex-end' }}>
-              {rows.length > 0 ? (() => {
-                const max = Math.max(...rows.map(r => r.count || 0), 1);
-                // show up to 40 bars maximum by sampling if rows is large
-                const sample = rows.length > 40 ? rows.slice(rows.length - 40) : rows;
-                return sample.map((r, i) => {
-                  const hPercent = Math.round(((r.count || 0) / max) * 100);
-                  return (
-                    <div key={i} className="flex-1 bg-transparent flex flex-col items-center" style={{ minWidth: 2 }}>
-                      <div className="w-full bg-black" style={{ height: `${hPercent}%`, borderRadius: '2px 2px 0 0' }} />
-                    </div>
-                  );
-                });
-              })() : (
-                <div className="text-sm text-muted-foreground">No data</div>
+          {/* Growth Trends chart: show Listings and Users over last 6 months when available; otherwise show aggregated rows */}
+          <div style={{ width: '100%', height: 160 }}>
+            <ResponsiveContainer>
+              {growthData && growthData.length > 0 ? (
+                <ComposedChart data={growthData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.06} />
+                  <XAxis dataKey="label" tick={{ fontSize: 12 }} />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="listings" barSize={18} fill="#111827" />
+                  <Line type="monotone" dataKey="users" stroke="#2563eb" strokeWidth={2} dot={{ r: 3 }} />
+                </ComposedChart>
+              ) : (
+                <ComposedChart data={rows.slice(Math.max(0, rows.length - 40)).map((r, i) => ({ label: new Date(r.d).toLocaleDateString(), v: r.count || 0 }))} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.06} />
+                  <XAxis dataKey="label" hide />
+                  <YAxis hide />
+                  <Tooltip />
+                  <Bar dataKey="v" fill="#111827" />
+                </ComposedChart>
               )}
-            </div>
-          </div>
-          <div className="text-xs text-muted-foreground mt-3 flex gap-4">
-            <span>0</span>
-            <span className="ml-auto">{rows.length > 0 ? new Date(rows[rows.length-1].d).toLocaleString(undefined, { month: 'short' }) : ''}</span>
+            </ResponsiveContainer>
           </div>
         </div>
 
@@ -454,32 +521,19 @@ export function ReportsSection() {
             </div>
           </div>
 
-          <div className="mt-2 flex">
-            {/* Y-axis ticks */}
-            <div className="w-12 pr-3 text-xs text-muted-foreground flex flex-col justify-between" style={{ height: 160 }}>
-              {[300,225,150,75,0].map(t => (
-                <div key={t} className="h-0">{t}</div>
-              ))}
-            </div>
+          <div style={{ width: '100%', height: 200 }}>
+            <ResponsiveContainer>
+              <BarChart data={lastSixMonths.map((m, idx) => ({ label: m.label, value: monthValues[idx] || 0 }))} margin={{ top: 10, right: 10, left: 0, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" opacity={0.06} />
+                <XAxis dataKey="label" />
+                <YAxis ticks={yTicks} domain={[0, 30]} />
+                <Tooltip />
+                <Bar dataKey="value" fill="#111827" barSize={28} radius={[6,6,0,0]} />
+              </BarChart>
+            </ResponsiveContainer>
 
-            {/* Bars area */}
-            <div className="flex-1">
-              <div className="h-40 flex items-end gap-4">
-                {lastSixMonths.map((m, idx) => {
-                  const v = monthValues[idx] || 0;
-                  const hPercent = Math.round((v / Math.max(maxCount, 1)) * 100);
-                  return (
-                    <div key={m.key} className="flex-1 flex flex-col items-center">
-                      <div className="w-full bg-black" style={{ height: `${hPercent}%`, borderRadius: '3px 3px 0 0' }} />
-                      <div className="text-xs text-muted-foreground mt-2">{m.label}</div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="text-xs text-muted-foreground mt-3 flex items-center">
-                <span className="inline-block w-3 h-3 bg-black mr-2" /> Reviews
-              </div>
+            <div className="text-xs text-muted-foreground mt-3 flex items-center">
+              <span className="inline-block w-3 h-3 bg-black mr-2" /> Reviews
             </div>
           </div>
         </div>
