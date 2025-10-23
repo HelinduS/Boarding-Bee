@@ -102,7 +102,7 @@ export function SecurityAlerts() {
       <div className="rounded-lg border bg-white p-2 flex gap-2">
         <button
           onClick={() => setTab("owners")}
-          className={`flex-1 py-2 rounded-lg ${tab === "owners" ? "bg-gradient-to-r from-violet-600 to-blue-500 text-white shadow-md font-bold" : "text-muted-foreground"}`}
+          className={`flex-1 py-2 rounded-lg ${tab === "owners" ? "bg-indigo-500 text-white shadow-md font-bold" : "text-muted-foreground"}`}
         >
             <div className="flex items-center justify-center gap-2">
             <Home className="w-4 h-4" />
@@ -111,7 +111,7 @@ export function SecurityAlerts() {
         </button>
         <button
           onClick={() => setTab("users")}
-          className={`flex-1 py-2 rounded-lg ${tab === "users" ? "bg-gradient-to-r from-violet-600 to-blue-500 text-white shadow-md font-bold" : "text-muted-foreground"}`}
+          className={`flex-1 py-2 rounded-lg ${tab === "users" ? "bg-indigo-500 text-white shadow-md font-bold" : "text-muted-foreground"}`}
         >
           <div className="flex items-center justify-center gap-2">
             <Users className="w-4 h-4" />

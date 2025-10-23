@@ -28,7 +28,7 @@ export default function AdminDashboard() {
           <TabsList className="w-full grid grid-cols-4 gap-0 p-1 rounded-xl bg-indigo-50/60 dark:bg-slate-800/40 border border-border/60 shadow-sm">
             <TabsTrigger
               value="moderation"
-              className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors duration-150 rounded-lg hover:bg-indigo-50 hover:text-indigo-700 data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
+              className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors duration-150 rounded-lg hover:bg-indigo-50 hover:text-indigo-700 data-[state=active]:bg-indigo-600 data-[state=active]:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
             >
               <ListChecks className="h-4 w-4" />
               Moderation
@@ -36,7 +36,7 @@ export default function AdminDashboard() {
 
             <TabsTrigger
               value="activity"
-              className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors duration-150 rounded-lg hover:bg-indigo-50 hover:text-indigo-700 data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
+              className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors duration-150 rounded-lg hover:bg-indigo-50 hover:text-indigo-700 data-[state=active]:bg-indigo-600 data-[state=active]:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
             >
               <Activity className="h-4 w-4" />
               Activity Log
@@ -52,7 +52,7 @@ export default function AdminDashboard() {
 
             <TabsTrigger
               value="reports"
-              className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors duration-150 rounded-lg hover:bg-indigo-50 hover:text-indigo-700 data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-blue-500 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=active]:font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
+              className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors duration-150 rounded-lg hover:bg-indigo-50 hover:text-indigo-700 data-[state=active]:bg-indigo-600 data-[state=active]:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
             >
               <FileBarChart className="h-4 w-4" />
               Reports
