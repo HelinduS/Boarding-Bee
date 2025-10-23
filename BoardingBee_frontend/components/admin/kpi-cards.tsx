@@ -3,11 +3,13 @@ import { useEffect, useState } from "react";
 import { apiGet } from "@/lib/api";
 import type { Kpis } from "@/types/admin";
 import { Users, Home, Clock, Star } from "lucide-react";
+import ReviewsDialog from "@/components/admin/reviews-dialog";
 
 export function KPICards() {
   const [data, setData] = useState<Kpis | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
+  const [reviewsOpen, setReviewsOpen] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -27,9 +29,12 @@ export function KPICards() {
           <Kpi label="Total Users" value={data.totalUsers} icon={<Users className="w-5 h-5 text-slate-500" />} />
           <Kpi label="Total Listings" value={data.totalListings} icon={<Home className="w-5 h-5 text-slate-500" />} />
           <Kpi label="New Listings (30d)" value={data.newListings30} icon={<Home className="w-5 h-5 text-slate-500" />} />
-          <Kpi label="Reviews (30d)" value={data.reviews30} icon={<Star className="w-5 h-5 text-slate-500" />} />
+          <div onClick={() => setReviewsOpen(true)}>
+            <Kpi label="Reviews (30d)" value={data.reviews30} icon={<Star className="w-5 h-5 text-slate-500" />} />
+          </div>
           <Kpi label="Inquiries (30d)" value={data.inquiries30} icon={<Clock className="w-5 h-5 text-slate-500" />} />
         </div>
+        <ReviewsDialog open={reviewsOpen} onOpenChange={(o) => setReviewsOpen(o)} listingId={undefined} />
       </div>
     );
 }

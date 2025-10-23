@@ -177,14 +177,20 @@ export function ModerationQueue() {
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="rounded-full bg-gray-100 p-1 flex items-center space-x-2">
-          <button onClick={() => changeTab("pending")} className={`px-4 py-2 rounded-full ${activeTab === "pending" ? "bg-white shadow" : "bg-transparent"}`}>
+        <div className="rounded-full bg-gray-100/60 dark:bg-slate-800/50 p-1 flex items-center space-x-2">
+          <button
+            onClick={() => changeTab("pending")}
+            className={`px-4 py-2 rounded-full transition-colors duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 ${activeTab === "pending" ? "bg-white dark:bg-slate-700 shadow" : "bg-transparent hover:bg-gray-50 dark:hover:bg-slate-700"}`}>
             Pending ({totals.pending})
           </button>
-          <button onClick={() => changeTab("approved")} className={`px-4 py-2 rounded-full ${activeTab === "approved" ? "bg-white shadow" : "bg-transparent"}`}>
+          <button
+            onClick={() => changeTab("approved")}
+            className={`px-4 py-2 rounded-full transition-colors duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 ${activeTab === "approved" ? "bg-white dark:bg-slate-700 shadow" : "bg-transparent hover:bg-gray-50 dark:hover:bg-slate-700"}`}>
             Approved ({approvedCount})
           </button>
-          <button onClick={() => changeTab("rejected")} className={`px-4 py-2 rounded-full ${activeTab === "rejected" ? "bg-white shadow" : "bg-transparent"}`}>
+          <button
+            onClick={() => changeTab("rejected")}
+            className={`px-4 py-2 rounded-full transition-colors duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 ${activeTab === "rejected" ? "bg-white dark:bg-slate-700 shadow" : "bg-transparent hover:bg-gray-50 dark:hover:bg-slate-700"}`}>
             Rejected ({rejectedCount})
           </button>
         </div>
@@ -200,7 +206,7 @@ export function ModerationQueue() {
           <div className="col-span-2 rounded-xl border p-6 text-sm text-muted-foreground">No listings in this tab.</div>
         ) : (
           items.map(l => (
-            <div key={l.id} className="w-full rounded-xl border p-4 flex items-center gap-4">
+            <div key={l.id} className="w-full rounded-xl border p-4 flex items-center gap-4 transition-shadow duration-150 hover:shadow-md hover:border-gray-200 dark:hover:border-slate-700 bg-white dark:bg-slate-900">
               <div>
                 <input type="checkbox" checked={!!selected[l.id]} onChange={() => toggleSelect(l.id)} />
               </div>
@@ -218,7 +224,7 @@ export function ModerationQueue() {
                 </div>
                 {renderAmenities(l.amenitiesCsv)}
                 <div className="flex gap-3 mt-4">
-                  <button onClick={() => openDetails(l.id)} className="rounded-md px-3 py-1.5 text-sm border">View Details</button>
+                  <button onClick={() => openDetails(l.id)} className="rounded-md px-3 py-1.5 text-sm border hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">View Details</button>
                   {activeTab !== "approved" && (
                     <button
                       onClick={() => approve(l.id)}
