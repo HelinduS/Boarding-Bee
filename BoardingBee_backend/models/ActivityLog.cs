@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BoardingBee_backend.Models
 {
-    public enum ActivityKind { UserLogin, ListingCreate, ListingUpdate, ListingRenew, ListingApprove, ListingReject, ReviewCreate, InquiryCreate }
+    public enum ActivityKind { UserLogin, ListingCreate, ListingUpdate, ListingRenew, ListingApprove, ListingReject, ReviewCreate, InquiryCreate, ListingDelete }
 
     public class ActivityLog
     {
