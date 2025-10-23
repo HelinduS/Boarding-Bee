@@ -62,6 +62,7 @@ export function TabsTrigger({ value, children, className, ...rest }: TabsTrigger
       type="button"
       data-value={value}
       aria-selected={current === value}
+      data-state={current === value ? "active" : undefined}
       onClick={handleClick}
       className={className}
       {...rest}
