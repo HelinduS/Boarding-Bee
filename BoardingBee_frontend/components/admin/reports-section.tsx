@@ -141,14 +141,11 @@ export function ReportsSection() {
   const yTicks = [0, 6, 12, 18, 24, 30];
 
   function downloadCsv() {
-    // build from/to based on selectedRange
-  const to = new Date();
-  const fromD = new Date(Date.now() - 1000*60*60*24*30); // default to 30 days
-  const from = fromD.toISOString();
-  const ent = getEntityForReportType(reportType);
-  const path = `/api/admin/reports/export/csv?reportType=${encodeURIComponent(reportType)}&entity=${encodeURIComponent(ent)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to.toISOString())}`;
-  const url = `${API_BASE}${path}`;
-  console.log('Downloading CSV from', url);
+    // Use selected year and month for CSV export
+    const path = `/api/admin/reports/export/csv?reportType=${encodeURIComponent(reportType)}&year=${selectedYear}&month=${selectedMonth}`;
+    const url = `${API_BASE}${path}`;
+    console.log('Downloading CSV from', url);
+    
     // Trigger file download
     const token = getToken();
     const tryUrl = async (u: string, headers?: Record<string,string>) => {
@@ -168,23 +165,17 @@ export function ReportsSection() {
           const blob = await tryUrl(url, { Authorization: `Bearer ${token}` });
           const link = document.createElement('a');
           link.href = URL.createObjectURL(blob);
-          link.download = 'report.csv';
+          // Use dynamic filename based on report type and date
+          const fileName = `${reportType}_${selectedYear}_${String(selectedMonth).padStart(2, '0')}.csv`;
+          link.download = fileName;
           document.body.appendChild(link);
           link.click();
           link.remove();
           return;
         }
 
-        // if no token or the above failed, try the public debug CSV endpoint
-  const publicUrl = `${API_BASE}/api/admin/reports/debug/public/export/csv?reportType=${encodeURIComponent(reportType)}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(to.toISOString())}`;
-        console.log('No auth token; attempting public CSV at', publicUrl);
-        const blob2 = await tryUrl(publicUrl);
-        const link2 = document.createElement('a');
-        link2.href = URL.createObjectURL(blob2);
-        link2.download = 'public-report.csv';
-        document.body.appendChild(link2);
-        link2.click();
-        link2.remove();
+        // if no token, show error
+        alert('Authentication required to download CSV report');
       } catch (err:any) {
         alert('Failed to download CSV: ' + (err && err.message ? err.message : String(err)));
       }
@@ -205,20 +196,22 @@ export function ReportsSection() {
         setRows(s);
         setAllRows(s);
         setUsingSample(false);
-        // Growth data for Overview
+        // Growth data for Overview - Always fetch last 6 months for Growth Trends chart
         if (reportType === 'Overview') {
           const fetchMonthlyFor = async (entity: string): Promise<MonthlyItem[]> => {
             try {
-              return await apiGet<{ label: string; year: number; month: number; count: number }[]>(`/api/admin/reports/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=${encodeURIComponent(entity)}`) || [];
+              // Always get last 6 months for Growth Trends, not filtered by selected month
+              return await apiGet<{ label: string; year: number; month: number; count: number }[]>(`/api/admin/reports/activity/monthly?months=6&entity=${encodeURIComponent(entity)}`) || [];
             } catch (e) {
               return [] as any;
             }
           };
           const [listingsM, usersM] = await Promise.all([fetchMonthlyFor('listings'), fetchMonthlyFor('users')]);
           const joined: typeof growthData = [];
-          const monthsArr: Date[] = [];
-          for (let d = new Date(from.getFullYear(), from.getMonth(), 1); d <= to; d.setMonth(d.getMonth() + 1)) monthsArr.push(new Date(d));
-          for (const d of monthsArr) {
+          // Build last 6 months array
+          for (let i = 5; i >= 0; i--) {
+            const d = new Date(); 
+            d.setMonth(d.getMonth() - i);
             const label = d.toLocaleString(undefined, { month: 'short' });
             const year = d.getFullYear();
             const mth = d.getMonth() + 1;
