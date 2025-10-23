@@ -16,7 +16,8 @@ for testfile in \
   tests/selenium/owner-login.test.js \
   tests/selenium/owner-dashboard.test.js \
   tests/selenium/tenant-review.test.js \
-  tests/selenium/admin-listings.test.js
+  tests/selenium/admin-listings.test.js \
+  tests/selenium/admin-tabs-navigation.test.js
 do
   base=$(basename "$testfile" .test.js)
   echo "\n===== Running $testfile ====="

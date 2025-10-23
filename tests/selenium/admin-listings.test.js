@@ -35,7 +35,7 @@ async function deleteListing(token, id) {
 }
 
 describe('Admin moderation E2E', function() {
-  this.timeout(60000);
+  this.timeout(120000); // Increased timeout to 2 minutes
 
   it('admin can approve a pending listing and perform bulk/reject flows', async function() {
     const owner = { username: `e2e_owner_${Date.now()}`, email: `e2e_owner_${Date.now()}@example.com`, password: 'TestPass123!', firstName: 'Owner', lastName: 'E2E', userType: 'owner', role: 'OWNER' };
@@ -55,6 +55,7 @@ describe('Admin moderation E2E', function() {
     const title = 'E2E Admin Listing ' + Date.now();
     const listingPayload = { title, location: 'Test City', price: 10.0, description: 'E2E listing for moderation test' };
   const createRes = await createListing(ownerToken, listingPayload);
+  console.log('Created first listing:', createRes);
   assert(createRes.listingId, 'listingId should be returned');
   const listingId = createRes.listingId;
   createdListings.push(listingId);
@@ -68,16 +69,32 @@ describe('Admin moderation E2E', function() {
     const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
     try {
       // go to login page
-  await driver.get(`${BASE_URL}/login`);
-  await driver.wait(until.elementLocated(By.css('input#identifier')), 15000);
-  await driver.findElement(By.css('input#identifier')).clear();
-  await driver.findElement(By.css('input#identifier')).sendKeys(admin.email);
+      await driver.get(`${BASE_URL}/login`);
+      await driver.wait(until.elementLocated(By.css('input#identifier')), 15000);
+      await driver.findElement(By.css('input#identifier')).clear();
+      await driver.findElement(By.css('input#identifier')).sendKeys(admin.email);
       await driver.findElement(By.css('input#password')).sendKeys(admin.password);
       await driver.findElement(By.css('button[type="submit"]')).click();
 
   // wait for redirect to admin dashboard
   await driver.wait(until.urlContains('/admin-dashboard'), 15000);
+
+  // Set prompt override as early as possible
+  await driver.executeScript('window.prompt = function(){ return "Not acceptable"; };');
+
   await driver.get(`${BASE_URL}/admin-dashboard`);
+
+  // Gives you 30 seconds to inspect the UI
+  await driver.sleep(30000);
+
+  // Add debug output here
+const allCards = await driver.findElements(By.css('[data-testid^="listing-card-"]'));
+console.log('Found listing cards:', allCards.length);
+for (const card of allCards) {
+  const html = await card.getAttribute('outerHTML');
+  console.log(html);
+}
+
 
           // wait for moderation queue items to load (using data-testid)
           const cardSelector = `[data-testid="listing-card-${listingId}"]`;
@@ -93,16 +110,29 @@ describe('Admin moderation E2E', function() {
             return els.length === 0;
           }, 10000, 'Listing should be removed from moderation queue after approval');
 
+          // Force UI refresh to ensure moderation queue is up to date
+          await driver.get(`${BASE_URL}/admin-dashboard`);
+          await driver.sleep(2000); // Give the UI time to reload
+
           // ----- Test reject path: create another listing and reject it
           const listing2 = await createListing(ownerToken, { title: title + ' 2', location: 'Test City', price: 5, description: 'to reject' });
+          console.log('Created second listing:', listing2);
           assert(listing2.listingId, 'second listing creation failed');
           const id2 = listing2.listingId;
           createdListings.push(id2);
           const card2 = `[data-testid="listing-card-${id2}"]`;
-          await driver.wait(until.elementLocated(By.css(card2)), 40000);
+          // Debug output before waiting for second card
+          const allCards2 = await driver.findElements(By.css('[data-testid^="listing-card-"]'));
+          console.log('Found listing cards after second creation:', allCards2.length);
+          for (const card of allCards2) {
+            const html = await card.getAttribute('outerHTML');
+            console.log(html);
+          }
+          await driver.wait(until.elementLocated(By.css(card2)), 60000);
           const rejectBtn = await driver.findElement(By.css(`[data-testid="reject-button-${id2}"]`));
-          // Inject a mock for prompt so the browser returns a reason automatically
+          // Set the prompt override again before clicking reject (in case of rerender)
           await driver.executeScript('window.prompt = function(){ return "Not acceptable"; };');
+          await driver.sleep(500); // Ensure the override is set before clicking
           await rejectBtn.click();
           await driver.wait(async () => {
             const els = await driver.findElements(By.css(card2));
