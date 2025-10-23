@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState, useEffect } from "react";
 import ListingCard from "@/components/ui/ListingCard";
+import ListingsLoadingSkeleton from "@/components/ListingsLoadingSkeleton";
 import { useRouter } from "next/navigation";
 import { fetchListings } from "@/lib/listingsApi";
 
@@ -49,7 +50,7 @@ export default function Home() {
             location: l.location,
             price: Number(l.price),
             availability,
-            thumbnailUrl: images.length > 0 ? images[0] : "/images/images.jpg",
+            thumbnailUrl: images.length > 0 ? images[0] : "https://boardingbee.blob.core.windows.net/images/boarding.jpeg",
             rating: typeof l.rating === "number" ? l.rating : null, // from backend DTO
             reviewCount: Number(l.reviewCount ?? 0),                 // from backend DTO
             description: l.description ?? null,
@@ -140,25 +141,28 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-purple-200 to-blue-200 relative">
+    <div className="min-h-screen flex bg-gradient-to-br from-purple-200 to-blue-200 relative overflow-hidden pt-[72px]">
       <div className="pointer-events-none absolute inset-0 opacity-20 [background:radial-gradient(circle_at_1px_1px,_#ffffff_1px,_transparent_1px)] [background-size:16px_16px]" />
       <div className="absolute inset-0 backdrop-blur-xl bg-white/50" />
 
-      <div className="relative flex w-full max-w-7xl mx-auto overflow-hidden rounded-3xl m-4 border border-white/40 shadow-2xl bg-white/20 backdrop-blur-xl">
-        <div className="flex flex-col w-full p-6 md:p-8 gap-6">
+      {/* Card background effect */}
+      <div className="absolute left-1/2 top-0 -translate-x-1/2 mt-8 w-[95vw] max-w-[1600px] xl:max-w-[1800px] 2xl:max-w-[2000px] h-[95%] rounded-3xl bg-white/60 shadow-2xl backdrop-blur-2xl border border-white/40 z-0" />
+
+      <div className="relative flex w-full max-w-[1600px] xl:max-w-[1800px] 2xl:max-w-[2000px] mx-auto overflow-hidden rounded-3xl px-2 sm:px-4 md:px-8 lg:px-12 xl:px-16 2xl:px-20 py-2 md:py-4 border border-white/40 shadow-2xl bg-white/20 backdrop-blur-xl" style={{zIndex:1}}>
+        <div className="flex flex-col w-full p-2 sm:p-4 md:p-8 gap-6">
           {/* Header */}
           <div className="text-center">
-            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-blue-700 mb-2">
+            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-blue-700 mb-2">
               Find Your Next Boarding
             </h1>
-            <p className="text-gray-700">
+            <p className="text-lg text-gray-700">
               Browse the latest listings and filter by your needs
             </p>
           </div>
 
           {/* Filter Bar */}
           <section className="sticky top-[88px] z-10 -mx-2 px-2">
-            <div className="rounded-xl bg-white/70 backdrop-blur-xl border border-white/60 shadow-lg p-2 md:p-3">
+            <div className="rounded-xl bg-white/80 backdrop-blur-xl border border-white/60 shadow-lg p-3 md:p-5">
               <div className="flex flex-col gap-2">
                 {/* Row 1: Search + Count */}
                 <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
@@ -325,7 +329,7 @@ export default function Home() {
 
           {/* Listings grid */}
           {loadingListings ? (
-            <div className="flex items-center justify-center min-h-[300px] text-blue-700">Loading listings…</div>
+            <ListingsLoadingSkeleton />
           ) : fetchError ? (
             <div className="flex flex-col items-center justify-center text-center gap-3 bg-white/60 backdrop-blur p-10 rounded-2xl border border-red-200">
               <div className="text-6xl">😢</div>
@@ -333,7 +337,7 @@ export default function Home() {
               <p className="text-gray-700 max-w-md">{fetchError}</p>
             </div>
           ) : filteredListings.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 min-h-[300px]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-8 min-h-[300px]">
               {filteredListings.map((l) => (
                 <ListingCard
                   key={l.id}

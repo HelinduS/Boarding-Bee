@@ -139,7 +139,7 @@ export default function ListingDetails() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
                 <img
-                  src={listing.images?.[0] || "/images/boarding.jpeg"}
+                  src={listing.images?.[0] || "https://boardingbee.blob.core.windows.net/images/boarding.jpeg"}
                   alt={listing.title}
                   className="w-full h-96 object-cover rounded-lg"
                 />
@@ -147,7 +147,7 @@ export default function ListingDetails() {
               {listing.images?.slice(1).map((image: string, index: number) => (
                 <img
                   key={index}
-                  src={image || "/placeholder.svg"}
+                  src={image || "https://boardingbee.blob.core.windows.net/images/boarding.jpeg"}
                   alt={`${listing.title} - Image ${index + 2}`}
                   className="w-full h-48 object-cover rounded-lg"
                 />
@@ -242,16 +242,20 @@ export default function ListingDetails() {
                 <div className="space-y-4">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-12 w-12">
-                      <AvatarImage src={listing.owner?.avatar || "/placeholder.svg"} alt={listing.owner?.name} />
+                      <AvatarImage
+                        src={listing.ownerAvatar && listing.ownerAvatar.trim() !== "" ? listing.ownerAvatar : "/placeholder-avatar.png"}
+                        alt={listing.ownerName}
+                        onError={(e) => { e.currentTarget.src = "/placeholder.jpg"; }}
+                      />
                       <AvatarFallback>
-                        {listing.owner?.name?.split(" ").map((n: string) => n[0]).join("")}
+                        {listing.ownerName?.split(" ").map((n: string) => n[0]).join("")}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <div className="font-medium">{listing.owner?.name}</div>
+                      <div className="font-medium">{listing.ownerName}</div>
                       <div className="text-sm text-muted-foreground flex items-center gap-1">
                         <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                        {listing.owner?.rating} ({listing.owner?.totalReviews} reviews)
+                        {listing.ownerRating} ({listing.ownerTotalReviews} reviews)
                       </div>
                     </div>
                   </div>
@@ -259,7 +263,7 @@ export default function ListingDetails() {
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span>Joined {listing.owner?.joinedDate ? formatDate(listing.owner.joinedDate) : "-"}</span>
+                      <span>Joined {listing.ownerJoinedDate ? formatDate(listing.ownerJoinedDate) : "-"}</span>
                     </div>
                   </div>
                 </div>

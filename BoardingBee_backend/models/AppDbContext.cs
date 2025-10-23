@@ -55,6 +55,14 @@ namespace BoardingBee_backend.Models
                 .HasForeignKey("UserId")
                 .OnDelete(DeleteBehavior.Cascade);
 
+
+            // Listing-Owner (User) relationship: One User has many Listings, Listing has one Owner
+            modelBuilder.Entity<Listing>()
+                .HasOne(l => l.Owner)
+                .WithMany(u => u.Listings)
+                .HasForeignKey(l => l.OwnerId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             modelBuilder.Entity<Listing>()
                 .Property(l => l.Price)
                 .HasPrecision(18, 2);

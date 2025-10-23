@@ -19,14 +19,14 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Home, Plus, ChevronLeft, ChevronRight, AlertCircle, Building2 } from "lucide-react"
 import { ListingsTable } from "@/components/listings-table"
 import { EmptyState } from "@/components/empty-state"
-import { useAuth } from "@/context/authContext"
-import { fetchListingsByOwner } from "@/lib/listingsApi"
+import { fetchCurrentUserData } from "@/lib/storeUserData"
+import { fetchCurrentOwnerListings } from "@/lib/storeListings"
 import type { Listing } from "@/types/listing.d"
 
 
 function OwnerDashboardPage() {
   const router = useRouter()
-  const { user } = useAuth();
+  const [user, setUser] = useState<any>(null)
   const [listings, setListings] = useState<Listing[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -41,43 +41,54 @@ function OwnerDashboardPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
 
-  // Fetch listings for owner
+  // Fetch user and listings for owner
   useEffect(() => {
-    console.log("[OwnerDashboard] user:", user);
-    const fetchOwnerListings = async () => {
-      if (!user?.token || !user?.id) {
-        console.log("[OwnerDashboard] No user token or id, skipping fetchListingsByOwner");
-        return;
-      }
+    const fetchData = async () => {
       setLoading(true);
       setError(null);
       try {
-        const ownerListings = await fetchListingsByOwner(user.id, user.token);
-        setListings(ownerListings);
+        const userData = await fetchCurrentUserData();
+        setUser(userData);
+        const ownerListings: any = await fetchCurrentOwnerListings();
+        let listingsArray: Listing[] = [];
+        if (Array.isArray(ownerListings)) {
+          listingsArray = ownerListings;
+        } else if (ownerListings && Array.isArray(ownerListings.listings)) {
+          listingsArray = ownerListings.listings;
+        } else {
+          listingsArray = [];
+        }
+        console.log("[OwnerDashboard] listings is array:", Array.isArray(listingsArray), listingsArray);
+        setListings(listingsArray);
       } catch (err: any) {
-        console.error("[OwnerDashboard] Error fetching listings:", err);
-        setError(err?.message || "Failed to fetch listings");
+        setError(err?.message || "Failed to fetch data");
       } finally {
         setLoading(false);
       }
     };
-    fetchOwnerListings();
-  }, [user]);
+    fetchData();
+  }, []);
 
-  // Calculate summary stats
-  const stats = useMemo(() => ({
-    total: listings.length,
-    approved: listings.filter((l) => l.status === "Approved").length,
-    pending: listings.filter((l) => l.status === "Pending").length,
-    expired: listings.filter((l) => l.status === "Expired").length,
-    rejected: listings.filter((l) => l.status === "Rejected").length,
-  }), [listings])
+  // Calculate summary stats (safe for non-array listings)
+  const stats = useMemo(() => {
+    const safeListings = Array.isArray(listings) ? listings : [];
+    return {
+      total: safeListings.length,
+      approved: safeListings.filter((l) => (l.status || '').toLowerCase() === "approved").length,
+      pending: safeListings.filter((l) => (l.status || '').toLowerCase() === "pending").length,
+      expired: safeListings.filter((l) => (l.status || '').toLowerCase() === "expired").length,
+      rejected: safeListings.filter((l) => (l.status || '').toLowerCase() === "rejected").length,
+    };
+  }, [listings]);
 
-  // Pagination
-  const { totalPages, paginatedListings } = useMemo(() => ({
-    totalPages: Math.ceil(listings.length / itemsPerPage),
-    paginatedListings: listings.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-  }), [listings, currentPage])
+  // Pagination (safe for non-array listings)
+  const { totalPages, paginatedListings } = useMemo(() => {
+    const safeListings = Array.isArray(listings) ? listings : [];
+    return {
+      totalPages: Math.ceil(safeListings.length / itemsPerPage),
+      paginatedListings: safeListings.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+    };
+  }, [listings, currentPage]);
 
   const handleDelete = async (listingId: number) => {
     try {
@@ -123,44 +134,79 @@ function OwnerDashboardPage() {
     router.push(`/view-details/${listingId}`)
   }
 
+
+
   if (loading) {
-    return <DashboardSkeleton />
+    return <DashboardSkeleton />;
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
+    <div className="min-h-screen bg-background pt-20">
+      {/* Header with Owner Data and Stats Side by Side */}
       <div className="container mx-auto px-6 pt-8">
-  <div className="rounded-2xl shadow-lg bg-gradient-to-r from-indigo-100 via-purple-200 to-indigo-200 text-indigo-900 p-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Avatar className="h-16 w-16 border-2 border-purple-200">
-                <AvatarImage src={"/placeholder.svg"} alt={user?.username ?? "User"} />
-                <AvatarFallback className="bg-purple-200 text-purple-700 text-lg">
-                  {user?.username
-                    ? user.username
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                    : "U"}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <h1 className="text-2xl font-bold text-balance">{user?.username ?? "User"}</h1>
-                <p className="text-purple-800 flex items-center gap-2">
-                  <Building2 className="h-4 w-4" />
-                  Boarding Owner Dashboard
-                </p>
-                <p className="text-purple-700 text-sm">
-                  {user?.email ?? "-"}
-                </p>
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Owner Data Card */}
+          <div className="flex-1 rounded-2xl shadow-lg bg-gradient-to-r from-indigo-100 via-purple-200 to-indigo-200 text-indigo-900 p-10 flex flex-col justify-between min-h-[340px]">
+            <div className="flex flex-col h-full justify-between gap-12">
+              <div className="flex items-center gap-10">
+                <Avatar className="h-28 w-28 border-4 border-purple-200">
+                  <AvatarImage src={user?.profileImage || "/placeholder.jpg"} alt={user?.username ?? "User"} />
+                  <AvatarFallback className="bg-purple-200 text-purple-700 text-3xl">
+                    {user?.firstName || user?.lastName
+                      ? `${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`.toUpperCase() || user?.username?.[0] || "U"
+                      : user?.username?.[0] || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col gap-4">
+                  <h1 className="text-4xl font-extrabold text-balance leading-tight">
+                    {user?.firstName || user?.lastName
+                      ? `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim()
+                      : user?.username ?? "User"}
+                  </h1>
+                  <p className="text-purple-800 flex items-center gap-3 text-xl font-medium">
+                    <Building2 className="h-6 w-6" />
+                    Boarding Owner Dashboard
+                  </p>
+                  <p className="text-purple-700 text-lg font-normal">
+                    {user?.email ?? user?.username ?? "-"}
+                  </p>
+                </div>
+              </div>
+              <div className="self-end mt-10">
+                <a href="/user-profile">
+                  <Button variant="secondary" className="bg-white/60 hover:bg-white/80 text-purple-900 border-purple-200 text-lg px-6 py-2">
+                    Edit Profile
+                  </Button>
+                </a>
               </div>
             </div>
-            <a href="/user-profile">
-              <Button variant="secondary" className="bg-white/60 hover:bg-white/80 text-purple-900 border-purple-200">
-                Edit Profile
-              </Button>
-            </a>
+          </div>
+          {/* Combined Stats Card - Improved UI, no bg color */}
+          <div className="flex-1 rounded-2xl border border-slate-200 shadow-xl p-8 flex flex-col justify-center">
+            <h2 className="text-xl font-bold text-purple-900 mb-6 tracking-tight text-center">Listing Summary</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+              {/* Stat Block */}
+              <div className="flex flex-col items-center gap-1 p-3 rounded-xl border border-slate-100 shadow-sm transition-all duration-200 hover:scale-105 hover:shadow-md hover:border-purple-300 cursor-pointer">
+                <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">Total</span>
+                <span className="text-3xl font-extrabold text-slate-900">{stats.total}</span>
+              </div>
+              <div className="flex flex-col items-center gap-1 p-3 rounded-xl border border-slate-100 shadow-sm transition-all duration-200 hover:scale-105 hover:shadow-md hover:border-purple-300 cursor-pointer">
+                <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">Approved</span>
+                <span className="text-3xl font-extrabold text-green-600">{stats.approved}</span>
+              </div>
+              <div className="flex flex-col items-center gap-1 p-3 rounded-xl border border-slate-100 shadow-sm transition-all duration-200 hover:scale-105 hover:shadow-md hover:border-purple-300 cursor-pointer">
+                <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">Pending</span>
+                <span className="text-3xl font-extrabold text-yellow-600">{stats.pending}</span>
+              </div>
+              <div className="flex flex-col items-center gap-1 p-3 rounded-xl border border-slate-100 shadow-sm transition-all duration-200 hover:scale-105 hover:shadow-md hover:border-purple-300 cursor-pointer">
+                <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">Expired</span>
+                <span className="text-3xl font-extrabold text-red-600">{stats.expired}</span>
+              </div>
+              <div className="flex flex-col items-center gap-1 p-3 rounded-xl border border-slate-100 shadow-sm transition-all duration-200 hover:scale-105 hover:shadow-md hover:border-purple-300 cursor-pointer">
+                <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">Rejected</span>
+                <span className="text-3xl font-extrabold text-red-700">{stats.rejected}</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -179,49 +225,7 @@ function OwnerDashboardPage() {
           </Alert>
         )}
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Listings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.total}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Approved</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{stats.approved}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Pending</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Expired</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600">{stats.expired}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Rejected</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-700">{stats.rejected}</div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* ...removed summary cards, now combined in header... */}
 
         {/* Main Content */}
         <Card>

@@ -117,12 +117,12 @@ namespace BoardingBee_backend.Controllers.Dto
             Rating = l.Rating,
             ReviewCount = l.ReviewCount,
 
-            // Your placeholders
-            OwnerName = "Owner",
-            OwnerAvatar = "/sri-lankan-woman.jpg",
-            OwnerJoinedDate = DateTime.UtcNow.ToString("yyyy-MM-dd"),
-            OwnerRating = 4.8,
-            OwnerTotalReviews = 24
+            // Real owner data if available, fallback to placeholders
+            OwnerName = l.Owner != null ? $"{l.Owner.FirstName} {l.Owner.LastName}".Trim() : "Owner",
+            OwnerAvatar = l.Owner?.ProfileImageUrl ?? "/sri-lankan-woman.jpg",
+            OwnerJoinedDate = l.Owner?.CreatedAt.ToString("yyyy-MM-dd") ?? DateTime.UtcNow.ToString("yyyy-MM-dd"),
+                OwnerRating = 0, // No rating property available
+                OwnerTotalReviews = 0 // No review count property available
         };
     }
 }

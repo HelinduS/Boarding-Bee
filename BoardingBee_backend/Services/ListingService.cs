@@ -25,22 +25,21 @@ namespace BoardingBee_backend.Services
         {
             var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
             var imageUrls = new List<string>();
-            var root = Path.Combine(_env.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"), "uploads", "listings");
-            Directory.CreateDirectory(root);
-            foreach (var file in images)
-            {
-                var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-                if (!allowedExtensions.Contains(ext))
-                    return (false, $"Unsupported image format: {ext}", null);
-                if (file.Length > 5 * 1024 * 1024)
-                    return (false, "Image size must be under 5MB.", null);
-                var fileName = $"l{ownerId}_{Guid.NewGuid():N}{ext}";
-                var path = Path.Combine(root, fileName);
-                using (var stream = System.IO.File.Create(path))
+                // Azure Blob Storage upload
+                var connectionString = Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING");
+                var containerName = "images";
+                var blobServiceClient = new Azure.Storage.Blobs.BlobServiceClient(connectionString);
+                var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+                await containerClient.CreateIfNotExistsAsync();
+                foreach (var file in images)
                 {
-                    await file.CopyToAsync(stream);
-                }
-                imageUrls.Add($"/uploads/listings/{fileName}");
+                    var fileName = $"l{ownerId}_{Guid.NewGuid():N}{Path.GetExtension(file.FileName)}";
+                    var blobClient = containerClient.GetBlobClient(fileName);
+                    using (var stream = file.OpenReadStream())
+                    {
+                        await blobClient.UploadAsync(stream, overwrite: true);
+                    }
+                    imageUrls.Add(blobClient.Uri.ToString());
             }
             var listing = new Listing
             {
@@ -86,7 +85,9 @@ namespace BoardingBee_backend.Services
         // Get a single listing by ID
         public async Task<Listing?> GetListingAsync(int id)
         {
-            return await _context.Listings.FindAsync(id);
+            return await _context.Listings
+                .Include(l => l.Owner)
+                .FirstOrDefaultAsync(l => l.Id == id);
         }
 
         // Update listing (form or JSON)
@@ -127,6 +128,7 @@ namespace BoardingBee_backend.Services
         {
             return await _context.Listings
                 .Where(l => l.OwnerId == ownerId)
+                .Include(l => l.Owner)
                 .OrderByDescending(l => l.CreatedAt)
                 .ToListAsync();
         }
