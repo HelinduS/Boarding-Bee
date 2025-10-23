@@ -212,8 +212,10 @@ export default function ListingDetails() {
               </div>
             </div>
       {/* Lightbox Dialog for full image view */}
+
       <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
         <DialogContent className="max-w-3xl p-0 bg-transparent shadow-none border-none flex items-center justify-center">
+          <DialogTitle className="sr-only">Full size image</DialogTitle>
           {lightboxImg && (
             <img
               src={lightboxImg}
@@ -269,9 +271,6 @@ export default function ListingDetails() {
                   {listing.availability}
                 </Badge>
               </div>
-              <Button className="w-full bg-indigo-700 hover:bg-indigo-800 text-white shadow-md mb-6" size="lg">
-                Contact Owner
-              </Button>
               <div className="flex items-center gap-5 mb-4">
                 <Avatar className="h-16 w-16 border-2 border-white shadow-lg">
                   <AvatarImage
