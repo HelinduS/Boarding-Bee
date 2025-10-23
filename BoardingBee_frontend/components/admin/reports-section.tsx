@@ -45,104 +45,67 @@ export function ReportsSection() {
 
   useEffect(() => {
     let alive = true;
+    let dataLoadedSuccessfully = false; // Track if we successfully loaded data
+    
     (async () => {
       try {
-        // Prefer public debug endpoints (no auth) so dev sees charts reliably
-        let seriesLoaded = false;
-        try {
-          const ent = getEntityForReportType(reportType);
-          const sres = await fetch(`${API_BASE}/api/admin/reports/debug/public/activity/series?days=180&entity=${encodeURIComponent(ent)}`);
-          if (sres.ok) {
-            const dbg = await sres.json();
-            if (!alive) return;
-            console.debug('Activity series loaded (public debug):', dbg?.length ?? 0);
-            setRows(dbg || []);
-            setAllRows(dbg || []);
-            recomputeMonthly(dbg || []);
-            seriesLoaded = true;
-            setUsingSample(false);
-          }
-        } catch (e) {
-          console.warn('Public debug series request failed:', e);
-        }
-
-        if (!seriesLoaded) {
-          // try authenticated endpoint
-          try {
-            const ent = getEntityForReportType(reportType);
-            const series = await apiGet<ActivitySeriesPoint[]>(`/api/admin/reports/activity/series?days=180&entity=${encodeURIComponent(ent)}`);
-            if (!alive) return;
-            console.debug('Activity series loaded (auth):', series?.length ?? 0);
-            setRows(series || []);
-            setAllRows(series || []);
-            recomputeMonthly(series || []);
-            seriesLoaded = true;
-            setUsingSample(false);
-          } catch (e) {
-            console.warn('Failed to load activity series (auth):', e);
-          }
-        }
-
-        // Monthly: prefer public debug
+        // Monthly: prefer public debug - ALWAYS fetch reviews for Overview/Monthly Activity chart FIRST
         let monthlyLoaded = false;
         try {
-          const ent = getEntityForReportType(reportType);
-          const monthlyEnt = (reportType === 'Overview') ? 'reviews' : ent;
+          const monthlyEnt = 'reviews'; // Always use reviews for Monthly Activity chart
           const mres = await fetch(`${API_BASE}/api/admin/reports/debug/public/activity/monthly?months=6&entity=${encodeURIComponent(monthlyEnt)}`);
+          console.log('Monthly fetch response status:', mres.status, 'URL:', `${API_BASE}/api/admin/reports/debug/public/activity/monthly?months=6&entity=reviews`);
           if (mres.ok) {
             const dbg = await mres.json();
             if (!alive) return;
-            console.debug('Monthly activity loaded (public debug):', dbg?.length ?? 0);
-            setMonthlyData(dbg || []);
-            // also ensure rows/allRows contain corresponding series points if missing
-            if ((allRows.length === 0 || rows.length === 0) && (dbg && dbg.length > 0)) {
+            console.log('✅ Monthly activity REAL DATA loaded - reviews:', dbg);
+            if (dbg && dbg.length > 0) {
+              setMonthlyData(dbg);
+              // also ensure rows/allRows contain corresponding series points
               const synth = (dbg as any[]).map(m => ({ d: new Date(`${m.year}-${String(m.month).padStart(2,'0')}-15`).toISOString(), kind: ('ReviewCreate' as any), count: m.count })) as ActivitySeriesPoint[];
               setRows(synth);
               setAllRows(synth);
+              monthlyLoaded = true;
+              dataLoadedSuccessfully = true;
+              setUsingSample(false);
             }
-            monthlyLoaded = true;
-            setUsingSample(false);
+          } else {
+            console.error('❌ Monthly fetch failed with status:', mres.status);
           }
         } catch (e) {
-          console.warn('Public debug monthly request failed:', e);
+          console.error('❌ Public debug monthly request error:', e);
         }
 
         if (!monthlyLoaded) {
           try {
-            const ent = getEntityForReportType(reportType);
-            const monthlyEnt = (reportType === 'Overview') ? 'reviews' : ent;
+            const monthlyEnt = 'reviews'; // Always use reviews for Monthly Activity chart
             const monthly = await apiGet<{ label: string; year: number; month: number; count: number }[]>(`/api/admin/reports/activity/monthly?months=6&entity=${encodeURIComponent(monthlyEnt)}`);
             if (!alive) return;
-            console.debug('Monthly activity loaded (auth):', monthly?.length ?? 0);
-            setMonthlyData(monthly || []);
-            if ((allRows.length === 0 || rows.length === 0) && (monthly && monthly.length > 0)) {
+            console.log('✅ Monthly activity REAL DATA loaded (auth) - reviews:', monthly);
+            if (monthly && monthly.length > 0) {
+              setMonthlyData(monthly);
               const synth = (monthly as any[]).map(m => ({ d: new Date(`${m.year}-${String(m.month).padStart(2,'0')}-15`).toISOString(), kind: ('ReviewCreate' as any), count: m.count })) as ActivitySeriesPoint[];
               setRows(synth);
               setAllRows(synth);
-              recomputeMonthly(synth);
+              monthlyLoaded = true;
+              dataLoadedSuccessfully = true;
+              setUsingSample(false);
             }
-            monthlyLoaded = true;
-            setUsingSample(false);
           } catch (e) {
-            console.warn('Failed to load monthly activity (auth):', e);
+            console.error('❌ Failed to load monthly activity (auth):', e);
           }
         }
 
-        // If we have series but monthlyData wasn't provided, compute it from the series so charts render
-        if ((rows.length > 0 || (allRows && allRows.length > 0)) && (monthlyData.length === 0)) {
-          const src = (allRows && allRows.length > 0) ? allRows : rows;
-          recomputeMonthly(src);
-        }
-
-        // If no data obtained from server, populate safe sample so UI shows something during development
-  if (alive && rows.length === 0 && monthlyData.length === 0) {
+        // Don't compute or use sample data if we successfully loaded monthly data
+        if (!dataLoadedSuccessfully && alive) {
+          console.warn('⚠️ No data from server - using SAMPLE data. Check if backend is running at:', API_BASE);
           const sampleSeries: ActivitySeriesPoint[] = Array.from({ length: 14 }).map((_, i) => {
             const d = new Date(); d.setDate(d.getDate() - (13 - i));
             return { d: d.toISOString(), kind: ("Review" as any), count: Math.round(100 + Math.random() * 50) } as ActivitySeriesPoint;
           });
           setRows(sampleSeries);
           setAllRows(sampleSeries);
-          recomputeMonthly(sampleSeries);
+          // Don't call recomputeMonthly - we set sample monthly data directly below
 
           const sampleMonthly = [] as { label: string; year: number; month: number; count: number }[];
           for (let i = 5; i >= 0; i--) {
@@ -151,10 +114,14 @@ export function ReportsSection() {
           }
           setMonthlyData(sampleMonthly);
           setUsingSample(true);
-          console.warn('Reports: using sample data because server data is not available');
+          console.warn('📊 Reports: using sample data because server data is not available');
+        } else if (alive && dataLoadedSuccessfully) {
+          console.log('✅ Using REAL database data for monthly activity.');
         }
   // ensure we have a fallback allRows (if none of the above paths set it)
-  setAllRows(prev => (prev.length === 0 ? (rows.length ? rows : prev) : prev));
+  if (!dataLoadedSuccessfully) {
+    setAllRows(prev => (prev.length === 0 ? (rows.length ? rows : prev) : prev));
+  }
 
       // If we're in Overview mode, attempt to fetch both listings/users monthly series to show Growth Trends
       try {
@@ -208,14 +175,6 @@ export function ReportsSection() {
   // Always render the UI; show non-blocking error/status messages above the controls
   if (loading) return <div className="text-sm text-muted-foreground">Loading report…</div>;
 
-  // Aggregate rows by month for the right-side monthly activity chart
-  const monthlyCounts = rows.reduce<Record<string, number>>((acc, r) => {
-    const dt = new Date(r.d);
-    const key = dt.toLocaleString(undefined, { month: "short" }) + " " + dt.getFullYear();
-    acc[key] = (acc[key] || 0) + (r.count || 0);
-    return acc;
-  }, {});
-
   // Build last 6 months labels (short month names) to match the mock (always show 6 bars)
   const lastSixMonths: { key: string; label: string; year: number; month: number }[] = [];
   for (let i = 5; i >= 0; i--) {
@@ -228,24 +187,23 @@ export function ReportsSection() {
     lastSixMonths.push({ key, label, year, month });
   }
 
-  // If monthlyData is present use it; otherwise fallback to aggregating from rows
-  if (monthlyData.length === 0) {
-    // fill monthlyCounts from rows (existing fallback)
-    // monthlyCounts already computed above from rows
-  }
-
+  // Use monthlyData (real database counts) if available, otherwise aggregate from rows as fallback
   const monthValues = lastSixMonths.map(m => {
     const md = monthlyData.find(x => x.year === m.year && x.month === m.month);
     if (md) return md.count;
+    // Fallback: aggregate from rows
+    const monthlyCounts = rows.reduce<Record<string, number>>((acc, r) => {
+      const dt = new Date(r.d);
+      const ky = dt.toLocaleString(undefined, { month: "short" }) + " " + dt.getFullYear();
+      acc[ky] = (acc[ky] || 0) + (r.count || 0);
+      return acc;
+    }, {});
     return monthlyCounts[m.key] || 0;
   });
-  // Compute the real max from data so bars fill visibly. For display ticks we can still show up to 300,
-  // but scale bars to the actual data max so small datasets are visible.
-  const dataMax = Math.max(1, ...monthValues);
-  const displayTickMax = Math.max(300, dataMax);
-  const maxCount = dataMax;
-  const yStep = Math.ceil(displayTickMax / 4);
-  const yTicks = [0, yStep, yStep * 2, yStep * 3, yStep * 4];
+  // Set fixed Y-axis maximum to 30 for consistent scaling
+  const displayTickMax = 30;
+  const yStep = 6; // 6 * 5 = 30
+  const yTicks = [0, 6, 12, 18, 24, 30];
 
   function downloadCsv() {
     // build from/to based on selectedRange
@@ -305,7 +263,7 @@ export function ReportsSection() {
     const to = new Date(year, month - 1, new Date(year, month, 0).getDate(), 23, 59, 59, 999);
     try {
   const ent = getEntityForReportType(reportType);
-  const monthlyEnt = (reportType === 'Overview') ? 'reviews' : ent;
+  const monthlyEnt = 'reviews'; // Always fetch reviews for Monthly Activity chart
   const sUrl = `${API_BASE}/api/admin/reports/debug/public/activity/series?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=${encodeURIComponent(monthlyEnt)}`;
   const mUrl = `${API_BASE}/api/admin/reports/debug/public/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=${encodeURIComponent(monthlyEnt)}`;
       const [sRes, mRes] = await Promise.all([fetch(sUrl), fetch(mUrl)]);
@@ -315,9 +273,10 @@ export function ReportsSection() {
         const s = (sJson as any[]).map(x => ({ d: x.d, kind: ('ReviewCreate' as any), count: x.count })) as ActivitySeriesPoint[];
         setRows(s);
         setAllRows(s);
+        console.debug('loadByMonth - Monthly data (reviews):', mJson);
         setMonthlyData(mJson);
         setUsingSample(false);
-        recomputeMonthly(s);
+        // Don't call recomputeMonthly here - we have real data from server
         // also fetch growth data (listings + users) for the same range when Overview
         if (reportType === 'Overview') {
           try {
@@ -359,7 +318,7 @@ export function ReportsSection() {
     const from = new Date(Date.now() - 1000*60*60*24*days);
     try {
   const ent = getEntityForReportType(reportType);
-  const monthlyEnt = (reportType === 'Overview') ? 'reviews' : ent;
+  const monthlyEnt = 'reviews'; // Always fetch reviews for Monthly Activity chart
   const sUrl = `${API_BASE}/api/admin/reports/debug/public/activity/series?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=${encodeURIComponent(monthlyEnt)}`;
   const mUrl = `${API_BASE}/api/admin/reports/debug/public/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=${encodeURIComponent(monthlyEnt)}`;
       const [sRes, mRes] = await Promise.all([fetch(sUrl), fetch(mUrl)]);
@@ -369,9 +328,10 @@ export function ReportsSection() {
         const s = (sJson as any[]).map(x => ({ d: x.d, kind: ('ReviewCreate' as any), count: x.count })) as ActivitySeriesPoint[];
         setRows(s);
         setAllRows(s);
+        console.debug('loadRange - Monthly data (reviews):', mJson);
         setMonthlyData(mJson);
         setUsingSample(false);
-        recomputeMonthly(s);
+        // Don't call recomputeMonthly here - we have real data from server
         // fetch growth data for the same range when Overview
         if (reportType === 'Overview') {
           try {
@@ -456,7 +416,6 @@ export function ReportsSection() {
               <option>Listings</option>
               <option>Users</option>
               <option>Reviews</option>
-              <option>Revenue</option>
             </select>
           </div>
 
@@ -567,7 +526,7 @@ export function ReportsSection() {
               <BarChart data={lastSixMonths.map((m, idx) => ({ label: m.label, value: monthValues[idx] || 0 }))} margin={{ top: 10, right: 10, left: 0, bottom: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" opacity={0.06} />
                 <XAxis dataKey="label" />
-                <YAxis ticks={yTicks} />
+                <YAxis ticks={yTicks} domain={[0, 30]} />
                 <Tooltip />
                 <Bar dataKey="value" fill="#111827" barSize={28} radius={[6,6,0,0]} />
               </BarChart>
