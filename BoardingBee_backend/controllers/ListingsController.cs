@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using BoardingBee_backend.Models;
 using BoardingBee_backend.Controllers.Dto;
 
+using BoardingBee_backend.Services.Notifications;
 namespace BoardingBee_backend.Controllers
 {
     [ApiController]
@@ -118,6 +119,10 @@ namespace BoardingBee_backend.Controllers
             _context.Listings.Add(listing);
             await _context.SaveChangesAsync();
 
+            // Activity log: owner created listing
+            await _context.ActivityLogs.AddAsync(new ActivityLog { Kind = ActivityKind.ListingCreate, ActorUserId = ownerId, ListingId = listing.Id });
+            await _context.SaveChangesAsync();
+
             return Ok(new { message = "Listing created successfully.", listingId = listing.Id });
         }
 
@@ -144,6 +149,21 @@ namespace BoardingBee_backend.Controllers
             var listing = await _listingService.GetListingAsync(id);
             if (listing == null) return NotFound();
             var dto = BoardingBee_backend.Controllers.Dto.ListingMappings.ToDetailDto(listing);
+            // populate owner info if available
+            if (listing.OwnerId.HasValue)
+            {
+                var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == listing.OwnerId.Value);
+                if (user != null)
+                {
+                    dto.OwnerName = string.IsNullOrWhiteSpace(user.FirstName) && string.IsNullOrWhiteSpace(user.LastName)
+                        ? user.Username
+                        : $"{user.FirstName} {user.LastName}".Trim();
+                    dto.OwnerAvatar = string.IsNullOrWhiteSpace(user.ProfileImageUrl) ? dto.OwnerAvatar : user.ProfileImageUrl;
+                    // prefer listing contact email if present, otherwise user's email
+                    if (string.IsNullOrWhiteSpace(dto.ContactEmail) && !string.IsNullOrWhiteSpace(user.Email))
+                        dto.ContactEmail = user.Email;
+                }
+            }
             return Ok(dto);
         }
 
@@ -220,6 +240,32 @@ namespace BoardingBee_backend.Controllers
             if (!result.Success) return Forbid(result.Message);
             return NoContent();
         }
+
+        // ----------------- Test-only cleanup endpoint -----------------
+        // POST: api/Listings/test/cleanup
+        // Body: { "prefix": "E2E" }
+        // Requires header X-TEST-KEY matching environment variable TEST_API_KEY
+        [HttpPost("test/cleanup")]
+        [AllowAnonymous]
+        public async Task<IActionResult> CleanupTestListings([FromBody] CleanupRequest? req)
+        {
+            var testKey = Environment.GetEnvironmentVariable("TEST_API_KEY");
+            var provided = Request.Headers["X-TEST-KEY"].FirstOrDefault();
+            if (string.IsNullOrEmpty(testKey) || provided != testKey)
+            {
+                return Forbid("Test cleanup disabled or invalid key.");
+            }
+
+            var prefix = req?.Prefix ?? "E2E";
+            var q = _context.Listings.Where(l => l.Title != null && l.Title.Contains(prefix));
+            var toDelete = await q.ToListAsync();
+            if (toDelete.Count == 0) return Ok(new { deleted = 0 });
+            _context.Listings.RemoveRange(toDelete);
+            await _context.SaveChangesAsync();
+            return Ok(new { deleted = toDelete.Count });
+        }
+
+        public record CleanupRequest(string? Prefix);
 
         // ----------------- Owner's listings -----------------
 
@@ -354,6 +400,35 @@ namespace BoardingBee_backend.Controllers
             }
 
             await _context.SaveChangesAsync();
+        // ================== Activity + Email (added, non-breaking) ==================
+        int? actorUserId = null;
+        var uid = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (int.TryParse(uid ?? "", out var parsed)) actorUserId = parsed;
+
+        await _context.ActivityLogs.AddAsync(new BoardingBee_backend.Models.ActivityLog
+        {
+            Kind = BoardingBee_backend.Models.ActivityKind.ListingUpdate,
+            ActorUserId = actorUserId,
+            ListingId = listing.Id
+        });
+        await _context.SaveChangesAsync();
+
+        if (listing.OwnerId.HasValue)
+        {
+            var notify = HttpContext.RequestServices
+                .GetRequiredService<BoardingBee_backend.Services.Notifications.NotificationService>();
+
+            await notify.QueueAndSendAsync(
+                BoardingBee_backend.Models.NotificationType.ListingUpdated,
+                listing.OwnerId.Value,
+                subject: "Your listing was updated",
+                body: $"Listing '{listing.Title}' has been updated.",
+                linkUrl: $"https://your-frontend/listings/{listing.Id}",
+                listingId: listing.Id
+            );
+        }
+        // ================== /Activity + Email ==================
+
             await RecomputeListingAggregates(id);
 
             return Ok(new ReviewResponseDto

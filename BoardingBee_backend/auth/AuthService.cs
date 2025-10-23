@@ -41,7 +41,7 @@ namespace BoardingBee_backend.Auth.Services
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.UniqueName, user.Username ?? string.Empty),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
-                new Claim("role", (user.Role ?? "USER").ToUpperInvariant())
+                new Claim(ClaimTypes.Role, (user.Role ?? "USER").ToUpperInvariant())
             };
 
             var token = new JwtSecurityToken(
@@ -57,10 +57,15 @@ namespace BoardingBee_backend.Auth.Services
 
         public User Authenticate(string username, string password)
         {
-        var user = _db.Users.FirstOrDefault(u => u.Username == username || u.Email == username);
+            var user = _db.Users.FirstOrDefault(u => u.Username == username || u.Email == username);
             if (user == null) return null;
             if (!VerifyPassword(password, user.PasswordHash)) return null;
             return user;
+        }
+
+        public User GetUserByIdentifier(string identifier)
+        {
+            return _db.Users.FirstOrDefault(u => u.Username == identifier || u.Email == identifier);
         }
     }
 }

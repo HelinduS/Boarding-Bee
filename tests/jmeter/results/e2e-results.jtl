@@ -1,0 +1,81 @@
+timeStamp,elapsed,label,responseCode,responseMessage,threadName,dataType,success,failureMessage,bytes,sentBytes,grpThreads,allThreads,URL,Latency,IdleTime,Connect
+1760887656841,353,POST /api/auth/login,401,Unauthorized,Users Thread Group 1-1,text,false,,342,285,1,1,http://127.0.0.1:5000/api/auth/login,353,0,9
+1760887657204,614,GET /api/listings,200,OK,Users Thread Group 1-1,text,true,,2615,193,2,2,http://127.0.0.1:5000/api/listings,614,0,0
+1760887657818,18,POST /api/listings/json,401,Unauthorized,Users Thread Group 1-1,,false,,150,331,2,2,http://127.0.0.1:5000/api/listings/json,18,0,0
+1760887657836,2,POST /api/admin/listings/approve,401,Unauthorized,Users Thread Group 1-1,,false,,150,244,2,2,http://127.0.0.1:5000/api/admin/listings/approve,2,0,0
+1760887658807,264,POST /api/auth/login,401,Unauthorized,Users Thread Group 1-3,text,false,,342,284,2,2,http://127.0.0.1:5000/api/auth/login,264,0,1
+1760887659073,516,GET /api/listings,200,OK,Users Thread Group 1-3,text,true,,2615,193,2,2,http://127.0.0.1:5000/api/listings,516,0,0
+1760887659590,2,POST /api/listings/json,401,Unauthorized,Users Thread Group 1-3,,false,,150,331,2,2,http://127.0.0.1:5000/api/listings/json,2,0,0
+1760887659593,1,POST /api/admin/listings/approve,401,Unauthorized,Users Thread Group 1-3,,false,,150,244,2,2,http://127.0.0.1:5000/api/admin/listings/approve,1,0,0
+1760887657805,1862,POST /api/auth/login,401,Unauthorized,Users Thread Group 1-2,text,false,,342,285,1,1,http://127.0.0.1:5000/api/auth/login,1862,0,0
+1760887659811,260,POST /api/auth/login,401,Unauthorized,Users Thread Group 1-4,text,false,,342,285,2,2,http://127.0.0.1:5000/api/auth/login,260,0,1
+1760887659668,521,GET /api/listings,200,OK,Users Thread Group 1-2,text,true,,2615,193,2,2,http://127.0.0.1:5000/api/listings,520,0,0
+1760887660190,2,POST /api/listings/json,401,Unauthorized,Users Thread Group 1-2,,false,,150,331,2,2,http://127.0.0.1:5000/api/listings/json,2,0,0
+1760887660193,1,POST /api/admin/listings/approve,401,Unauthorized,Users Thread Group 1-2,,false,,150,244,2,2,http://127.0.0.1:5000/api/admin/listings/approve,1,0,0
+1760887660072,514,GET /api/listings,200,OK,Users Thread Group 1-4,text,true,,2615,193,1,1,http://127.0.0.1:5000/api/listings,514,0,0
+1760887660587,2,POST /api/listings/json,401,Unauthorized,Users Thread Group 1-4,,false,,150,331,1,1,http://127.0.0.1:5000/api/listings/json,2,0,0
+1760887660590,1,POST /api/admin/listings/approve,401,Unauthorized,Users Thread Group 1-4,,false,,150,244,1,1,http://127.0.0.1:5000/api/admin/listings/approve,1,0,0
+1760887660806,290,POST /api/auth/login,401,Unauthorized,Users Thread Group 1-5,text,false,,342,285,1,1,http://127.0.0.1:5000/api/auth/login,290,0,1
+1760887661098,613,GET /api/listings,200,OK,Users Thread Group 1-5,text,true,,2615,193,1,1,http://127.0.0.1:5000/api/listings,613,0,0
+1760887661712,2,POST /api/listings/json,401,Unauthorized,Users Thread Group 1-5,,false,,150,331,1,1,http://127.0.0.1:5000/api/listings/json,2,0,0
+1760887661715,1,POST /api/admin/listings/approve,401,Unauthorized,Users Thread Group 1-5,,false,,150,244,1,1,http://127.0.0.1:5000/api/admin/listings/approve,1,0,0
+1760887661806,315,POST /api/auth/login,401,Unauthorized,Users Thread Group 1-6,text,false,,342,284,1,1,http://127.0.0.1:5000/api/auth/login,315,0,1
+1760887662124,612,GET /api/listings,200,OK,Users Thread Group 1-6,text,true,,2615,193,1,1,http://127.0.0.1:5000/api/listings,612,0,0
+1760887662737,2,POST /api/listings/json,401,Unauthorized,Users Thread Group 1-6,,false,,150,331,1,1,http://127.0.0.1:5000/api/listings/json,2,0,0
+1760887662740,1,POST /api/admin/listings/approve,401,Unauthorized,Users Thread Group 1-6,,false,,150,244,1,1,http://127.0.0.1:5000/api/admin/listings/approve,1,0,0
+1760887662807,337,POST /api/auth/login,401,Unauthorized,Users Thread Group 1-7,text,false,,342,285,1,1,http://127.0.0.1:5000/api/auth/login,337,0,1
+1760887663145,616,GET /api/listings,200,OK,Users Thread Group 1-7,text,true,,2615,193,1,1,http://127.0.0.1:5000/api/listings,616,0,0
+1760887663763,2,POST /api/listings/json,401,Unauthorized,Users Thread Group 1-7,,false,,150,331,1,1,http://127.0.0.1:5000/api/listings/json,2,0,0
+1760887663766,1,POST /api/admin/listings/approve,401,Unauthorized,Users Thread Group 1-7,,false,,150,244,1,1,http://127.0.0.1:5000/api/admin/listings/approve,1,0,0
+1760887663801,264,POST /api/auth/login,401,Unauthorized,Users Thread Group 1-8,text,false,,342,285,1,1,http://127.0.0.1:5000/api/auth/login,264,0,1
+1760887664067,516,GET /api/listings,200,OK,Users Thread Group 1-8,text,true,,2615,193,1,1,http://127.0.0.1:5000/api/listings,516,0,0
+1760887664584,1,POST /api/listings/json,401,Unauthorized,Users Thread Group 1-8,,false,,150,331,1,1,http://127.0.0.1:5000/api/listings/json,1,0,0
+1760887664585,1,POST /api/admin/listings/approve,401,Unauthorized,Users Thread Group 1-8,,false,,150,244,1,1,http://127.0.0.1:5000/api/admin/listings/approve,1,0,0
+1760887664805,260,POST /api/auth/login,401,Unauthorized,Users Thread Group 1-9,text,false,,342,284,1,1,http://127.0.0.1:5000/api/auth/login,260,0,0
+1760887665067,638,GET /api/listings,200,OK,Users Thread Group 1-9,text,true,,2615,193,1,1,http://127.0.0.1:5000/api/listings,638,0,0
+1760887665707,2,POST /api/listings/json,401,Unauthorized,Users Thread Group 1-9,,false,,150,331,1,1,http://127.0.0.1:5000/api/listings/json,2,0,0
+1760887665710,1,POST /api/admin/listings/approve,401,Unauthorized,Users Thread Group 1-9,,false,,150,244,1,1,http://127.0.0.1:5000/api/admin/listings/approve,1,0,0
+1760887665807,262,POST /api/auth/login,401,Unauthorized,Users Thread Group 1-10,text,false,,342,285,1,1,http://127.0.0.1:5000/api/auth/login,262,0,1
+1760887666071,515,GET /api/listings,200,OK,Users Thread Group 1-10,text,true,,2615,193,1,1,http://127.0.0.1:5000/api/listings,515,0,0
+1760887666586,1,POST /api/listings/json,401,Unauthorized,Users Thread Group 1-10,,false,,150,331,1,1,http://127.0.0.1:5000/api/listings/json,1,0,0
+1760887666587,1,POST /api/admin/listings/approve,401,Unauthorized,Users Thread Group 1-10,,false,,150,244,1,1,http://127.0.0.1:5000/api/admin/listings/approve,1,0,0
+1760888598844,330,POST /api/auth/login,200,OK,Users Thread Group 1-1,text,true,,485,285,1,1,http://127.0.0.1:5000/api/auth/login,330,0,8
+1760888599189,528,GET /api/listings,200,OK,Users Thread Group 1-1,text,true,,2615,483,1,1,http://127.0.0.1:5000/api/listings,528,0,0
+1760888599718,31,POST /api/listings/json,400,Bad Request,Users Thread Group 1-1,text,false,,542,621,1,1,http://127.0.0.1:5000/api/listings/json,31,0,0
+1760888599750,0,POST /api/admin/listings/approve,403,Forbidden,Users Thread Group 1-1,,false,,99,534,1,1,http://127.0.0.1:5000/api/admin/listings/approve,0,0,0
+1760888599803,316,POST /api/auth/login,200,OK,Users Thread Group 1-2,text,true,,485,285,1,1,http://127.0.0.1:5000/api/auth/login,316,0,1
+1760888600119,611,GET /api/listings,200,OK,Users Thread Group 1-2,text,true,,2615,483,1,1,http://127.0.0.1:5000/api/listings,611,0,0
+1760888600730,2,POST /api/listings/json,400,Bad Request,Users Thread Group 1-2,text,false,,542,621,1,1,http://127.0.0.1:5000/api/listings/json,2,0,0
+1760888600732,0,POST /api/admin/listings/approve,403,Forbidden,Users Thread Group 1-2,,false,,99,534,1,1,http://127.0.0.1:5000/api/admin/listings/approve,0,0,0
+1760888600806,325,POST /api/auth/login,200,OK,Users Thread Group 1-3,text,true,,482,284,1,1,http://127.0.0.1:5000/api/auth/login,325,0,1
+1760888601131,527,GET /api/listings,200,OK,Users Thread Group 1-3,text,true,,2615,479,1,1,http://127.0.0.1:5000/api/listings,527,0,0
+1760888601659,3,POST /api/listings/json,400,Bad Request,Users Thread Group 1-3,text,false,,542,617,1,1,http://127.0.0.1:5000/api/listings/json,3,0,0
+1760888601663,1,POST /api/admin/listings/approve,403,Forbidden,Users Thread Group 1-3,,false,,99,530,1,1,http://127.0.0.1:5000/api/admin/listings/approve,1,0,0
+1760888601807,408,POST /api/auth/login,200,OK,Users Thread Group 1-4,text,true,,485,285,1,1,http://127.0.0.1:5000/api/auth/login,408,0,0
+1760888602215,783,GET /api/listings,200,OK,Users Thread Group 1-4,text,true,,2615,483,2,2,http://127.0.0.1:5000/api/listings,783,0,0
+1760888602999,2,POST /api/listings/json,400,Bad Request,Users Thread Group 1-4,text,false,,542,621,2,2,http://127.0.0.1:5000/api/listings/json,2,0,0
+1760888603002,1,POST /api/admin/listings/approve,403,Forbidden,Users Thread Group 1-4,,false,,99,534,2,2,http://127.0.0.1:5000/api/admin/listings/approve,1,0,0
+1760888603804,320,POST /api/auth/login,200,OK,Users Thread Group 1-6,text,true,,482,284,2,2,http://127.0.0.1:5000/api/auth/login,320,0,0
+1760888604125,531,GET /api/listings,200,OK,Users Thread Group 1-6,text,true,,2615,479,2,2,http://127.0.0.1:5000/api/listings,531,0,0
+1760888604658,3,POST /api/listings/json,400,Bad Request,Users Thread Group 1-6,text,false,,542,617,2,2,http://127.0.0.1:5000/api/listings/json,3,0,0
+1760888604662,2,POST /api/admin/listings/approve,403,Forbidden,Users Thread Group 1-6,,false,,99,530,2,2,http://127.0.0.1:5000/api/admin/listings/approve,2,0,0
+1760888602805,1993,POST /api/auth/login,200,OK,Users Thread Group 1-5,text,true,,485,285,1,1,http://127.0.0.1:5000/api/auth/login,1993,0,1
+1760888604804,324,POST /api/auth/login,200,OK,Users Thread Group 1-7,text,true,,485,285,2,2,http://127.0.0.1:5000/api/auth/login,324,0,1
+1760888604799,530,GET /api/listings,200,OK,Users Thread Group 1-5,text,true,,2615,483,2,2,http://127.0.0.1:5000/api/listings,530,0,0
+1760888605331,2,POST /api/listings/json,400,Bad Request,Users Thread Group 1-5,text,false,,542,621,2,2,http://127.0.0.1:5000/api/listings/json,2,0,0
+1760888605334,1,POST /api/admin/listings/approve,403,Forbidden,Users Thread Group 1-5,,false,,99,534,2,2,http://127.0.0.1:5000/api/admin/listings/approve,1,0,0
+1760888605129,618,GET /api/listings,200,OK,Users Thread Group 1-7,text,true,,2615,483,1,1,http://127.0.0.1:5000/api/listings,618,0,0
+1760888605747,1,POST /api/listings/json,400,Bad Request,Users Thread Group 1-7,text,false,,542,621,1,1,http://127.0.0.1:5000/api/listings/json,1,0,0
+1760888605749,0,POST /api/admin/listings/approve,403,Forbidden,Users Thread Group 1-7,,false,,99,534,1,1,http://127.0.0.1:5000/api/admin/listings/approve,0,0,0
+1760888605805,322,POST /api/auth/login,200,OK,Users Thread Group 1-8,text,true,,485,285,1,1,http://127.0.0.1:5000/api/auth/login,322,0,0
+1760888606128,643,GET /api/listings,200,OK,Users Thread Group 1-8,text,true,,2615,483,1,1,http://127.0.0.1:5000/api/listings,643,0,0
+1760888606771,2,POST /api/listings/json,400,Bad Request,Users Thread Group 1-8,text,false,,542,621,1,1,http://127.0.0.1:5000/api/listings/json,2,0,0
+1760888606773,0,POST /api/admin/listings/approve,403,Forbidden,Users Thread Group 1-8,,false,,99,534,1,1,http://127.0.0.1:5000/api/admin/listings/approve,0,0,0
+1760888606802,335,POST /api/auth/login,200,OK,Users Thread Group 1-9,text,true,,482,284,1,1,http://127.0.0.1:5000/api/auth/login,335,0,1
+1760888607138,656,GET /api/listings,200,OK,Users Thread Group 1-9,text,true,,2615,479,1,1,http://127.0.0.1:5000/api/listings,656,0,0
+1760888607795,1,POST /api/listings/json,400,Bad Request,Users Thread Group 1-9,text,false,,542,617,1,1,http://127.0.0.1:5000/api/listings/json,1,0,0
+1760888607796,1,POST /api/admin/listings/approve,403,Forbidden,Users Thread Group 1-9,,false,,99,530,1,1,http://127.0.0.1:5000/api/admin/listings/approve,1,0,0
+1760888607801,359,POST /api/auth/login,200,OK,Users Thread Group 1-10,text,true,,485,285,1,1,http://127.0.0.1:5000/api/auth/login,359,0,0
+1760888608161,539,GET /api/listings,200,OK,Users Thread Group 1-10,text,true,,2615,483,1,1,http://127.0.0.1:5000/api/listings,539,0,0
+1760888608701,1,POST /api/listings/json,400,Bad Request,Users Thread Group 1-10,text,false,,542,621,1,1,http://127.0.0.1:5000/api/listings/json,1,0,0
+1760888608703,0,POST /api/admin/listings/approve,403,Forbidden,Users Thread Group 1-10,,false,,99,534,1,1,http://127.0.0.1:5000/api/admin/listings/approve,0,0,0

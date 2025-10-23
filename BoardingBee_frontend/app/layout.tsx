@@ -3,7 +3,6 @@
 import { Geist, Geist_Mono, Caveat } from "next/font/google";
 import "./globals.css";
 import { usePathname } from "next/navigation";
-import Sidebar from "@/components/ui/sidebar";
 import Header from "@/components/ui/header";
 import Link from "next/link";
 import { CartProvider } from "@/context/cartContext"; 
@@ -44,12 +43,7 @@ export default function RootLayout({
                   <AuthProvider>
                     {!isAdminDashboard && !isAuthPage && <Header />}
                     <div className="flex min-h-screen">
-                        {isAdminDashboard && (
-                            <div className="hidden md:flex md:w-64">
-                                <Sidebar />
-                            </div>
-                        )}
-                        <main className="flex-1 h-screen ">
+                        <main className={`flex-1 h-screen${!isAdminDashboard && !isAuthPage ? ' pt-20 md:pt-20' : ''}`}>
                             {children}
                         </main>
                     </div>
