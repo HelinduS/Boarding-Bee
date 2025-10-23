@@ -1,5 +1,4 @@
 
-
 # 🐝 Boarding Bee
 
 A web platform for students and professionals in Sri Lanka to **find, review, and manage boarding/annex accommodations**.  
