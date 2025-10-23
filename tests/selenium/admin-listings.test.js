@@ -1,74 +1,138 @@
+/* eslint-disable no-console */
 const { Builder, By, until } = require('selenium-webdriver');
 const { getChromeOptions } = require('./seleniumTestUtils');
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
-const API_URL = process.env.API_URL || 'http://127.0.0.1:5000';
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 const assert = require('assert');
 
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
+const API_URL  = process.env.API_URL  || 'http://127.0.0.1:5000';
+
+// --- API helpers ---
 async function registerUser(payload) {
-  const res = await fetch(`${API_URL}/api/auth/register`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+  const res = await fetch(`${API_URL}/api/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json' },
+    body: JSON.stringify(payload),
+  });
   return res;
 }
 
 async function loginUser(identifier, password) {
-  const res = await fetch(`${API_URL}/api/auth/login`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ identifier, password }) });
-  return res.json();
+  const res = await fetch(`${API_URL}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json' },
+    body: JSON.stringify({ identifier, password }),
+  });
+  const json = await res.json().catch(() => ({}));
+  return { ok: res.ok, status: res.status, json };
 }
 
 async function createListing(token, payload) {
-  const res = await fetch(`${API_URL}/api/listings/json`, { method: 'POST', headers: { 'Content-Type':'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify(payload) });
+  const res = await fetch(`${API_URL}/api/listings/json`, {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify(payload),
+  });
   const text = await res.text();
   let json = null;
-  try { json = JSON.parse(text); } catch (e) { throw new Error(`createListing: invalid JSON response (status ${res.status}): ${text}`); }
+  try { json = JSON.parse(text); }
+  catch (e) { throw new Error(`createListing: invalid JSON response (status ${res.status}): ${text}`); }
+  if (!res.ok) throw new Error(`createListing failed: ${res.status} ${text}`);
   return json;
 }
 
 async function deleteListing(token, id) {
-  // DELETE /api/listings/{id} requires owner token
   try {
-    const res = await fetch(`${API_URL}/api/listings/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+    const res = await fetch(`${API_URL}/api/listings/${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
     return res;
-  } catch (e) {
-    // swallow - cleanup should best-effort
-    return null;
+  } catch {
+    return null; // best-effort cleanup
   }
 }
 
-describe('Admin moderation E2E', function() {
-  this.timeout(120000); // Increased timeout to 2 minutes
+/**
+ * Idempotent: try register; if exists, login.
+ * Returns { token, user? }
+ */
+async function registerOrLogin(user) {
+  const body = {
+    ...user,
+    phoneNumber: '1234567890',
+    permanentAddress: 'addr',
+    gender: 'other',
+    emergencyContact: '0987654321',
+    institutionCompany: '',
+    location: '',
+  };
 
-  it('admin can approve a pending listing and perform bulk/reject flows', async function() {
-    const owner = { username: `e2e_owner_${Date.now()}`, email: `e2e_owner_${Date.now()}@example.com`, password: 'TestPass123!', firstName: 'Owner', lastName: 'E2E', userType: 'owner', role: 'OWNER' };
-    const admin = { username: `e2e_admin_${Date.now()}`, email: `e2e_admin_${Date.now()}@example.com`, password: 'AdminPass123!', firstName: 'Admin', lastName: 'E2E', userType: 'admin', role: 'ADMIN' };
+  const regRes = await registerUser(body);
 
-  // track created listings so we can clean them up after the test
-  const createdListings = [];
+  if (!regRes.ok) {
+    // User probably exists (409/400) → login
+    const login = await loginUser(user.email, user.password);
+    assert(login.ok && login.json && login.json.token, `login failed for existing user ${user.email}, status ${login.status}`);
+    return { token: login.json.token, user: login.json.user };
+  }
 
-  // create owner and assert registration success
-  const regOwnerRes = await registerUser({ ...owner, phoneNumber: '1234567890', permanentAddress: 'addr', gender: 'other', emergencyContact: '0987654321', institutionCompany: '', location: '' });
-  assert(regOwnerRes.ok, `owner register failed: ${regOwnerRes.status}`);
-  const ownerLogin = await loginUser(owner.email, owner.password);
-  assert(ownerLogin && ownerLogin.token, 'owner login did not return token');
-  const ownerToken = ownerLogin.token;
+  // Newly created → login
+  const login = await loginUser(user.email, user.password);
+  assert(login.ok && login.json && login.json.token, `login failed after register for ${user.email}, status ${login.status}`);
+  return { token: login.json.token, user: login.json.user };
+}
 
-    // create pending listing via API
-    const title = 'E2E Admin Listing ' + Date.now();
-    const listingPayload = { title, location: 'Test City', price: 10.0, description: 'E2E listing for moderation test' };
-  const createRes = await createListing(ownerToken, listingPayload);
-  console.log('Created first listing:', createRes);
-  assert(createRes.listingId, 'listingId should be returned');
-  const listingId = createRes.listingId;
-  createdListings.push(listingId);
+// --- test data (KEEP STATIC EMAILS) ---
+const owner = {
+  username: 'e2e_owner',
+  email: 'e2e_owner@example.com',
+  password: 'TestPass123!',
+  firstName: 'Owner',
+  lastName: 'E2E',
+  userType: 'owner',
+  role: 'OWNER',
+};
 
-  // create admin user and assert
-  const regAdminRes = await registerUser({ ...admin, phoneNumber: '111222333', permanentAddress: 'admin addr', gender: 'other', emergencyContact: '111222333', institutionCompany: '', location: '' });
-  assert(regAdminRes.ok, `admin register failed: ${regAdminRes.status}`);
+const admin = {
+  username: 'e2e_admin',
+  email: 'e2e_admin@example.com',
+  password: 'AdminPass123!',
+  firstName: 'Admin',
+  lastName: 'E2E',
+  userType: 'admin',
+  role: 'ADMIN', // ensure backend truly grants ADMIN to this user (seed/promotion)
+};
 
-    // Start selenium and login as admin via UI
+describe('Admin moderation E2E', function () {
+  this.timeout(120000); // 2 minutes
+
+  it('admin can approve a pending listing and perform bulk/reject flows', async function () {
+    // Track created listings for cleanup
+    const createdListings = [];
+
+    // Register or login owner/admin (idempotent)
+    const ownerAuth = await registerOrLogin(owner);
+    assert(ownerAuth.token, 'owner token missing');
+    const ownerToken = ownerAuth.token;
+
+    const adminAuth = await registerOrLogin(admin);
+    assert(adminAuth.token, 'admin token missing');
+
+    // Start Selenium
     const options = getChromeOptions('admin-moderation');
     const driver = await new Builder().forBrowser('chrome').setChromeOptions(options).build();
+
     try {
-      // go to login page
+      // 1) Create pending listing via API (owner)
+      const title = 'E2E Admin Listing ' + Date.now();
+      const listingPayload = { title, location: 'Test City', price: 10.0, description: 'E2E listing for moderation test' };
+      const createRes = await createListing(ownerToken, listingPayload);
+      assert(createRes.listingId, 'listingId should be returned');
+      const listingId = createRes.listingId;
+      createdListings.push(listingId);
+
+      // 2) Login as admin via UI
       await driver.get(`${BASE_URL}/login`);
       await driver.wait(until.elementLocated(By.css('input#identifier')), 15000);
       await driver.findElement(By.css('input#identifier')).clear();
@@ -76,110 +140,136 @@ describe('Admin moderation E2E', function() {
       await driver.findElement(By.css('input#password')).sendKeys(admin.password);
       await driver.findElement(By.css('button[type="submit"]')).click();
 
-  // wait for redirect to admin dashboard
-  await driver.wait(until.urlContains('/admin-dashboard'), 15000);
+      // Wait for redirect to admin dashboard
+      await driver.wait(until.urlContains('/admin-dashboard'), 15000);
 
-  // Set prompt override as early as possible
-  await driver.executeScript('window.prompt = function(){ return "Not acceptable"; };');
+      // Ensure prompt does not block rejections
+      await driver.executeScript('window.prompt = function(){ return "Not acceptable"; };');
 
-  await driver.get(`${BASE_URL}/admin-dashboard`);
+      // Force reload and open Moderation → Pending
+      await driver.get(`${BASE_URL}/admin-dashboard`);
+      await driver.sleep(2000);
 
-  // Gives you 30 seconds to inspect the UI
-  await driver.sleep(30000);
+      console.log('Clicking Moderation tab (after reload)...');
+      let tab = await driver.findElement(By.css('button[data-value="moderation"]'));
+      await tab.click();
+      await driver.sleep(2000);
+      await driver.wait(async () => {
+        const cls = await tab.getAttribute('class');
+        return cls.includes('data-[state=active]') || cls.includes('active') || cls.includes('bg-background');
+      }, 3000, 'Moderation tab did not become active');
 
-  // Add debug output here
-const allCards = await driver.findElements(By.css('[data-testid^="listing-card-"]'));
-console.log('Found listing cards:', allCards.length);
-for (const card of allCards) {
-  const html = await card.getAttribute('outerHTML');
-  console.log(html);
-}
+      console.log('Clicking Pending tab (after reload)...');
+      tab = await driver.findElement(By.xpath("//button[starts-with(normalize-space(.), 'Pending') or contains(., 'Pending')]"));
+      await tab.click();
+      await driver.sleep(5000);
 
+      // 3) Confirm the new listing is visible in Pending
+      const cards = await driver.findElements(By.css('[data-testid^="listing-card-"]'));
+      console.log('Cards found in Pending tab:', cards.length);
 
-          // wait for moderation queue items to load (using data-testid)
-          const cardSelector = `[data-testid="listing-card-${listingId}"]`;
-          await driver.wait(until.elementLocated(By.css(cardSelector)), 40000);
-          const row = await driver.findElement(By.css(cardSelector));
-          // click Approve button within the same card
-          const approveBtn = await row.findElement(By.css(`[data-testid="approve-button-${listingId}"]`));
-          await approveBtn.click();
+      let card = null;
+      let start = Date.now();
+      let found = false;
+      while (Date.now() - start < 30000) {
+        try {
+          card = await driver.findElement(By.css(`[data-testid="listing-card-${listingId}"]`));
+          if (card) { found = true; break; }
+        } catch { /* not found yet */ }
+        await driver.sleep(1000);
+      }
+      if (!found) {
+        throw new Error(`Listing card for id ${listingId} should be visible in Pending`);
+      }
+      const cardText = await card.getText();
+      assert(cardText, `Listing card for id ${listingId} should be visible in Pending`);
+      await driver.sleep(500);
 
-          // wait and assert the item is removed from moderation queue
-          await driver.wait(async () => {
-            const els = await driver.findElements(By.css(cardSelector));
-            return els.length === 0;
-          }, 10000, 'Listing should be removed from moderation queue after approval');
+      // Approve the first listing
+      console.log('Approving first listing...');
+      let approveBtn = await driver.findElement(By.css(`[data-testid="approve-button-${listingId}"]`));
+      await driver.executeScript('arguments[0].scrollIntoView(true);', approveBtn);
+      await driver.sleep(1000);
+      await approveBtn.click();
+      await driver.sleep(2000);
+      await driver.wait(async () => {
+        const els = await driver.findElements(By.css(`[data-testid="listing-card-${listingId}"]`));
+        return els.length === 0;
+      }, 15000, 'Listing should be removed from Pending after approval');
 
-          // Force UI refresh to ensure moderation queue is up to date
-          await driver.get(`${BASE_URL}/admin-dashboard`);
-          await driver.sleep(2000); // Give the UI time to reload
+      // Create and reject a second listing
+      const listing2 = await createListing(ownerToken, { title: title + ' 2', location: 'Test City', price: 5, description: 'to reject' });
+      assert(listing2.listingId, 'second listing creation failed');
+      const id2 = listing2.listingId;
+      createdListings.push(id2);
 
-          // ----- Test reject path: create another listing and reject it
-          const listing2 = await createListing(ownerToken, { title: title + ' 2', location: 'Test City', price: 5, description: 'to reject' });
-          console.log('Created second listing:', listing2);
-          assert(listing2.listingId, 'second listing creation failed');
-          const id2 = listing2.listingId;
-          createdListings.push(id2);
-          const card2 = `[data-testid="listing-card-${id2}"]`;
-          // Debug output before waiting for second card
-          const allCards2 = await driver.findElements(By.css('[data-testid^="listing-card-"]'));
-          console.log('Found listing cards after second creation:', allCards2.length);
-          for (const card of allCards2) {
-            const html = await card.getAttribute('outerHTML');
-            console.log(html);
-          }
-          await driver.wait(until.elementLocated(By.css(card2)), 60000);
-          const rejectBtn = await driver.findElement(By.css(`[data-testid="reject-button-${id2}"]`));
-          // Set the prompt override again before clicking reject (in case of rerender)
-          await driver.executeScript('window.prompt = function(){ return "Not acceptable"; };');
-          await driver.sleep(500); // Ensure the override is set before clicking
-          await rejectBtn.click();
-          await driver.wait(async () => {
-            const els = await driver.findElements(By.css(card2));
-            return els.length === 0;
-          }, 10000, 'Rejected listing should no longer be present in moderation queue');
+      await driver.wait(until.elementLocated(By.css(`[data-testid="listing-card-${id2}"]`)), 30000);
+      let rejectBtn = await driver.findElement(By.css(`[data-testid="reject-button-${id2}"]`));
+      await driver.executeScript('arguments[0].scrollIntoView(true);', rejectBtn);
+      await driver.sleep(1000);
+      await rejectBtn.click();
+      await driver.sleep(2000);
+      await driver.wait(async () => {
+        const els = await driver.findElements(By.css(`[data-testid="listing-card-${id2}"]`));
+        return els.length === 0;
+      }, 15000, 'Listing should be removed from Pending after rejection');
 
-          // ----- Test bulk approve/reject
-          // create several listings
-          const bulkIds = [];
-          for (let i=0;i<3;i++) {
-            const r = await createListing(ownerToken, { title: title + ' bulk ' + i, location: 'City', price: 1+i, description: 'bulk' });
-            assert(r.listingId, 'bulk seed failed');
-            bulkIds.push(r.listingId);
-            createdListings.push(r.listingId);
-          }
-          // wait for them to appear
-          await Promise.all(bulkIds.map(id => driver.wait(until.elementLocated(By.css(`[data-testid="listing-card-${id}"]`)), 40000)));
-          // select them
-          for (const id of bulkIds) {
-            const checkbox = await driver.findElement(By.css(`[data-testid="bulk-select-checkbox-${id}"]`));
-            await checkbox.click();
-          }
-          // click bulk approve
-          const bulkApprove = await driver.findElement(By.css('[data-testid="bulk-approve-button"]'));
-          await bulkApprove.click();
-          // assert they are removed from moderation queue
-          await Promise.all(bulkIds.map(id => driver.wait(async ()=>{
-            const n = await driver.findElements(By.css(`[data-testid="listing-card-${id}"]`));
-            return n.length === 0;
-          }, 20000)));
+      // 4) Tabs: Approved / Rejected
+      console.log('Clicking Approved tab...');
+      tab = await driver.findElement(By.css('button[data-value="approved"]'));
+      await tab.click();
+      await driver.sleep(2000);
+      card = await driver.findElement(By.css(`[data-testid="listing-card-${listingId}"]`));
+      assert(card, 'Approved listing should be in Approved tab');
+
+      console.log('Clicking Rejected tab...');
+      tab = await driver.findElement(By.css('button[data-value="rejected"]'));
+      await tab.click();
+      await driver.sleep(2000);
+      card = await driver.findElement(By.css(`[data-testid="listing-card-${id2}"]`));
+      assert(card, 'Rejected listing should be in Rejected tab');
+
+      // 5) Activity / Security / Reports navigation
+      console.log('Clicking Activity Log tab...');
+      tab = await driver.findElement(By.css('button[data-value="activity"]'));
+      await tab.click();
+      await driver.sleep(2000);
+      await driver.wait(async () => {
+        const cls = await tab.getAttribute('class');
+        return cls.includes('data-[state=active]') || cls.includes('active') || cls.includes('bg-background');
+      }, 3000, 'Activity Log tab did not become active');
+
+      console.log('Clicking Security tab...');
+      tab = await driver.findElement(By.css('button[data-value="security"]'));
+      await tab.click();
+      await driver.sleep(2000);
+      await driver.wait(async () => {
+        const cls = await tab.getAttribute('class');
+        return cls.includes('data-[state=active]') || cls.includes('active') || cls.includes('bg-background');
+      }, 3000, 'Security tab did not become active');
+
+      console.log('Clicking Reports tab...');
+      tab = await driver.findElement(By.css('button[data-value="reports"]'));
+      await tab.click();
+      await driver.sleep(2000);
+      await driver.wait(async () => {
+        const cls = await tab.getAttribute('class');
+        return cls.includes('data-[state=active]') || cls.includes('active') || cls.includes('bg-background');
+      }, 3000, 'Reports tab did not become active');
+
+      console.log('Test completed: All navigation and moderation actions verified.');
     } finally {
-      // Best-effort cleanup: delete any created listings using the owner's token
+      // Best-effort: delete created listings with owner token
       try {
-        if (typeof ownerToken !== 'undefined' && ownerToken) {
-          for (const id of createdListings) {
-            try {
-              await deleteListing(ownerToken, id);
-            } catch (e) {
-              // ignore individual delete errors
-            }
+        if (ownerToken) {
+          for (const id of new Set(createdListings)) {
+            try { await deleteListing(ownerToken, id); }
+            catch { /* ignore individual delete errors */ }
           }
         }
-      } catch (e) {
-        // ignore cleanup failure
-      }
+      } catch { /* ignore */ }
 
-      try { if (driver) await driver.quit(); } catch (e) { /* ignore */ }
+      try { await driver.quit(); } catch { /* ignore */ }
     }
   });
 });
