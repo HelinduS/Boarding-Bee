@@ -44,11 +44,11 @@ export default function AdminDashboard() {
             </TabsTrigger>
 
             <TabsTrigger
-              value="security"
-              className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors duration-150 rounded-lg hover:bg-indigo-50 hover:text-indigo-700 data-[state=active]:bg-indigo-600 data-[state=active]:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
+              value="users"
+              className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-muted-foreground transition hover:bg-muted/70 rounded-lg data-[state=active]:bg-white data-[state=active]:text-foreground focus-visible:outline-none"
             >
               <Shield className="h-4 w-4" />
-              Security
+              Users
             </TabsTrigger>
 
             <TabsTrigger
@@ -68,7 +68,7 @@ export default function AdminDashboard() {
             <ActivityLog />
           </TabsContent>
 
-          <TabsContent value="security" className="mt-6">
+          <TabsContent value="users" className="mt-6">
             <SecurityAlerts />
           </TabsContent>
 

@@ -24,7 +24,17 @@ export default function Header() {
         {/* Navigation */}
           <nav className="hidden md:flex items-center gap-6 text-base font-medium">
             <Link href="/" className="text-white hover:text-indigo-100 transition-colors">Home</Link>
-            {isAuthenticated && isOwner && (
+
+            {isAuthenticated && (user?.role?.toLowerCase?.() === "admin") && (
+              <button
+                onClick={() => router.push("/admin-dashboard")}
+                className="bg-indigo-100 text-indigo-800 px-3 py-1.5 rounded-lg shadow hover:bg-indigo-200 transition-all"
+              >
+                Admin Dashboard
+              </button>
+            )}
+
+            {isAuthenticated && isOwner && user?.role?.toLowerCase?.() !== "admin" && (
               <button
                 onClick={() => router.push("/owner-dashboard")}
                 className="bg-indigo-100 text-indigo-800 px-3 py-1.5 rounded-lg shadow hover:bg-indigo-200 transition-all"

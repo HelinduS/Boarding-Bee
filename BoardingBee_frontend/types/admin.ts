@@ -92,3 +92,40 @@ export interface AdminNotification {
   linkUrl?: string | null;
   listingId?: number | null;
 }
+
+export interface OwnerSummary {
+  userId: number;
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  profileImage?: string | null;
+  totalListings: number;
+  totalReviews: number;
+  role?: string | null;
+}
+
+export interface UserSummary {
+  userId: number;
+  name: string;
+  email?: string | null;
+  phone?: string | null;
+  profileImage?: string | null;
+  // backend may return either `reviewCount` or `totalReviews` depending on DTO
+  reviewCount?: number;
+  totalReviews?: number;
+  role?: string | null;
+}
+
+export interface SecurityAlertsResponse {
+  owners: OwnerSummary[];
+  users: UserSummary[];
+  totalUsers?: number;
+  totalOwners?: number;
+}
+
+export interface AdminUsersSummaryResponse {
+  owners: OwnerSummary[];
+  users: UserSummary[];
+  totalUsers: number;
+  totalOwners: number;
+}
