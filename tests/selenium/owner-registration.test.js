@@ -89,6 +89,7 @@ async function testRequiredFields() {
     // Leave all fields blank and submit
     await driver.findElement(By.css('button[type="submit"]')).click();
     // Should see errors about required fields
+    await driver.wait(until.elementLocated(By.css('[role="alert"]')), 10000);
     const errorEls = await driver.findElements(By.css('[role="alert"], .text-red-500, .error, .alert'));
     let found = false;
     for (const el of errorEls) {
@@ -120,6 +121,7 @@ async function testDuplicateEmail() {
     await driver.findElement(By.css('input[name="confirmPassword"]')).sendKeys(user.password);
     await driver.findElement(By.css('button[type="submit"]')).click();
     // Should see an error about duplicate email/username
+    await driver.wait(until.elementLocated(By.css('[role="alert"]')), 10000);
     const errorEls = await driver.findElements(By.css('[role="alert"], .text-red-500, .error, .alert'));
     let found = false;
     for (const el of errorEls) {

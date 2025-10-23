@@ -37,10 +37,12 @@ export default function ReviewsSection({
   listingId,
   token,
   isAuthenticated,
+  renderSummary,
 }: {
   listingId: number;
   token?: string;
   isAuthenticated: boolean;
+  renderSummary?: (summary: { average: number; count: number }) => React.ReactNode;
 }) {
   const [summary, setSummary] = useState<RatingSummary>({
     average: 0,
@@ -79,7 +81,9 @@ export default function ReviewsSection({
 
   return (
     <div className="space-y-4">
-      <RatingSummaryCard data={summary} />
+      {renderSummary
+        ? renderSummary({ average: summary.average, count: summary.count })
+        : <RatingSummaryCard data={summary} />}
 
       <ReviewForm
         listingId={listingId}

@@ -33,6 +33,33 @@ export async function fetchListings(token?: string): Promise<Listing[]> {
   return res.json();
 }
 
+// Fetch all listings by paging through the API
+export async function fetchAllListings(token?: string): Promise<Listing[]> {
+  const pageSize = 50;
+  let page = 1;
+  let total = Number.POSITIVE_INFINITY;
+  const all: any[] = [];
+
+  while (all.length < total) {
+    const url = `${API_BASE}?page=${page}&pageSize=${pageSize}`;
+    const res = await fetch(url, {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    if (!res.ok) throw new Error("Failed to fetch listings");
+    const data = await res.json();
+
+    const batch = Array.isArray(data?.listings) ? data.listings : (Array.isArray(data) ? data : []);
+    if (typeof data?.total === "number") total = data.total;
+    else if (total === Number.POSITIVE_INFINITY) total = batch.length;
+
+    all.push(...batch);
+    if (batch.length < pageSize) break; // no more pages
+    page += 1;
+  }
+
+  return all;
+}
+
 // Create a new listing
 export async function createListing(formData: FormData, token: string) {
   const res = await fetch(API_BASE, {

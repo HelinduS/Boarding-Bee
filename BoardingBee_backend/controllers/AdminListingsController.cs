@@ -22,6 +22,26 @@ namespace BoardingBee_backend.Controllers
             return Ok(new { total, items });
         }
 
+        [HttpGet("approved")]
+        [Authorize(Roles = "ADMIN")]
+        public async Task<IActionResult> Approved([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+        {
+            var q = _db.Listings.AsNoTracking().Where(l => l.Status == ListingStatus.Approved).OrderByDescending(l => l.CreatedAt);
+            var total = await q.CountAsync();
+            var items = await q.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            return Ok(new { total, items });
+        }
+
+        [HttpGet("rejected")]
+        [Authorize(Roles = "ADMIN")]
+        public async Task<IActionResult> Rejected([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+        {
+            var q = _db.Listings.AsNoTracking().Where(l => l.Status == ListingStatus.Rejected).OrderByDescending(l => l.CreatedAt);
+            var total = await q.CountAsync();
+            var items = await q.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+            return Ok(new { total, items });
+        }
+
         public record ActionDto(int ListingId, string? Reason);
 
         [HttpPost("approve")]
@@ -52,7 +72,11 @@ namespace BoardingBee_backend.Controllers
             var listing = await _db.Listings.FirstOrDefaultAsync(l => l.Id == dto.ListingId);
             if (listing == null) return NotFound();
 
-            // Keep Pending state, but record reason in activity log (no behavior change)
+            // Mark listing as rejected and persist
+            listing.Status = ListingStatus.Rejected;
+            await _db.SaveChangesAsync();
+
+            // Record activity with optional reason
             await _db.ActivityLogs.AddAsync(new ActivityLog { Kind = ActivityKind.ListingReject, ListingId = listing.Id, Meta = dto.Reason });
             await _db.SaveChangesAsync();
 
