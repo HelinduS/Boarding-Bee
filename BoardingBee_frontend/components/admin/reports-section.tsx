@@ -45,107 +45,32 @@ export function ReportsSection() {
 
   useEffect(() => {
     let alive = true;
-    let dataLoadedSuccessfully = false; // Track if we successfully loaded data
-    
     (async () => {
       try {
-        // Monthly: prefer public debug - ALWAYS fetch reviews for Overview/Monthly Activity chart FIRST
-        let monthlyLoaded = false;
-        try {
-          const monthlyEnt = 'reviews'; // Always use reviews for Monthly Activity chart
-          const mres = await fetch(`${API_BASE}/api/admin/reports/debug/public/activity/monthly?months=6&entity=${encodeURIComponent(monthlyEnt)}`);
-          console.log('Monthly fetch response status:', mres.status, 'URL:', `${API_BASE}/api/admin/reports/debug/public/activity/monthly?months=6&entity=reviews`);
-          if (mres.ok) {
-            const dbg = await mres.json();
-            if (!alive) return;
-            console.log('✅ Monthly activity REAL DATA loaded - reviews:', dbg);
-            if (dbg && dbg.length > 0) {
-              setMonthlyData(dbg);
-              // also ensure rows/allRows contain corresponding series points
-              const synth = (dbg as any[]).map(m => ({ d: new Date(`${m.year}-${String(m.month).padStart(2,'0')}-15`).toISOString(), kind: ('ReviewCreate' as any), count: m.count })) as ActivitySeriesPoint[];
-              setRows(synth);
-              setAllRows(synth);
-              monthlyLoaded = true;
-              dataLoadedSuccessfully = true;
-              setUsingSample(false);
-            }
-          } else {
-            console.error('❌ Monthly fetch failed with status:', mres.status);
-          }
-        } catch (e) {
-          console.error('❌ Public debug monthly request error:', e);
+        // Always use authenticated endpoint for monthly activity
+        const monthlyEnt = 'reviews';
+        const monthly = await apiGet<{ label: string; year: number; month: number; count: number }[]>(`/api/admin/reports/activity/monthly?months=6&entity=${encodeURIComponent(monthlyEnt)}`);
+        if (!alive) return;
+        if (monthly && monthly.length > 0) {
+          setMonthlyData(monthly);
+          const synth = (monthly as any[]).map(m => ({ d: new Date(`${m.year}-${String(m.month).padStart(2,'0')}-15`).toISOString(), kind: ('ReviewCreate' as any), count: m.count })) as ActivitySeriesPoint[];
+          setRows(synth);
+          setAllRows(synth);
+          setUsingSample(false);
         }
 
-        if (!monthlyLoaded) {
-          try {
-            const monthlyEnt = 'reviews'; // Always use reviews for Monthly Activity chart
-            const monthly = await apiGet<{ label: string; year: number; month: number; count: number }[]>(`/api/admin/reports/activity/monthly?months=6&entity=${encodeURIComponent(monthlyEnt)}`);
-            if (!alive) return;
-            console.log('✅ Monthly activity REAL DATA loaded (auth) - reviews:', monthly);
-            if (monthly && monthly.length > 0) {
-              setMonthlyData(monthly);
-              const synth = (monthly as any[]).map(m => ({ d: new Date(`${m.year}-${String(m.month).padStart(2,'0')}-15`).toISOString(), kind: ('ReviewCreate' as any), count: m.count })) as ActivitySeriesPoint[];
-              setRows(synth);
-              setAllRows(synth);
-              monthlyLoaded = true;
-              dataLoadedSuccessfully = true;
-              setUsingSample(false);
-            }
-          } catch (e) {
-            console.error('❌ Failed to load monthly activity (auth):', e);
-          }
-        }
-
-        // Don't compute or use sample data if we successfully loaded monthly data
-        if (!dataLoadedSuccessfully && alive) {
-          console.warn('⚠️ No data from server - using SAMPLE data. Check if backend is running at:', API_BASE);
-          const sampleSeries: ActivitySeriesPoint[] = Array.from({ length: 14 }).map((_, i) => {
-            const d = new Date(); d.setDate(d.getDate() - (13 - i));
-            return { d: d.toISOString(), kind: ("Review" as any), count: Math.round(100 + Math.random() * 50) } as ActivitySeriesPoint;
-          });
-          setRows(sampleSeries);
-          setAllRows(sampleSeries);
-          // Don't call recomputeMonthly - we set sample monthly data directly below
-
-          const sampleMonthly = [] as { label: string; year: number; month: number; count: number }[];
-          for (let i = 5; i >= 0; i--) {
-            const d = new Date(); d.setMonth(d.getMonth() - i);
-            sampleMonthly.push({ label: d.toLocaleString(undefined, { month: 'short' }), year: d.getFullYear(), month: d.getMonth() + 1, count: 120 + (5 - i) * 40 });
-          }
-          setMonthlyData(sampleMonthly);
-          setUsingSample(true);
-          console.warn('📊 Reports: using sample data because server data is not available');
-        } else if (alive && dataLoadedSuccessfully) {
-          console.log('✅ Using REAL database data for monthly activity.');
-        }
-  // ensure we have a fallback allRows (if none of the above paths set it)
-  if (!dataLoadedSuccessfully) {
-    setAllRows(prev => (prev.length === 0 ? (rows.length ? rows : prev) : prev));
-  }
-
-      // If we're in Overview mode, attempt to fetch both listings/users monthly series to show Growth Trends
-      try {
-        if (alive && reportType === 'Overview') {
+        // Growth Trends: fetch both listings and users monthly series
+        if (reportType === 'Overview') {
           const months = 6;
           const fetchMonthlyFor = async (entity: string): Promise<MonthlyItem[]> => {
-            try {
-              const url = `${API_BASE}/api/admin/reports/debug/public/activity/monthly?months=${months}&entity=${encodeURIComponent(entity)}`;
-              const res = await fetch(url);
-              if (res.ok) return (await res.json()) as { label: string; year: number; month: number; count: number }[];
-            } catch (e) {
-              // ignore
-            }
-            // try auth fallback
             try {
               return await apiGet<{ label: string; year: number; month: number; count: number }[]>(`/api/admin/reports/activity/monthly?months=${months}&entity=${encodeURIComponent(entity)}`) || [];
             } catch (e) {
               return [] as any;
             }
           };
-
           const [listingsM, usersM] = await Promise.all([fetchMonthlyFor('listings'), fetchMonthlyFor('users')]);
           if (!alive) return;
-          // join by year+month
           const joined: typeof growthData = [];
           for (let i = 5; i >= 0; i--) {
             const d = new Date(); d.setMonth(d.getMonth() - i);
@@ -158,19 +83,29 @@ export function ReportsSection() {
           }
           setGrowthData(joined);
         }
-      } catch (e) {
-        console.warn('Failed to load growthData', e);
-      }
-
       } catch (errAll) {
         console.error('Reports fetch unexpected error:', errAll);
         setErr((errAll && (errAll as any).message) ? (errAll as any).message : String(errAll));
+        // fallback to sample data
+        const sampleSeries: ActivitySeriesPoint[] = Array.from({ length: 14 }).map((_, i) => {
+          const d = new Date(); d.setDate(d.getDate() - (13 - i));
+          return { d: d.toISOString(), kind: ("Review" as any), count: Math.round(100 + Math.random() * 50) } as ActivitySeriesPoint;
+        });
+        setRows(sampleSeries);
+        setAllRows(sampleSeries);
+        const sampleMonthly = [] as { label: string; year: number; month: number; count: number }[];
+        for (let i = 5; i >= 0; i--) {
+          const d = new Date(); d.setMonth(d.getMonth() - i);
+          sampleMonthly.push({ label: d.toLocaleString(undefined, { month: 'short' }), year: d.getFullYear(), month: d.getMonth() + 1, count: 120 + (5 - i) * 40 });
+        }
+        setMonthlyData(sampleMonthly);
+        setUsingSample(true);
       } finally {
         if (alive) setLoading(false);
       }
     })();
     return () => { alive = false; };
-  }, []);
+  }, [reportType]);
 
   // Always render the UI; show non-blocking error/status messages above the controls
   if (loading) return <div className="text-sm text-muted-foreground">Loading report…</div>;
@@ -258,48 +193,40 @@ export function ReportsSection() {
 
   async function loadByMonth(year: number, month: number) {
     setApplyStatus('Loading...');
-    // compute start and end for the month (month is 1-12)
     const from = new Date(year, month - 1, 1);
     const to = new Date(year, month - 1, new Date(year, month, 0).getDate(), 23, 59, 59, 999);
     try {
-  const ent = getEntityForReportType(reportType);
-  const monthlyEnt = 'reviews'; // Always fetch reviews for Monthly Activity chart
-  const sUrl = `${API_BASE}/api/admin/reports/debug/public/activity/series?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=${encodeURIComponent(monthlyEnt)}`;
-  const mUrl = `${API_BASE}/api/admin/reports/debug/public/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=${encodeURIComponent(monthlyEnt)}`;
-      const [sRes, mRes] = await Promise.all([fetch(sUrl), fetch(mUrl)]);
-      if (sRes.ok && mRes.ok) {
-        const sJson = await sRes.json();
-        const mJson = await mRes.json();
-        const s = (sJson as any[]).map(x => ({ d: x.d, kind: ('ReviewCreate' as any), count: x.count })) as ActivitySeriesPoint[];
+      const monthlyEnt = 'reviews';
+      // Authenticated fetch for monthly data
+      const mJson = await apiGet<{ label: string; year: number; month: number; count: number }[]>(`/api/admin/reports/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=${encodeURIComponent(monthlyEnt)}`);
+      if (mJson && mJson.length > 0) {
+        setMonthlyData(mJson);
+        const s = (mJson as any[]).map(x => ({ d: new Date(`${x.year}-${String(x.month).padStart(2,'0')}-15`).toISOString(), kind: ('ReviewCreate' as any), count: x.count })) as ActivitySeriesPoint[];
         setRows(s);
         setAllRows(s);
-        console.debug('loadByMonth - Monthly data (reviews):', mJson);
-        setMonthlyData(mJson);
         setUsingSample(false);
-        // Don't call recomputeMonthly here - we have real data from server
-        // also fetch growth data (listings + users) for the same range when Overview
+        // Growth data for Overview
         if (reportType === 'Overview') {
-          try {
-            const lf = `${API_BASE}/api/admin/reports/debug/public/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=listings`;
-            const uf = `${API_BASE}/api/admin/reports/debug/public/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=users`;
-            const [lm, um] = await Promise.all([fetch(lf), fetch(uf)]);
-            const ljson = lm.ok ? await lm.json() : [];
-            const ujson = um.ok ? await um.json() : [];
-            const joined: typeof growthData = [];
-            const monthsArr: Date[] = [];
-            for (let d = new Date(from.getFullYear(), from.getMonth(), 1); d <= to; d.setMonth(d.getMonth() + 1)) monthsArr.push(new Date(d));
-            for (const d of monthsArr) {
-              const label = d.toLocaleString(undefined, { month: 'short' });
-              const year = d.getFullYear();
-              const mth = d.getMonth() + 1;
-              const l = (ljson.find((x:any)=>x.year===year && x.month===mth)?.count) || 0;
-              const u = (ujson.find((x:any)=>x.year===year && x.month===mth)?.count) || 0;
-              joined.push({ label, year, month: mth, listings: l, users: u });
+          const fetchMonthlyFor = async (entity: string): Promise<MonthlyItem[]> => {
+            try {
+              return await apiGet<{ label: string; year: number; month: number; count: number }[]>(`/api/admin/reports/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=${encodeURIComponent(entity)}`) || [];
+            } catch (e) {
+              return [] as any;
             }
-            setGrowthData(joined);
-          } catch (e) {
-            console.warn('fetch growth for range failed', e);
+          };
+          const [listingsM, usersM] = await Promise.all([fetchMonthlyFor('listings'), fetchMonthlyFor('users')]);
+          const joined: typeof growthData = [];
+          const monthsArr: Date[] = [];
+          for (let d = new Date(from.getFullYear(), from.getMonth(), 1); d <= to; d.setMonth(d.getMonth() + 1)) monthsArr.push(new Date(d));
+          for (const d of monthsArr) {
+            const label = d.toLocaleString(undefined, { month: 'short' });
+            const year = d.getFullYear();
+            const mth = d.getMonth() + 1;
+            const l = (listingsM.find((x:any)=>x.year===year && x.month===mth)?.count) || 0;
+            const u = (usersM.find((x:any)=>x.year===year && x.month===mth)?.count) || 0;
+            joined.push({ label, year, month: mth, listings: l, users: u });
           }
+          setGrowthData(joined);
         }
         setApplyStatus('Loaded');
         setTimeout(()=>setApplyStatus(null),800);
@@ -317,44 +244,35 @@ export function ReportsSection() {
     const to = new Date();
     const from = new Date(Date.now() - 1000*60*60*24*days);
     try {
-  const ent = getEntityForReportType(reportType);
-  const monthlyEnt = 'reviews'; // Always fetch reviews for Monthly Activity chart
-  const sUrl = `${API_BASE}/api/admin/reports/debug/public/activity/series?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=${encodeURIComponent(monthlyEnt)}`;
-  const mUrl = `${API_BASE}/api/admin/reports/debug/public/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=${encodeURIComponent(monthlyEnt)}`;
-      const [sRes, mRes] = await Promise.all([fetch(sUrl), fetch(mUrl)]);
-      if (sRes.ok && mRes.ok) {
-        const sJson = await sRes.json();
-        const mJson = await mRes.json();
-        const s = (sJson as any[]).map(x => ({ d: x.d, kind: ('ReviewCreate' as any), count: x.count })) as ActivitySeriesPoint[];
+      const monthlyEnt = 'reviews';
+      const mJson = await apiGet<{ label: string; year: number; month: number; count: number }[]>(`/api/admin/reports/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=${encodeURIComponent(monthlyEnt)}`);
+      if (mJson && mJson.length > 0) {
+        setMonthlyData(mJson);
+        const s = (mJson as any[]).map(x => ({ d: new Date(`${x.year}-${String(x.month).padStart(2,'0')}-15`).toISOString(), kind: ('ReviewCreate' as any), count: x.count })) as ActivitySeriesPoint[];
         setRows(s);
         setAllRows(s);
-        console.debug('loadRange - Monthly data (reviews):', mJson);
-        setMonthlyData(mJson);
         setUsingSample(false);
-        // Don't call recomputeMonthly here - we have real data from server
-        // fetch growth data for the same range when Overview
         if (reportType === 'Overview') {
-          try {
-            const lf = `${API_BASE}/api/admin/reports/debug/public/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=listings`;
-            const uf = `${API_BASE}/api/admin/reports/debug/public/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=users`;
-            const [lm, um] = await Promise.all([fetch(lf), fetch(uf)]);
-            const ljson = lm.ok ? await lm.json() : [];
-            const ujson = um.ok ? await um.json() : [];
-            const joined: typeof growthData = [];
-            const monthsArr: Date[] = [];
-            for (let d = new Date(from.getFullYear(), from.getMonth(), 1); d <= to; d.setMonth(d.getMonth() + 1)) monthsArr.push(new Date(d));
-            for (const d of monthsArr) {
-              const label = d.toLocaleString(undefined, { month: 'short' });
-              const year = d.getFullYear();
-              const mth = d.getMonth() + 1;
-              const l = (ljson.find((x:any)=>x.year===year && x.month===mth)?.count) || 0;
-              const u = (ujson.find((x:any)=>x.year===year && x.month===mth)?.count) || 0;
-              joined.push({ label, year, month: mth, listings: l, users: u });
+          const fetchMonthlyFor = async (entity: string): Promise<MonthlyItem[]> => {
+            try {
+              return await apiGet<{ label: string; year: number; month: number; count: number }[]>(`/api/admin/reports/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=${encodeURIComponent(entity)}`) || [];
+            } catch (e) {
+              return [] as any;
             }
-            setGrowthData(joined);
-          } catch (e) {
-            console.warn('fetch growth for range failed', e);
+          };
+          const [listingsM, usersM] = await Promise.all([fetchMonthlyFor('listings'), fetchMonthlyFor('users')]);
+          const joined: typeof growthData = [];
+          const monthsArr: Date[] = [];
+          for (let d = new Date(from.getFullYear(), from.getMonth(), 1); d <= to; d.setMonth(d.getMonth() + 1)) monthsArr.push(new Date(d));
+          for (const d of monthsArr) {
+            const label = d.toLocaleString(undefined, { month: 'short' });
+            const year = d.getFullYear();
+            const mth = d.getMonth() + 1;
+            const l = (listingsM.find((x:any)=>x.year===year && x.month===mth)?.count) || 0;
+            const u = (usersM.find((x:any)=>x.year===year && x.month===mth)?.count) || 0;
+            joined.push({ label, year, month: mth, listings: l, users: u });
           }
+          setGrowthData(joined);
         }
         setApplyStatus('Loaded');
         setTimeout(()=>setApplyStatus(null),800);
