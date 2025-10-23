@@ -34,21 +34,11 @@ export default function AdminDashboard() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-8">
           {/* Tabs list (pill style) */}
           <TabsList
-            className="
-              w-full lg:w-auto inline-flex gap-2 p-1 rounded-xl
-              bg-muted/40 border border-border/60 shadow-sm
-            "
-          >
+              className="w-full grid grid-cols-4 gap-0 p-1 rounded-xl bg-muted/40 border border-border/60 shadow-sm"
+            >
             <TabsTrigger
               value="moderation"
-              className="
-                inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium
-                text-muted-foreground transition
-                hover:bg-muted/70
-                data-[state=active]:bg-background data-[state=active]:text-foreground
-                data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-border
-                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
-              "
+              className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-muted-foreground transition hover:bg-muted/70 rounded-lg data-[state=active]:bg-white data-[state=active]:text-foreground focus-visible:outline-none"
             >
               <ListChecks className="h-4 w-4" />
               Moderation
@@ -56,14 +46,7 @@ export default function AdminDashboard() {
 
             <TabsTrigger
               value="activity"
-              className="
-                inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium
-                text-muted-foreground transition
-                hover:bg-muted/70
-                data-[state=active]:bg-background data-[state=active]:text-foreground
-                data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-border
-                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
-              "
+              className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-muted-foreground transition hover:bg-muted/70 rounded-lg data-[state=active]:bg-white data-[state=active]:text-foreground focus-visible:outline-none"
             >
               <Activity className="h-4 w-4" />
               Activity Log
@@ -71,14 +54,7 @@ export default function AdminDashboard() {
 
             <TabsTrigger
               value="security"
-              className="
-                inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium
-                text-muted-foreground transition
-                hover:bg-muted/70
-                data-[state=active]:bg-background data-[state=active]:text-foreground
-                data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-border
-                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
-              "
+              className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-muted-foreground transition hover:bg-muted/70 rounded-lg data-[state=active]:bg-white data-[state=active]:text-foreground focus-visible:outline-none"
             >
               <Shield className="h-4 w-4" />
               Security
@@ -86,14 +62,7 @@ export default function AdminDashboard() {
 
             <TabsTrigger
               value="reports"
-              className="
-                inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium
-                text-muted-foreground transition
-                hover:bg-muted/70
-                data-[state=active]:bg-background data-[state=active]:text-foreground
-                data-[state=active]:shadow-sm data-[state=active]:border data-[state=active]:border-border
-                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
-              "
+              className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-muted-foreground transition hover:bg-muted/70 rounded-lg data-[state=active]:bg-white data-[state=active]:text-foreground focus-visible:outline-none"
             >
               <FileBarChart className="h-4 w-4" />
               Reports
