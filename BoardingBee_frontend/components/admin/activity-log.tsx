@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { apiGet } from "@/lib/api";
 import type { ActivityLog } from "@/types/admin";
 import { Badge } from "@/components/ui/badge";
-import { Home, Eye, EyeOff, Edit3, Repeat, Key, Mail, Star } from "lucide-react";
+import { Home, Check, X as XIcon, Edit3, Repeat, Key, Mail, Star } from "lucide-react";
 
 export function ActivityLog() {
   const [rows, setRows] = useState<ActivityLog[]>([]);
@@ -47,8 +47,8 @@ export function ActivityLog() {
 
   const iconForKind = (kindStr: string) => {
     if (/ListingCreate/i.test(kindStr)) return <Home className="h-5 w-5 text-black" />;
-    if (/ListingApprove/i.test(kindStr)) return <Eye className="h-5 w-5 text-green-600" />;
-    if (/ListingReject/i.test(kindStr)) return <EyeOff className="h-5 w-5 text-red-600" />;
+  if (/ListingApprove/i.test(kindStr)) return <Check className="h-5 w-5 text-green-600" />;
+  if (/ListingReject/i.test(kindStr)) return <XIcon className="h-5 w-5 text-red-600" />;
     if (/ListingUpdate/i.test(kindStr)) return <Edit3 className="h-5 w-5 text-indigo-600" />;
     if (/ListingRenew/i.test(kindStr)) return <Repeat className="h-5 w-5 text-indigo-600" />;
     if (/UserLogin/i.test(kindStr)) return <Key className="h-5 w-5 text-yellow-600" />;

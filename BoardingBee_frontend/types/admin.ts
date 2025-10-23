@@ -128,4 +128,8 @@ export interface AdminUsersSummaryResponse {
   users: UserSummary[];
   totalUsers: number;
   totalOwners: number;
+  totalListings?: number;
+  assignedListings?: number;
+  unassignedListings?: number;
+  orphanedListings?: number;
 }

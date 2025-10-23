@@ -57,7 +57,18 @@ namespace BoardingBee_backend.Controllers
             var totalUsers = users.Count;
             var totalOwners = owners.Count;
 
-            return Ok(new { owners, users = usersList, totalUsers, totalOwners });
+            // total listings in DB
+            var totalListings = await _db.Listings.CountAsync();
+
+            // assigned listings (sum of listingCounts)
+            var assignedListings = listingCounts.Sum(x => x.Count);
+            var unassignedListings = totalListings - assignedListings;
+
+            // listings that reference a missing user (orphaned owner ids)
+            var userIds = users.Select(u => u.Id).ToHashSet();
+            var orphanedListings = listingCounts.Where(x => x.OwnerId != null && !userIds.Contains(x.OwnerId.Value)).Sum(x => x.Count);
+
+            return Ok(new { owners, users = usersList, totalUsers, totalOwners, totalListings, assignedListings, unassignedListings, orphanedListings });
         }
     }
 }
