@@ -222,6 +222,148 @@ namespace BoardingBee_backend.Controllers
             }
             return Ok(aout);
         }
+
+        // CSV Export endpoints
+        [HttpGet("export/csv")]
+        [Authorize(Roles = "ADMIN")]
+        public async Task<IActionResult> ExportCsv([FromQuery] string reportType, [FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null, [FromQuery] int? year = null, [FromQuery] int? month = null)
+        {
+            DateTime toDt = to ?? DateTime.UtcNow;
+            DateTime fromDt = from ?? toDt.AddMonths(-1);
+            
+            // Use provided year/month if available, otherwise extract from date
+            int displayYear = year ?? fromDt.Year;
+            int displayMonth = month ?? fromDt.Month;
+            var monthDate = new DateTime(displayYear, displayMonth, 1);
+            
+            var csvContent = new System.Text.StringBuilder();
+            var reportTypeLower = (reportType ?? "overview").ToLower();
+
+            if (reportTypeLower == "overview")
+            {
+                // Overview: Users, Listings, Reviews counts for the selected month only
+                csvContent.AppendLine("Month,Year,Users,Listings,Reviews");
+                
+                var userCount = await _db.Users
+                    .Where(u => u.CreatedAt >= fromDt && u.CreatedAt <= toDt)
+                    .CountAsync();
+                
+                var listingCount = await _db.Listings
+                    .Where(l => l.CreatedAt >= fromDt && l.CreatedAt <= toDt)
+                    .CountAsync();
+                
+                var reviewCount = await _db.Reviews
+                    .Where(r => r.CreatedAt >= fromDt && r.CreatedAt <= toDt)
+                    .CountAsync();
+                
+                // Output only the selected month
+                csvContent.AppendLine($"{monthDate.ToString("MMM")},{monthDate.Year},{userCount},{listingCount},{reviewCount}");
+            }
+            else if (reportTypeLower == "users")
+            {
+                // Users: User count for the selected month only
+                csvContent.AppendLine("Month,Year,User Count");
+                
+                var count = await _db.Users
+                    .Where(u => u.CreatedAt >= fromDt && u.CreatedAt <= toDt)
+                    .CountAsync();
+                
+                csvContent.AppendLine($"{monthDate.ToString("MMM")},{monthDate.Year},{count}");
+            }
+            else if (reportTypeLower == "listings")
+            {
+                // Listings: Listing count for the selected month only
+                csvContent.AppendLine("Month,Year,Listing Count");
+                
+                var count = await _db.Listings
+                    .Where(l => l.CreatedAt >= fromDt && l.CreatedAt <= toDt)
+                    .CountAsync();
+                
+                csvContent.AppendLine($"{monthDate.ToString("MMM")},{monthDate.Year},{count}");
+            }
+            else if (reportTypeLower == "reviews")
+            {
+                // Reviews: Review count for the selected month only
+                csvContent.AppendLine("Month,Year,Review Count");
+                
+                var count = await _db.Reviews
+                    .Where(r => r.CreatedAt >= fromDt && r.CreatedAt <= toDt)
+                    .CountAsync();
+                
+                csvContent.AppendLine($"{monthDate.ToString("MMM")},{monthDate.Year},{count}");
+            }
+
+            var bytes = System.Text.Encoding.UTF8.GetBytes(csvContent.ToString());
+            return File(bytes, "text/csv", $"{reportType}_report_{DateTime.Now:yyyyMMdd}.csv");
+        }
+
+        [HttpGet("debug/public/export/csv")]
+        public async Task<IActionResult> PublicExportCsv([FromQuery] string reportType, [FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null, [FromQuery] int? year = null, [FromQuery] int? month = null)
+        {
+            // Same logic as authenticated endpoint for development
+            DateTime toDt = to ?? DateTime.UtcNow;
+            DateTime fromDt = from ?? toDt.AddMonths(-1);
+            
+            // Use provided year/month if available, otherwise extract from date
+            int displayYear = year ?? fromDt.Year;
+            int displayMonth = month ?? fromDt.Month;
+            var monthDate = new DateTime(displayYear, displayMonth, 1);
+            
+            var csvContent = new System.Text.StringBuilder();
+            var reportTypeLower = (reportType ?? "overview").ToLower();
+
+            if (reportTypeLower == "overview")
+            {
+                csvContent.AppendLine("Month,Year,Users,Listings,Reviews");
+                
+                var userCount = await _db.Users
+                    .Where(u => u.CreatedAt >= fromDt && u.CreatedAt <= toDt)
+                    .CountAsync();
+                
+                var listingCount = await _db.Listings
+                    .Where(l => l.CreatedAt >= fromDt && l.CreatedAt <= toDt)
+                    .CountAsync();
+                
+                var reviewCount = await _db.Reviews
+                    .Where(r => r.CreatedAt >= fromDt && r.CreatedAt <= toDt)
+                    .CountAsync();
+                
+                csvContent.AppendLine($"{monthDate.ToString("MMM")},{monthDate.Year},{userCount},{listingCount},{reviewCount}");
+            }
+            else if (reportTypeLower == "users")
+            {
+                csvContent.AppendLine("Month,Year,User Count");
+                
+                var count = await _db.Users
+                    .Where(u => u.CreatedAt >= fromDt && u.CreatedAt <= toDt)
+                    .CountAsync();
+                
+                csvContent.AppendLine($"{monthDate.ToString("MMM")},{monthDate.Year},{count}");
+            }
+            else if (reportTypeLower == "listings")
+            {
+                csvContent.AppendLine("Month,Year,Listing Count");
+                
+                var count = await _db.Listings
+                    .Where(l => l.CreatedAt >= fromDt && l.CreatedAt <= toDt)
+                    .CountAsync();
+                
+                csvContent.AppendLine($"{monthDate.ToString("MMM")},{monthDate.Year},{count}");
+            }
+            else if (reportTypeLower == "reviews")
+            {
+                csvContent.AppendLine("Month,Year,Review Count");
+                
+                var count = await _db.Reviews
+                    .Where(r => r.CreatedAt >= fromDt && r.CreatedAt <= toDt)
+                    .CountAsync();
+                
+                csvContent.AppendLine($"{monthDate.ToString("MMM")},{monthDate.Year},{count}");
+            }
+
+            var bytes = System.Text.Encoding.UTF8.GetBytes(csvContent.ToString());
+            return File(bytes, "text/csv", $"{reportType}_report_{DateTime.Now:yyyyMMdd}.csv");
+        }
         
 
                 // DEBUG: Returns the current user's claims for troubleshooting
