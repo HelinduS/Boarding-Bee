@@ -141,15 +141,15 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-purple-200 to-blue-200 relative overflow-hidden pt-[72px]">
+  <div className="min-h-screen flex bg-gradient-to-br from-purple-200 to-blue-200 relative overflow-hidden overflow-y-auto scroll-py-0">
       <div className="pointer-events-none absolute inset-0 opacity-20 [background:radial-gradient(circle_at_1px_1px,_#ffffff_1px,_transparent_1px)] [background-size:16px_16px]" />
       <div className="absolute inset-0 backdrop-blur-xl bg-white/50" />
 
       {/* Card background effect */}
       <div className="absolute left-1/2 top-0 -translate-x-1/2 mt-8 w-[95vw] max-w-[1600px] xl:max-w-[1800px] 2xl:max-w-[2000px] h-[95%] rounded-3xl bg-white/60 shadow-2xl backdrop-blur-2xl border border-white/40 z-0" />
 
-      <div className="relative flex w-full max-w-[1600px] xl:max-w-[1800px] 2xl:max-w-[2000px] mx-auto overflow-hidden rounded-3xl px-2 sm:px-4 md:px-8 lg:px-12 xl:px-16 2xl:px-20 py-2 md:py-4 border border-white/40 shadow-2xl bg-white/20 backdrop-blur-xl" style={{zIndex:1}}>
-        <div className="flex flex-col w-full p-2 sm:p-4 md:p-8 gap-6">
+  <div className="relative z-10 flex w-full max-w-[1600px] xl:max-w-[1800px] 2xl:max-w-[2000px] mx-auto overflow-hidden rounded-3xl px-2 sm:px-4 md:px-8 lg:px-12 xl:px-16 2xl:px-20 border border-white/40 shadow-2xl bg-white/20 backdrop-blur-xl">
+  <div className="flex flex-col w-full p-2 sm:p-4 md:p-8 gap-6">
           {/* Header */}
           <div className="text-center">
             <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-blue-700 mb-2">
