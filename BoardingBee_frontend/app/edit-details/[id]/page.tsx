@@ -15,21 +15,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { fetchListing, updateListing } from "@/lib/listingsApi";
 import { useAuth } from "@/context/authContext";
 
-// Mock data
-const mockListing = {
-  id: "1",
-  title: "Cozy Room near University of Colombo",
-  description:
-    "A comfortable and well-furnished room perfect for students. Located just 5 minutes walk from the University of Colombo campus.",
-  location: "Colombo 03",
-  price: 25000,
-  availability: "Available",
-  status: "Approved",
-  amenities: ["WiFi", "AC", "Meals", "Laundry"],
-  images: ["/placeholder.svg?height=300&width=400"],
-  contactPhone: "+94 77 123 4567",
-  contactEmail: "owner@example.com",
-}
 
 export default function EditListing() {
   const router = useRouter()

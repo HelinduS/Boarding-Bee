@@ -47,6 +47,7 @@ async function testInvalidEmail() {
   await driver.findElement(By.id('password')).sendKeys('irrelevant');
   await driver.findElement(By.css('button[type="submit"]')).click();
     // Should see error about invalid email
+    await driver.wait(until.elementLocated(By.css('[role="alert"]')), 10000);
     const errorEls = await driver.findElements(By.css('[role="alert"], .text-red-500, .error, .alert'));
     let found = false;
     for (const el of errorEls) {
@@ -74,6 +75,7 @@ async function testWrongPassword() {
   await driver.findElement(By.id('password')).sendKeys('WrongPassword!');
   await driver.findElement(By.css('button[type="submit"]')).click();
     // Should see error about wrong password
+    await driver.wait(until.elementLocated(By.css('[role="alert"]')), 10000);
     const errorEls = await driver.findElements(By.css('[role="alert"], .text-red-500, .error, .alert'));
     let found = false;
     for (const el of errorEls) {
@@ -100,6 +102,7 @@ async function testNonExistentEmail() {
   await driver.findElement(By.id('password')).sendKeys('SomePassword123!');
   await driver.findElement(By.css('button[type="submit"]')).click();
     // Should see error about user not found
+    await driver.wait(until.elementLocated(By.css('[role="alert"]')), 10000);
     const errorEls = await driver.findElements(By.css('[role="alert"], .text-red-500, .error, .alert'));
     let found = false;
     for (const el of errorEls) {
