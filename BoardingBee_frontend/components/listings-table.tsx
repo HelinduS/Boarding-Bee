@@ -33,7 +33,6 @@ export function ListingsTable({ listings, onEditAction, onDeleteAction, onViewAc
   // Delete a listing and update UI
   const handleDelete = async (id: number) => {
     try {
-  await deleteListing(id, user?.token || "");
   onDeleteAction(id);
     } catch {
       // Optionally handle error
