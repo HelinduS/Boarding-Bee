@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Selenium E2E: admin-listings" time="56.148" tests="1" failures="1">
+  <testsuite name="Root Suite" timestamp="2025-10-22T09:49:48" tests="0" time="0.000" failures="0">
+  </testsuite>
+  <testsuite name="Admin moderation E2E" timestamp="2025-10-22T09:49:48" tests="1" file="/Users/vidaththeekshana/Desktop/CT/Boarding-Bee/tests/selenium/admin-listings.test.js" time="56.148" failures="1">
+    <testcase name="Admin moderation E2E admin can approve a pending listing and perform bulk/reject flows" time="56.147" classname="admin can approve a pending listing and perform bulk/reject flows">
+      <failure message="Waiting for element to be located By(css selector, [data-testid=&quot;listing-card-208&quot;])
+Wait timed out after 40124ms" type="TimeoutError"><![CDATA[TimeoutError: Waiting for element to be located By(css selector, [data-testid="listing-card-208"])
+Wait timed out after 40124ms
+    at /Users/vidaththeekshana/Desktop/CT/Boarding-Bee/node_modules/selenium-webdriver/lib/webdriver.js:929:22
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)]]></failure>
+    </testcase>
+  </testsuite>
+</testsuites>

@@ -73,11 +73,11 @@ export function ModerationQueue() {
   };
 
   const approve = async (listingId: number) => {
+    // Optimistically remove only the approved item from UI
+    setItems(prev => prev.filter(item => item.id !== listingId));
     try {
       await apiPost(`/api/admin/listings/approve`, { listingId });
-      await loadList(activeTab);
       await loadCounts();
-      // notify other components (activity log) that something changed
       try { window.dispatchEvent(new CustomEvent('activity:changed')); } catch {}
     } catch (e: any) {
       setErr(e?.message ?? String(e));
@@ -106,17 +106,14 @@ export function ModerationQueue() {
       setRejectDialog({ open: false, listingId: null });
       return;
     }
+    // Optimistically remove only the rejected item from UI
+    setItems(prev => prev.filter(item => item.id !== rejectDialog.listingId));
     try {
-      setLoading(true);
       await apiPost(`/api/admin/listings/reject`, { listingId: rejectDialog.listingId, reason: rejectReason || "" });
       setRejectDialog({ open: false, listingId: null });
-      // refresh list and counts
-      await loadList(activeTab);
       await loadCounts();
     } catch (e: any) {
       setErr(e?.message || "Failed to reject listing");
-    } finally {
-      setLoading(false);
     }
     try { window.dispatchEvent(new CustomEvent('activity:changed')); } catch {}
   };
@@ -163,12 +160,12 @@ export function ModerationQueue() {
     }
   };
 
-  if (loading) return <div className="text-sm text-muted-foreground">Loading moderation queue…</div>;
-  if (err) return <div className="text-sm text-red-600">Error: {err}</div>;
+  // Instead of returning loading/error for the whole component, only show it in the card area
 
   // counts per tab
   const approvedCount = totals.approved;
   const rejectedCount = totals.rejected;
+
 
   return (
     <div className="space-y-6">
@@ -177,31 +174,39 @@ export function ModerationQueue() {
           <h2 className="text-lg font-semibold">Listing Moderation</h2>
           <p className="text-sm text-muted-foreground">Review and approve pending listings</p>
         </div>
-        
       </div>
 
       <div className="flex items-center gap-3">
-        <div className="rounded-full bg-gray-100 p-1 flex items-center space-x-2">
-          <button onClick={() => changeTab("pending")} className={`px-4 py-2 rounded-full ${activeTab === "pending" ? "bg-white shadow" : "bg-transparent"}`}>
+        <div className="rounded-full bg-gray-100/60 dark:bg-slate-800/50 p-1 flex items-center space-x-2">
+          <button
+            onClick={() => changeTab("pending")}
+            className={`px-4 py-2 rounded-full transition-colors duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 ${activeTab === "pending" ? "bg-white dark:bg-slate-700 shadow" : "bg-transparent hover:bg-gray-50 dark:hover:bg-slate-700"}`}>
             Pending ({totals.pending})
           </button>
-          <button onClick={() => changeTab("approved")} className={`px-4 py-2 rounded-full ${activeTab === "approved" ? "bg-white shadow" : "bg-transparent"}`}>
+          <button
+            onClick={() => changeTab("approved")}
+            className={`px-4 py-2 rounded-full transition-colors duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 ${activeTab === "approved" ? "bg-white dark:bg-slate-700 shadow" : "bg-transparent hover:bg-gray-50 dark:hover:bg-slate-700"}`}>
             Approved ({approvedCount})
           </button>
-          <button onClick={() => changeTab("rejected")} className={`px-4 py-2 rounded-full ${activeTab === "rejected" ? "bg-white shadow" : "bg-transparent"}`}>
+          <button
+            onClick={() => changeTab("rejected")}
+            className={`px-4 py-2 rounded-full transition-colors duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 ${activeTab === "rejected" ? "bg-white dark:bg-slate-700 shadow" : "bg-transparent hover:bg-gray-50 dark:hover:bg-slate-700"}`}>
             Rejected ({rejectedCount})
           </button>
         </div>
       </div>
 
-      
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {items.length === 0 ? (
+      {/* Only the card area reloads on tab/page change */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-h-[120px]">
+        {loading ? (
+          <div className="col-span-2 flex items-center justify-center text-sm text-muted-foreground">Loading Listings...</div>
+        ) : err ? (
+          <div className="col-span-2 flex items-center justify-center text-sm text-red-600">Error: {err}</div>
+        ) : items.length === 0 ? (
           <div className="col-span-2 rounded-xl border p-6 text-sm text-muted-foreground">No listings in this tab.</div>
         ) : (
           items.map(l => (
-            <div key={l.id} className="w-full rounded-xl border p-4 flex items-center gap-4">
+            <div key={l.id} className="w-full rounded-xl border p-4 flex items-center gap-4 transition-shadow duration-150 hover:shadow-md hover:border-gray-200 dark:hover:border-slate-700 bg-white dark:bg-slate-900">
               <div>
                 <input type="checkbox" checked={!!selected[l.id]} onChange={() => toggleSelect(l.id)} />
               </div>
@@ -219,12 +224,22 @@ export function ModerationQueue() {
                 </div>
                 {renderAmenities(l.amenitiesCsv)}
                 <div className="flex gap-3 mt-4">
-                  <button onClick={() => openDetails(l.id)} className="rounded-md px-3 py-1.5 text-sm border">View Details</button>
+                  <button onClick={() => openDetails(l.id)} className="rounded-md px-3 py-1.5 text-sm border hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">View Details</button>
                   {activeTab !== "approved" && (
-                    <button onClick={() => approve(l.id)} className="rounded-md px-3 py-1.5 text-sm bg-green-600 text-white">Approve</button>
+                    <button
+                      onClick={() => approve(l.id)}
+                      className="rounded-md px-3 py-1.5 text-sm bg-green-600 text-white transition-colors duration-150 hover:bg-green-700 active:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-400"
+                    >
+                      Approve
+                    </button>
                   )}
                   {activeTab !== "rejected" && (
-                    <button onClick={() => reject(l.id)} className="rounded-md px-3 py-1.5 text-sm bg-red-600 text-white">Reject</button>
+                    <button
+                      onClick={() => reject(l.id)}
+                      className="rounded-md px-3 py-1.5 text-sm bg-red-600 text-white transition-colors duration-150 hover:bg-red-700 active:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-400"
+                    >
+                      Reject
+                    </button>
                   )}
                 </div>
               </div>
@@ -232,13 +247,16 @@ export function ModerationQueue() {
           ))
         )}
 
-        <div className="col-span-2 flex items-center justify-between pt-2">
-          <div className="text-sm text-muted-foreground">Total: {total}</div>
-          <div className="flex gap-2">
-            <button disabled={page<=1} onClick={()=>setPage(p=>p-1)} className="rounded-lg border px-3 py-1.5 disabled:opacity-50">Prev</button>
-            <button disabled={page*pageSize>=total} onClick={()=>setPage(p=>p+1)} className="rounded-lg border px-3 py-1.5 disabled:opacity-50">Next</button>
+        {/* Pagination always visible if not loading/error */}
+        {!loading && !err && (
+          <div className="col-span-2 flex items-center justify-between pt-2">
+            <div className="text-sm text-muted-foreground">Total: {total}</div>
+            <div className="flex gap-2">
+              <button disabled={page<=1} onClick={()=>setPage(p=>p-1)} className="rounded-lg border px-3 py-1.5 disabled:opacity-50">Prev</button>
+              <button disabled={page*pageSize>=total} onClick={()=>setPage(p=>p+1)} className="rounded-lg border px-3 py-1.5 disabled:opacity-50">Next</button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Reject reason dialog */}
