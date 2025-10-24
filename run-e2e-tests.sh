@@ -6,6 +6,25 @@
 echo "Deleting test users before E2E tests..."
 node tests/selenium/delete-test-user.js
 
+# Pre-warm the admin auth token used by tests that inject localStorage (Option B)
+echo "Ensuring admin token is available for token-injection tests..."
+node -e "(async ()=>{ const h=require('./tests/selenium/authHelpers'); try{ await h.ensureAdminToken(); console.log('Admin token prepared'); }catch(e){ console.error('Failed to prepare admin token:', e); process.exitCode=2; } })()"
+
+# Ensure tmp dir exists for created artifacts tracking and set an exit trap to cleanup
+mkdir -p ./tmp
+
+cleanup_on_exit() {
+  echo "Running on-exit cleanup scripts..."
+  # Try to delete listings tracked during tests
+  node tests/selenium/delete-created-listings.js || true
+  # Run existing cleanup that uses TEST_API_KEY if provided
+  node tests/selenium/cleanup-test-listings.js || true
+  # Re-run user deletion as a final pass
+  node tests/selenium/delete-test-user.js || true
+}
+
+trap cleanup_on_exit EXIT
+
 
 
 # Run each test file in order, outputting a separate JUnit XML for each
@@ -17,6 +36,7 @@ for testfile in \
   tests/selenium/owner-dashboard.test.js \
   tests/selenium/tenant-review.test.js \
   tests/selenium/admin-listings.test.js \
+  tests/selenium/admin-tabs-navigation.test.js \
   
 do
   base=$(basename "$testfile" .test.js)

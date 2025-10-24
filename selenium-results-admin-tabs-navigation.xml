@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="Selenium E2E: admin-tabs-navigation" time="42.025" tests="1" failures="0">
+  <testsuite name="Root Suite" timestamp="2025-10-24T04:11:15" tests="0" time="0.000" failures="0">
+  </testsuite>
+  <testsuite name="Admin dashboard tab navigation" timestamp="2025-10-24T04:11:15" tests="1" file="/Users/vidaththeekshana/Desktop/CT/Boarding-Bee/tests/selenium/admin-tabs-navigation.test.js" time="42.024" failures="0">
+    <testcase name="Admin dashboard tab navigation admin can visit all dashboard tabs" time="42.022" classname="admin can visit all dashboard tabs">
+    </testcase>
+  </testsuite>
+</testsuites>
