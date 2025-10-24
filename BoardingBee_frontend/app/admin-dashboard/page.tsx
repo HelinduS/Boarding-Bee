@@ -36,25 +36,14 @@ export default function AdminDashboard() {
         <KPICards />
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-8">
-          <div className="relative">
-            <TabsList className="w-full grid grid-cols-4 gap-0 p-1 rounded-xl bg-indigo-50/60 dark:bg-slate-800/40 border border-border/60 shadow-sm relative">
-              {/* Animated indicator bar */}
-              <div 
-                className="absolute bottom-0 h-1 bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-500 rounded-full transition-all duration-500 ease-out shadow-lg shadow-indigo-500/50"
-                style={{ 
-                  left: getIndicatorPosition(),
-                  width: "25%",
-                  transform: "translateY(0.5rem)"
-                }}
-              />
-              
-              <TabsTrigger
-                value="moderation"
-                className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-muted-foreground transition-all duration-300 rounded-lg hover:bg-indigo-50 hover:text-indigo-700 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 relative z-10"
-              >
-                <ListChecks className="h-4 w-4" />
-                Moderation
-              </TabsTrigger>
+          <TabsList className="w-full grid grid-cols-4 gap-0 p-1 rounded-xl bg-indigo-50/60 dark:bg-slate-800/40 border border-border/60 shadow-sm">
+            <TabsTrigger
+              value="moderation"
+              className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors duration-150 rounded-lg hover:bg-indigo-50 hover:text-indigo-700 data-[state=active]:bg-indigo-600 data-[state=active]:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
+            >
+              <ListChecks className="h-4 w-4" />
+              Moderation
+            </TabsTrigger>
 
               <TabsTrigger
                 value="activity"
@@ -64,13 +53,13 @@ export default function AdminDashboard() {
                 Activity Log
               </TabsTrigger>
 
-              <TabsTrigger
-                value="users"
-                className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-muted-foreground transition-all duration-300 rounded-lg hover:bg-indigo-50 hover:text-indigo-700 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 relative z-10"
-              >
-                <Shield className="h-4 w-4" />
-                Users
-              </TabsTrigger>
+            <TabsTrigger
+              value="users"
+              className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors duration-150 rounded-lg hover:bg-indigo-50 hover:text-indigo-700 data-[state=active]:bg-indigo-600 data-[state=active]:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
+            >
+              <Shield className="h-4 w-4" />
+              Users
+            </TabsTrigger>
 
               <TabsTrigger
                 value="reports"
