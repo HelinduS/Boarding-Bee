@@ -366,24 +366,178 @@ namespace BoardingBee_backend.Controllers
         [HttpGet("export/csv")]
         public async Task<IActionResult> ExportCsv(
             [FromQuery] string reportType,
-            [FromQuery] string? entity,
-            [FromQuery] DateTime? from,
-            [FromQuery] DateTime? to,
-            [FromQuery] int? days)
+            [FromQuery] int year,
+            [FromQuery] int month)
         {
-            var ent = NormalizeEntity(entity);
-            var (f, t) = ResolveRange(from, to, days);
-
-            // Reuse series data for CSV
-            var series = await BuildSeries(ent, f, t);
+            var type = (reportType ?? "").Trim().ToLowerInvariant();
+            
+            // Calculate date range for the selected month
+            var fromDate = new DateTime(year, month, 1, 0, 0, 0, DateTimeKind.Utc);
+            var toDate = fromDate.AddMonths(1).AddDays(-1).AddHours(23).AddMinutes(59).AddSeconds(59);
 
             var sb = new StringBuilder();
-            sb.AppendLine("date,count");
-            foreach (var p in series)
-                sb.AppendLine($"{p.D:yyyy-MM-dd},{p.Count}");
+            var fileName = $"{reportType}_{year}_{month:D2}.csv";
+
+            if (type == "overview")
+            {
+                // Overview: Users, Listings, Ratings counts
+                var users = await _db.Users
+                    .Where(u => u.CreatedAt >= fromDate && u.CreatedAt <= toDate)
+                    .OrderBy(u => u.CreatedAt)
+                    .ToListAsync();
+                
+                var listings = await _db.Listings
+                    .Where(l => l.CreatedAt >= fromDate && l.CreatedAt <= toDate)
+                    .OrderBy(l => l.CreatedAt)
+                    .ToListAsync();
+                
+                var reviews = await _db.Reviews
+                    .Include(r => r.Listing)
+                    .Where(r => r.CreatedAt >= fromDate && r.CreatedAt <= toDate)
+                    .OrderBy(r => r.CreatedAt)
+                    .ToListAsync();
+
+                sb.AppendLine("Metric,Count");
+                sb.AppendLine($"Users,{users.Count}");
+                sb.AppendLine($"Listings,{listings.Count}");
+                sb.AppendLine($"Ratings,{reviews.Count}");
+
+                // Users Table
+                sb.AppendLine("\n\nUsers");
+                sb.AppendLine("User ID,Email,Name,Role");
+                foreach (var user in users)
+                {
+                    var name = $"{user.FirstName} {user.LastName}".Trim();
+                    sb.AppendLine($"{user.Id},\"{user.Email}\",\"{name}\",{user.Role}");
+                }
+                sb.AppendLine($"\nTotal Users,{users.Count}");
+
+                // Listings Table
+                sb.AppendLine("\n\nListings");
+                sb.AppendLine("Listing ID,Listing Name,Location,Price,Owner ID,Status");
+                foreach (var listing in listings)
+                {
+                    var title = listing.Title?.Replace("\"", "\"\"") ?? "";
+                    var location = listing.Location?.Replace("\"", "\"\"") ?? "";
+                    sb.AppendLine($"{listing.Id},\"{title}\",\"{location}\",{listing.Price},{listing.OwnerId},{listing.Status}");
+                }
+                sb.AppendLine($"\nTotal Listings,{listings.Count}");
+
+                // Reviews Table
+                sb.AppendLine("\n\nReviews");
+                sb.AppendLine("Review ID,Listing ID,Listing Name,User ID,Rating,Comment");
+                foreach (var review in reviews)
+                {
+                    var comment = review.Text?.Replace("\"", "\"\"") ?? "";
+                    var listingName = review.Listing?.Title?.Replace("\"", "\"\"") ?? "";
+                    sb.AppendLine($"{review.Id},{review.ListingId},\"{listingName}\",{review.UserId},{review.Rating},\"{comment}\"");
+                }
+                sb.AppendLine($"\nTotal Reviews,{reviews.Count}");
+                var avgRating = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+                sb.AppendLine($"Average Rating,{avgRating:F2}");
+            }
+            else if (type == "users")
+            {
+                // Users: Detailed user information for the month
+                var users = await _db.Users
+                    .Where(u => u.CreatedAt >= fromDate && u.CreatedAt <= toDate)
+                    .OrderBy(u => u.CreatedAt)
+                    .ToListAsync();
+
+                sb.AppendLine("User ID,Email,Name,Role");
+                foreach (var user in users)
+                {
+                    var name = $"{user.FirstName} {user.LastName}".Trim();
+                    sb.AppendLine($"{user.Id},\"{user.Email}\",\"{name}\",{user.Role}");
+                }
+                sb.AppendLine($"\nTotal Users,{users.Count}");
+            }
+            else if (type == "listings")
+            {
+                // Listings: Detailed listing information for the month
+                var listings = await _db.Listings
+                    .Where(l => l.CreatedAt >= fromDate && l.CreatedAt <= toDate)
+                    .OrderBy(l => l.CreatedAt)
+                    .ToListAsync();
+
+                sb.AppendLine("Listing ID,Listing Name,Location,Price,Owner ID,Status");
+                foreach (var listing in listings)
+                {
+                    var title = listing.Title?.Replace("\"", "\"\"") ?? "";
+                    var location = listing.Location?.Replace("\"", "\"\"") ?? "";
+                    sb.AppendLine($"{listing.Id},\"{title}\",\"{location}\",{listing.Price},{listing.OwnerId},{listing.Status}");
+                }
+                sb.AppendLine($"\nTotal Listings,{listings.Count}");
+            }
+            else if (type == "reviews")
+            {
+                // Reviews/Ratings: Detailed review information for the month
+                var reviews = await _db.Reviews
+                    .Include(r => r.Listing)
+                    .Where(r => r.CreatedAt >= fromDate && r.CreatedAt <= toDate)
+                    .OrderBy(r => r.CreatedAt)
+                    .ToListAsync();
+
+                sb.AppendLine("Review ID,Listing ID,Listing Name,User ID,Rating,Comment");
+                foreach (var review in reviews)
+                {
+                    var comment = review.Text?.Replace("\"", "\"\"") ?? "";
+                    var listingName = review.Listing?.Title?.Replace("\"", "\"\"") ?? "";
+                    sb.AppendLine($"{review.Id},{review.ListingId},\"{listingName}\",{review.UserId},{review.Rating},\"{comment}\"");
+                }
+                
+                var avgRating = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+                sb.AppendLine($"\nTotal Reviews,{reviews.Count}");
+                sb.AppendLine($"Average Rating,{avgRating:F2}");
+
+                // Add average rating per listing table
+                if (reviews.Any())
+                {
+                    sb.AppendLine("\n\nAverage Rating Per Listing");
+                    sb.AppendLine("Listing ID,Listing Name,Review Count,Average Rating");
+                    
+                    var listingStats = reviews
+                        .GroupBy(r => r.ListingId)
+                        .Select(g => new
+                        {
+                            ListingId = g.Key,
+                            ListingName = g.First().Listing?.Title ?? "",
+                            ReviewCount = g.Count(),
+                            AverageRating = g.Average(r => r.Rating)
+                        })
+                        .OrderBy(s => s.ListingId)
+                        .ToList();
+
+                    foreach (var stat in listingStats)
+                    {
+                        var listingName = stat.ListingName.Replace("\"", "\"\"");
+                        sb.AppendLine($"{stat.ListingId},\"{listingName}\",{stat.ReviewCount},{stat.AverageRating:F2}");
+                    }
+                }
+            }
+            else
+            {
+                // Fallback: default to overview
+                var usersCount = await _db.Users
+                    .Where(u => u.CreatedAt >= fromDate && u.CreatedAt <= toDate)
+                    .CountAsync();
+                
+                var listingsCount = await _db.Listings
+                    .Where(l => l.CreatedAt >= fromDate && l.CreatedAt <= toDate)
+                    .CountAsync();
+                
+                var ratingsCount = await _db.Reviews
+                    .Where(r => r.CreatedAt >= fromDate && r.CreatedAt <= toDate)
+                    .CountAsync();
+
+                sb.AppendLine("Metric,Count");
+                sb.AppendLine($"Users,{usersCount}");
+                sb.AppendLine($"Listings,{listingsCount}");
+                sb.AppendLine($"Ratings,{ratingsCount}");
+            }
 
             var bytes = Encoding.UTF8.GetBytes(sb.ToString());
-            return File(bytes, "text/csv", "report.csv");
+            return File(bytes, "text/csv", fileName);
         }
     }
 
