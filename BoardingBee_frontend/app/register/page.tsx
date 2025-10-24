@@ -196,7 +196,11 @@ export default function RegisterPage() {
           {error && (
             <Alert variant="destructive" className="mb-4">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription>
+                {Array.isArray(error) ? (
+                  <ul className="list-disc pl-5">{error.map((e) => <li key={e}>{e}</li>)}</ul>
+                ) : error}
+              </AlertDescription>
             </Alert>
           )}
 

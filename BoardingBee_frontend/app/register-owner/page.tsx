@@ -94,7 +94,13 @@ export default function RegisterOwnerPage() {
 
       <div className="max-w-lg mx-auto mt-10 bg-white/80 rounded-xl shadow-lg p-8 backdrop-blur-md">
         <h1 className="text-2xl font-bold mb-6 text-indigo-700">Register as Owner</h1>
-        {error && <Alert variant="destructive" className="mb-4 error">{error}</Alert>}
+        {error && (
+          <Alert variant="destructive" className="mb-4 error">
+            {Array.isArray(error) ? (
+              <ul className="list-disc pl-5">{error.map((e) => <li key={e}>{e}</li>)}</ul>
+            ) : error}
+          </Alert>
+        )}
         {success && <Alert className="mb-4">{success}</Alert>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input name="username" placeholder="Username" value={form.username} onChange={handleChange} />

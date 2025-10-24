@@ -102,7 +102,13 @@ export default function CreateListingPage() {
   return (
     <div className="max-w-xl mx-auto mt-10 bg-white/80 rounded-xl shadow-lg p-8 backdrop-blur-md">
       <h1 className="text-2xl font-bold mb-6 text-indigo-700">Create a New Listing</h1>
-      {errors.length > 0 && <Alert variant="destructive" className="mb-4">{errors.map((e) => <div key={e}>{e}</div>)}</Alert>}
+      {errors.length > 0 && (
+        <Alert variant="destructive" className="mb-4">
+          <ul className="list-disc pl-5">
+            {errors.map((e) => <li key={e}>{e}</li>)}
+          </ul>
+        </Alert>
+      )}
       {success && <Alert className="mb-4">{success}</Alert>}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>

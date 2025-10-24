@@ -1,41 +1,38 @@
 
 ---
 
+
 # BoardingBee Frontend
 
-This is the Next.js (React) frontend for the BoardingBee project.
+This is the Next.js (React) frontend for the BoardingBee project. It provides the user interface for browsing, searching, and managing boarding listings, user authentication, reviews, and dashboards for users and owners.
 
-## Environment
 
-Create a `.env` file in the frontend root with:
+## Environment Setup
+
+Create a `.env` file in the `BoardingBee_frontend` root:
 
 ```
-NEXT_PUBLIC_API_URL=https://boardingbee-atf5gegteud8hpc0.southindia-01.azurewebsites.net
-# For local dev, uncomment the next line and run the backend on http://localhost:5000
+NEXT_PUBLIC_API_URL=<your-backend-api-url>
+# Example for local dev:
 # NEXT_PUBLIC_API_URL=http://localhost:5000
 ```
 
-## Install & Setup
 
-### 1. Node.js Environment
+## Getting Started
 
-Install Node.js (v18+ recommended).
+1. **Install Node.js** (v18+ recommended).
+2. **Install dependencies:**
+  ```bash
+  npm install
+  ```
+3. **Run the development server:**
+  ```bash
+  npm run dev
+  ```
+  The app will be available at [http://localhost:3000](http://localhost:3000)
 
-### 2. Install Dependencies
 
-```bash
-npm install
-```
-
-### 3. Run the Development Server
-
-```bash
-npm run dev
-```
-
-App will run at: [http://localhost:3000](http://localhost:3000)
-
-## File Structure
+## Project Structure
 
 ```
 BoardingBee_frontend/
@@ -58,17 +55,21 @@ BoardingBee_frontend/
 └── ...
 ```
 
+
 ## API Integration
 
-* Uses `NEXT_PUBLIC_API_URL` to call backend endpoints.
-* Handles authentication via JWT tokens stored in context (login flow not changed here).
+- All API calls use the `NEXT_PUBLIC_API_URL` environment variable as the backend base URL.
+- Authentication is handled via JWT tokens stored in React context (`authContext`).
 
-## Key Pages
 
-* `/` - Homepage: Shows all listings with filters and search.
-* `/view-details/[id]` - Listing details page (includes the **Reviews** section).
-* `/owner-dashboard` - Owner’s dashboard for managing listings.
-* `/login`, `/register`, `/register-owner` - Auth pages.
+## Main Pages & Features
+
+- `/` — Homepage: Browse and filter listings
+- `/view-details/[id]` — Listing details with reviews
+- `/owner-dashboard` — Owner dashboard for managing listings
+- `/admin-dashboard` — Admin dashboard (if authorized)
+- `/login`, `/register`, `/register-owner` — Authentication and registration
+
 
 ## Example API Call
 
@@ -81,11 +82,13 @@ fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/listings`)
 
 ---
 
-# Ratings & Reviews (Frontend)
+
+# Ratings & Reviews
 
 The frontend implements listing reviews with create/update, list with pagination and sort, rating summary, and “my review” prefill.
 
-### What’s included
+
+### What’s Included
 
 * **API helper** – `lib/reviewsApi.ts`
 
@@ -112,7 +115,8 @@ The frontend implements listing reviews with create/update, list with pagination
 
     * Shows average, total count, and a 1–5 histogram.
 
-### How it works (flow)
+
+### How It Works
 
 1. **When you open** a listing details page (`/view-details/[id]`), the embedded `ReviewsSection` loads:
 
@@ -133,7 +137,8 @@ The frontend implements listing reviews with create/update, list with pagination
 
    * The list refetches with `sort=recent|top` and the selected `page`.
 
-### Props & State (main bits)
+
+### Main Components
 
 * `ReviewsSection`
 
@@ -146,7 +151,8 @@ The frontend implements listing reviews with create/update, list with pagination
   * Internals: `rating`, `text`, `hasExisting` (decides button label)
   * On save → calls parent `onSaved` to refresh section
 
-### Local Dev Tips
+
+### Local Development Tips
 
 * If you run frontend at `http://localhost:3000` and backend at `http://localhost:5000`, set:
 
@@ -160,7 +166,8 @@ The frontend implements listing reviews with create/update, list with pagination
   * `DELETE /reviews/{reviewId}` (if you add delete from UI later)
 * **Owner restriction:** The backend forbids owners from reviewing their own listing. If you see a 403 as an owner account, that’s expected.
 
-### Quick Manual Test
+
+### Manual Test Steps
 
 1. Log in as a **normal user** (not the listing owner).
 2. Open a listing details page.
@@ -170,6 +177,15 @@ The frontend implements listing reviews with create/update, list with pagination
    * Click **Submit** → it should change to **Update review** after saving.
    * Refresh the page: your rating/text should be prefilled.
 4. Change the rating and click **Update review** → summary/average should update.
+
+
+---
+
+## Troubleshooting
+
+- **401 Unauthorized**: Check that your backend is running and `NEXT_PUBLIC_API_URL` is correct. Ensure you are logged in and your JWT token is present in context.
+- **Invalid Hook Call / duplicate React**: Run `npm ls react` to check for multiple React versions. If needed, delete `node_modules` and `.next`, then reinstall and rebuild.
+- **API errors**: Check your backend logs and ensure CORS is configured to allow requests from the frontend URL.
 
 ---
 
