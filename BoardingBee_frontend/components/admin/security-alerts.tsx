@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { Phone, Mail, Home, Users } from "lucide-react";
 import { apiGet } from "@/lib/api";
+import { useAuth } from "@/context/authContext";
 import type { OwnerSummary, UserSummary, AdminUsersSummaryResponse } from "@/types/admin";
 
 type RawUser = {
@@ -15,7 +16,23 @@ type RawUser = {
   role?: string | null;
 };
 
+// Move Avatar out of parent component
+function Avatar({ url, name }: { readonly url?: string | null; readonly name: string }) {
+  return (
+    <span className="inline-flex items-center">
+      {url ? (
+        <img src={url} alt={name} className="w-6 h-6 rounded-full mr-2" />
+      ) : (
+        <span className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center mr-2 text-xs font-bold">
+          {name.charAt(0).toUpperCase()}
+        </span>
+      )}
+      {name}
+    </span>
+  );
+}
 export function SecurityAlerts() {
+  const { user } = useAuth();
   const [owners, setOwners] = useState<OwnerSummary[]>([]);
   const [users, setUsers] = useState<UserSummary[]>([]);
   const [totals, setTotals] = useState<{ totalListings?: number; assignedListings?: number; unassignedListings?: number; orphanedListings?: number } | null>(null);
@@ -25,7 +42,7 @@ export function SecurityAlerts() {
 
   useEffect(() => {
     let alive = true;
-    apiGet<AdminUsersSummaryResponse>("/api/admin/users/summary")
+    apiGet<AdminUsersSummaryResponse>("/api/admin/users/summary", user?.token)
       .then(d => {
         if (!alive) return;
         // debug: show raw payload in browser console for troubleshooting
@@ -87,7 +104,7 @@ export function SecurityAlerts() {
         setLoading(false);
       });
     return () => { alive = false; };
-  }, []);
+  }, [user?.token]);
 
   if (loading) return <div className="text-sm text-muted-foreground">Loading users…</div>;
   if (err) return <div className="text-sm text-red-600">Error: {err}</div>;

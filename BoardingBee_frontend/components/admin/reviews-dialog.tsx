@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { apiGet } from "@/lib/api"
+import { useAuth } from "@/context/authContext"
 
 function Stars({ value }: { value?: number | null }) {
   const v = Math.round((value || 0) * 2) / 2; // half-star precision
@@ -19,6 +20,7 @@ function Stars({ value }: { value?: number | null }) {
 }
 
 export default function ReviewsDialog({ open, onOpenChange, listingId }: { open: boolean; onOpenChange: (open: boolean) => void; listingId?: number | null }) {
+  const { user } = useAuth();
   const [listing, setListing] = useState<any | null>(null);
   const [reviews, setReviews] = useState<any[] | null>(null);
   const [loading, setLoading] = useState(false);
@@ -31,7 +33,7 @@ export default function ReviewsDialog({ open, onOpenChange, listingId }: { open:
     (async () => {
       if (listingId) {
         try {
-          const l = await apiGet(`/api/listings/${listingId}`);
+          const l = await apiGet(`/api/listings/${listingId}`, user?.token);
           if (!alive) return;
           setListing(l);
         } catch (e) { }
@@ -41,10 +43,10 @@ export default function ReviewsDialog({ open, onOpenChange, listingId }: { open:
           // Backend returns a paged shape { items: [], total, page, pageSize } or an array directly.
           let resp: any = null;
           try {
-            resp = await apiGet<any>(`/api/listings/${listingId}/reviews?page=1&pageSize=1000`);
+            resp = await apiGet<any>(`/api/listings/${listingId}/reviews?page=1&pageSize=1000`, user?.token);
           } catch (e) {
             // fallback to other possible endpoints
-            try { resp = await apiGet<any>(`/api/reviews?listingId=${listingId}&page=1&pageSize=1000`); } catch { resp = null; }
+            try { resp = await apiGet<any>(`/api/reviews?listingId=${listingId}&page=1&pageSize=1000`, user?.token); } catch { resp = null; }
           }
 
           if (!alive) return;
@@ -67,7 +69,7 @@ export default function ReviewsDialog({ open, onOpenChange, listingId }: { open:
         // Admin mode: fetch ALL reviews from the database (no status filter)
         try {
           let resp: any = null;
-          try { resp = await apiGet<any>(`/api/admin/reviews?page=1&pageSize=1000`); } catch { resp = await apiGet<any>(`/api/reviews?page=1&pageSize=1000`); }
+          try { resp = await apiGet<any>(`/api/admin/reviews?page=1&pageSize=1000`, user?.token); } catch { resp = await apiGet<any>(`/api/reviews?page=1&pageSize=1000`, user?.token); }
           if (!alive) return;
           if (!resp) {
             setReviews([]);
