@@ -44,15 +44,13 @@ export default function AdminDashboard() {
               <ListChecks className="h-4 w-4" />
               Moderation
             </TabsTrigger>
-
-              <TabsTrigger
-                value="activity"
-                className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-muted-foreground transition-all duration-300 rounded-lg hover:bg-indigo-50 hover:text-indigo-700 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 relative z-10"
-              >
-                <Activity className="h-4 w-4" />
-                Activity Log
-              </TabsTrigger>
-
+            <TabsTrigger
+              value="activity"
+              className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-muted-foreground transition-all duration-300 rounded-lg hover:bg-indigo-50 hover:text-indigo-700 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 relative z-10"
+            >
+              <Activity className="h-4 w-4" />
+              Activity Log
+            </TabsTrigger>
             <TabsTrigger
               value="users"
               className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors duration-150 rounded-lg hover:bg-indigo-50 hover:text-indigo-700 data-[state=active]:bg-indigo-600 data-[state=active]:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
@@ -60,16 +58,14 @@ export default function AdminDashboard() {
               <Shield className="h-4 w-4" />
               Users
             </TabsTrigger>
-
-              <TabsTrigger
-                value="reports"
-                className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-muted-foreground transition-all duration-300 rounded-lg hover:bg-indigo-50 hover:text-indigo-700 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 relative z-10"
-              >
-                <FileBarChart className="h-4 w-4" />
-                Reports
-              </TabsTrigger>
-            </TabsList>
-          </div>
+            <TabsTrigger
+              value="reports"
+              className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-muted-foreground transition-all duration-300 rounded-lg hover:bg-indigo-50 hover:text-indigo-700 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300 relative z-10"
+            >
+              <FileBarChart className="h-4 w-4" />
+              Reports
+            </TabsTrigger>
+          </TabsList>
 
           <TabsContent value="moderation" className="mt-6">
             <ModerationQueue />

@@ -9,8 +9,7 @@ export function getToken(): string | null {
   return null;
 }
 
-export async function apiGet<T>(path: string): Promise<T> {
-  const token = getToken();
+export async function apiGet<T>(path: string, token?: string): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     headers: {
       "Content-Type": "application/json",
@@ -28,13 +27,13 @@ export async function apiGet<T>(path: string): Promise<T> {
   return res.json();
 }
 
-export async function apiPost<T = any>(path: string, body: unknown): Promise<T> {
-  const token = getToken();
+export async function apiPost<T = any>(path: string, body: unknown, token?: string): Promise<T> {
+  const authToken = token ?? getToken();
   const res = await fetch(`${API_BASE}${path}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
     },
     body: JSON.stringify(body),
   });

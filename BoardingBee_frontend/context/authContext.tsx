@@ -15,7 +15,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isOwner: boolean;
   login: (user: AuthUser) => void;
-  logout: () => void;
+    logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -30,15 +30,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (stored) setUser(JSON.parse(stored));
   }, []);
 
+  useEffect(() => {
+    console.debug("[AuthContext] User state changed:", user);
+  }, [user]);
+
   const login = (user: AuthUser) => {
     setUser(user);
     localStorage.setItem("authUser", JSON.stringify(user));
   };
 
   const logout = () => {
-    setUser(null);
-    localStorage.removeItem("authUser");
-    router.push("/login");
+  setUser(null);
+  localStorage.removeItem("authUser");
+  console.debug("[AuthContext] User after logout:", user, "localStorage:", localStorage.getItem("authUser"));
+  router.push("/login");
   };
 
   const isAuthenticated = !!user;

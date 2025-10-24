@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useAuth } from "@/context/authContext";
 import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { signOut, useSession } from "next-auth/react";
 
 export default function Header() {
   const { isAuthenticated, isOwner, user, logout } = useAuth();
@@ -57,7 +58,7 @@ export default function Header() {
 
             {isAuthenticated ? (
               <button
-                onClick={logout}
+                onClick={() => logout()}
                 className="bg-red-500 text-white px-4 py-2 rounded-lg shadow hover:bg-red-400 transition-all"
               >
                 Logout

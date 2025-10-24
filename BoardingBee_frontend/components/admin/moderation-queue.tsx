@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/context/authContext";
 import { apiGet, apiPost } from "@/lib/api";
 import { Check, X as XIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -18,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import type { AdminPendingResponse, Listing } from "@/types/admin";
 
 export function ModerationQueue() {
+  const { user } = useAuth();
   const [items, setItems] = useState<Listing[]>([]);
   const [total, setTotal] = useState(0);
   const [totals, setTotals] = useState<{ pending: number; approved: number; rejected: number }>({ pending: 0, approved: 0, rejected: 0 });
@@ -36,7 +38,7 @@ export function ModerationQueue() {
     setLoading(true);
     try {
       const url = `/api/admin/listings/${tab}?page=${page}&pageSize=${pageSize}`;
-      const data = await apiGet<AdminPendingResponse>(url);
+      const data = await apiGet<AdminPendingResponse>(url, user?.token);
       setItems(data.items);
       setTotal(data.total);
       setTotals(t => ({ ...t, [tab]: data.total }));
@@ -53,9 +55,9 @@ export function ModerationQueue() {
   // load totals for all tabs on mount so labels show counts
   const loadCounts = async () => {
     try {
-      const p = await apiGet<AdminPendingResponse>(`/api/admin/listings/pending?page=1&pageSize=1`);
-      const a = await apiGet<AdminPendingResponse>(`/api/admin/listings/approved?page=1&pageSize=1`);
-      const r = await apiGet<AdminPendingResponse>(`/api/admin/listings/rejected?page=1&pageSize=1`);
+      const p = await apiGet<AdminPendingResponse>(`/api/admin/listings/pending?page=1&pageSize=1`, user?.token);
+      const a = await apiGet<AdminPendingResponse>(`/api/admin/listings/approved?page=1&pageSize=1`, user?.token);
+      const r = await apiGet<AdminPendingResponse>(`/api/admin/listings/rejected?page=1&pageSize=1`, user?.token);
       setTotals({ pending: p.total, approved: a.total, rejected: r.total });
     } catch (e) {
       // ignore count errors — UI will still work
@@ -76,7 +78,7 @@ export function ModerationQueue() {
     // Optimistically remove only the approved item from UI
     setItems(prev => prev.filter(item => item.id !== listingId));
     try {
-      await apiPost(`/api/admin/listings/approve`, { listingId });
+      await apiPost(`/api/admin/listings/approve`, { listingId }, user?.token);
       await loadCounts();
       try { window.dispatchEvent(new CustomEvent('activity:changed')); } catch {}
     } catch (e: any) {
@@ -94,7 +96,7 @@ export function ModerationQueue() {
     // open dialog and fetch full listing details
     setDetailDialog({ open: true, listingId, listing: null });
     try {
-      const d = await apiGet<ListingDetail>(`/api/listings/${listingId}`);
+      const d = await apiGet<ListingDetail>(`/api/listings/${listingId}`, user?.token);
       setDetailDialog({ open: true, listingId, listing: d });
     } catch (e) {
       setDetailDialog({ open: true, listingId, listing: null });
@@ -109,7 +111,7 @@ export function ModerationQueue() {
     // Optimistically remove only the rejected item from UI
     setItems(prev => prev.filter(item => item.id !== rejectDialog.listingId));
     try {
-      await apiPost(`/api/admin/listings/reject`, { listingId: rejectDialog.listingId, reason: rejectReason || "" });
+      await apiPost(`/api/admin/listings/reject`, { listingId: rejectDialog.listingId, reason: rejectReason || "" }, user?.token);
       setRejectDialog({ open: false, listingId: null });
       await loadCounts();
     } catch (e: any) {

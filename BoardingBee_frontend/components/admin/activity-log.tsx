@@ -1,11 +1,13 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { apiGet } from "@/lib/api";
+import { useAuth } from "@/context/authContext";
 import type { ActivityLog } from "@/types/admin";
 import { Badge } from "@/components/ui/badge";
 import { Home, Check, X as XIcon, Edit3, Repeat, Key, Mail, Star } from "lucide-react";
 
 export function ActivityLog() {
+  const { user } = useAuth();
   const [rows, setRows] = useState<ActivityLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
@@ -14,22 +16,22 @@ export function ActivityLog() {
 
   useEffect(() => {
     let alive = true;
-    apiGet<ActivityLog[]>('/api/admin/activity/recent?limit=200')
+    apiGet<ActivityLog[]>('/api/admin/activity/recent?limit=200', user?.token)
       .then(d => { if (alive) { setRows(d); setLoading(false); } })
       .catch((e: any) => { if (alive) { setErr(e.message); setLoading(false); } });
     return () => { alive = false; };
-  }, []);
+  }, [user?.token]);
 
   useEffect(() => {
     const handler = () => {
       setLoading(true);
-      apiGet<ActivityLog[]>('/api/admin/activity/recent?limit=200')
+      apiGet<ActivityLog[]>('/api/admin/activity/recent?limit=200', user?.token)
         .then(d => { setRows(d); setLoading(false); })
         .catch((e: any) => { setErr(e.message); setLoading(false); });
     };
     window.addEventListener('activity:changed', handler as EventListener);
     return () => window.removeEventListener('activity:changed', handler as EventListener);
-  }, []);
+  }, [user?.token]);
 
   const parseEmailFromMeta = (meta?: string | null) => {
     if (!meta) return null;

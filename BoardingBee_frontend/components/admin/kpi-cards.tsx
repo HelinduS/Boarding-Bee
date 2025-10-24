@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { apiGet } from "@/lib/api";
+import { useAuth } from "@/context/authContext";
 import type { Kpis } from "@/types/admin";
 import { Users, Home, Clock, Star } from "lucide-react";
 import ReviewsDialog from "@/components/admin/reviews-dialog";
@@ -11,13 +12,14 @@ export function KPICards() {
   const [err, setErr] = useState<string | null>(null);
   const [reviewsOpen, setReviewsOpen] = useState(false);
 
+  const { user } = useAuth();
   useEffect(() => {
     let alive = true;
-    apiGet<Kpis>("/api/admin/reports/kpis")
+    apiGet<Kpis>("/api/admin/reports/kpis", user?.token)
       .then(d => { if (alive) { setData(d); setLoading(false); } })
       .catch(e => { if (alive) { setErr(e.message); setLoading(false); } });
     return () => { alive = false; };
-  }, []);
+  }, [user?.token]);
 
   if (loading) return <div className="text-sm text-muted-foreground">Loading KPIs…</div>;
   if (err) return <div className="text-sm text-red-500">Error: {err}</div>;

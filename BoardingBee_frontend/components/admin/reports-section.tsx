@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/context/authContext";
 import { apiGet, API_BASE } from "@/lib/api";
 import { getToken } from "@/lib/auth";
 import type { ActivitySeriesPoint } from "@/types/admin";
@@ -19,6 +20,7 @@ import {
 } from 'recharts';
 
 export function ReportsSection() {
+  const { user } = useAuth();
   const [rows, setRows] = useState<ActivitySeriesPoint[]>([]);
   const [allRows, setAllRows] = useState<ActivitySeriesPoint[]>([]); // keep unfiltered copy
   const [loading, setLoading] = useState(true);
@@ -49,7 +51,7 @@ export function ReportsSection() {
       try {
         // Always use authenticated endpoint for monthly activity
         const monthlyEnt = 'reviews';
-        const monthly = await apiGet<{ label: string; year: number; month: number; count: number }[]>(`/api/admin/reports/activity/monthly?months=6&entity=${encodeURIComponent(monthlyEnt)}`);
+        const monthly = await apiGet<{ label: string; year: number; month: number; count: number }[]>(`/api/admin/reports/activity/monthly?months=6&entity=${encodeURIComponent(monthlyEnt)}`, user?.token);
         if (!alive) return;
         if (monthly && monthly.length > 0) {
           setMonthlyData(monthly);
@@ -64,7 +66,7 @@ export function ReportsSection() {
           const months = 6;
           const fetchMonthlyFor = async (entity: string): Promise<MonthlyItem[]> => {
             try {
-              return await apiGet<{ label: string; year: number; month: number; count: number }[]>(`/api/admin/reports/activity/monthly?months=${months}&entity=${encodeURIComponent(entity)}`) || [];
+              return await apiGet<{ label: string; year: number; month: number; count: number }[]>(`/api/admin/reports/activity/monthly?months=${months}&entity=${encodeURIComponent(entity)}`, user?.token) || [];
             } catch (e) {
               return [] as any;
             }
@@ -105,7 +107,7 @@ export function ReportsSection() {
       }
     })();
     return () => { alive = false; };
-  }, [reportType]);
+  }, [reportType, user?.token]);
 
   // Always render the UI; show non-blocking error/status messages above the controls
   if (loading) return <div className="text-sm text-muted-foreground">Loading report…</div>;
@@ -146,8 +148,8 @@ export function ReportsSection() {
     const url = `${API_BASE}${path}`;
     console.log('Downloading CSV from', url);
     
-    // Trigger file download
-    const token = getToken();
+  // Trigger file download
+  const token = user?.token;
     const tryUrl = async (u: string, headers?: Record<string,string>) => {
       const r = await fetch(u, { method: 'GET', headers: { ...(headers || {}) } });
       if (!r.ok) {
@@ -189,7 +191,7 @@ export function ReportsSection() {
     try {
       const monthlyEnt = 'reviews';
       // Authenticated fetch for monthly data
-      const mJson = await apiGet<{ label: string; year: number; month: number; count: number }[]>(`/api/admin/reports/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=${encodeURIComponent(monthlyEnt)}`);
+      const mJson = await apiGet<{ label: string; year: number; month: number; count: number }[]>(`/api/admin/reports/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=${encodeURIComponent(monthlyEnt)}`, user?.token);
       if (mJson && mJson.length > 0) {
         setMonthlyData(mJson);
         const s = (mJson as any[]).map(x => ({ d: new Date(`${x.year}-${String(x.month).padStart(2,'0')}-15`).toISOString(), kind: ('ReviewCreate' as any), count: x.count })) as ActivitySeriesPoint[];
@@ -201,7 +203,7 @@ export function ReportsSection() {
           const fetchMonthlyFor = async (entity: string): Promise<MonthlyItem[]> => {
             try {
               // Always get last 6 months for Growth Trends, not filtered by selected month
-              return await apiGet<{ label: string; year: number; month: number; count: number }[]>(`/api/admin/reports/activity/monthly?months=6&entity=${encodeURIComponent(entity)}`) || [];
+              return await apiGet<{ label: string; year: number; month: number; count: number }[]>(`/api/admin/reports/activity/monthly?months=6&entity=${encodeURIComponent(entity)}`, user?.token) || [];
             } catch (e) {
               return [] as any;
             }
@@ -238,7 +240,7 @@ export function ReportsSection() {
     const from = new Date(Date.now() - 1000*60*60*24*days);
     try {
       const monthlyEnt = 'reviews';
-      const mJson = await apiGet<{ label: string; year: number; month: number; count: number }[]>(`/api/admin/reports/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=${encodeURIComponent(monthlyEnt)}`);
+      const mJson = await apiGet<{ label: string; year: number; month: number; count: number }[]>(`/api/admin/reports/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=${encodeURIComponent(monthlyEnt)}`, user?.token);
       if (mJson && mJson.length > 0) {
         setMonthlyData(mJson);
         const s = (mJson as any[]).map(x => ({ d: new Date(`${x.year}-${String(x.month).padStart(2,'0')}-15`).toISOString(), kind: ('ReviewCreate' as any), count: x.count })) as ActivitySeriesPoint[];
@@ -248,7 +250,7 @@ export function ReportsSection() {
         if (reportType === 'Overview') {
           const fetchMonthlyFor = async (entity: string): Promise<MonthlyItem[]> => {
             try {
-              return await apiGet<{ label: string; year: number; month: number; count: number }[]>(`/api/admin/reports/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=${encodeURIComponent(entity)}`) || [];
+              return await apiGet<{ label: string; year: number; month: number; count: number }[]>(`/api/admin/reports/activity/monthly?from=${encodeURIComponent(from.toISOString())}&to=${encodeURIComponent(to.toISOString())}&entity=${encodeURIComponent(entity)}`, user?.token) || [];
             } catch (e) {
               return [] as any;
             }
