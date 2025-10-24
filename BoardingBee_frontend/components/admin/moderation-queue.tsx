@@ -35,10 +35,19 @@ export function ModerationQueue() {
   const pageSize = 10;
 
   const loadList = async (tab: "pending"|"approved"|"rejected") => {
+    if (!user?.token) {
+      // Wait for user to be available before making API calls
+      setLoading(false);
+      setErr("User not authenticated. Please log in.");
+      return;
+    }
     setLoading(true);
+    // Debug log for user and token
+    console.log('[ModerationQueue] user:', user);
+    console.log('[ModerationQueue] user?.token:', user?.token);
     try {
       const url = `/api/admin/listings/${tab}?page=${page}&pageSize=${pageSize}`;
-      const data = await apiGet<AdminPendingResponse>(url, user?.token);
+      const data = await apiGet<AdminPendingResponse>(url, user.token);
       setItems(data.items);
       setTotal(data.total);
       setTotals(t => ({ ...t, [tab]: data.total }));
@@ -50,14 +59,21 @@ export function ModerationQueue() {
     }
   };
 
-  useEffect(() => { loadList(activeTab); /* eslint-disable-next-line */ }, [page, activeTab]);
+  useEffect(() => {
+    if (user?.token) {
+      loadList(activeTab);
+    }
+    // Only call loadList when user.token is available
+    // eslint-disable-next-line
+  }, [page, activeTab, user?.token]);
 
   // load totals for all tabs on mount so labels show counts
   const loadCounts = async () => {
+    if (!user?.token) return;
     try {
-      const p = await apiGet<AdminPendingResponse>(`/api/admin/listings/pending?page=1&pageSize=1`, user?.token);
-      const a = await apiGet<AdminPendingResponse>(`/api/admin/listings/approved?page=1&pageSize=1`, user?.token);
-      const r = await apiGet<AdminPendingResponse>(`/api/admin/listings/rejected?page=1&pageSize=1`, user?.token);
+      const p = await apiGet<AdminPendingResponse>(`/api/admin/listings/pending?page=1&pageSize=1`, user.token);
+      const a = await apiGet<AdminPendingResponse>(`/api/admin/listings/approved?page=1&pageSize=1`, user.token);
+      const r = await apiGet<AdminPendingResponse>(`/api/admin/listings/rejected?page=1&pageSize=1`, user.token);
       setTotals({ pending: p.total, approved: a.total, rejected: r.total });
     } catch (e) {
       // ignore count errors — UI will still work
@@ -65,8 +81,10 @@ export function ModerationQueue() {
   };
 
   useEffect(() => {
-    loadCounts();
-  }, []);
+    if (user?.token) {
+      loadCounts();
+    }
+  }, [user?.token]);
 
   const changeTab = (tab: "pending"|"approved"|"rejected") => {
     // reset paging when user switches tab

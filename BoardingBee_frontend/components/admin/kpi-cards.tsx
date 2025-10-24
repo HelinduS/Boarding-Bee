@@ -14,8 +14,9 @@ export function KPICards() {
 
   const { user } = useAuth();
   useEffect(() => {
+    if (!user?.token) return;
     let alive = true;
-    apiGet<Kpis>("/api/admin/reports/kpis", user?.token)
+    apiGet<Kpis>("/api/admin/reports/kpis", user.token)
       .then(d => { if (alive) { setData(d); setLoading(false); } })
       .catch(e => { if (alive) { setErr(e.message); setLoading(false); } });
     return () => { alive = false; };
