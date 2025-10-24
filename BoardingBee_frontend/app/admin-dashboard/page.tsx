@@ -29,7 +29,6 @@ export default function AdminDashboard() {
             <TabsTrigger
               value="moderation"
               className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors duration-150 rounded-lg hover:bg-indigo-50 hover:text-indigo-700 data-[state=active]:bg-indigo-600 data-[state=active]:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
-              
             >
               <ListChecks className="h-4 w-4" />
               Moderation
@@ -45,7 +44,7 @@ export default function AdminDashboard() {
 
             <TabsTrigger
               value="users"
-              className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-muted-foreground transition hover:bg-muted/70 rounded-lg data-[state=active]:bg-white data-[state=active]:text-foreground focus-visible:outline-none"
+              className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors duration-150 rounded-lg hover:bg-indigo-50 hover:text-indigo-700 data-[state=active]:bg-indigo-600 data-[state=active]:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300"
             >
               <Shield className="h-4 w-4" />
               Users

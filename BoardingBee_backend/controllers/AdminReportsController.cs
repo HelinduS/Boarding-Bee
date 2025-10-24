@@ -359,71 +359,7 @@ namespace BoardingBee_backend.Controllers
 
         // ==================== Activity: Monthly ====================
         // GET: /api/admin/reports/activity/monthly
-        [HttpGet("activity/monthly")]
-        public async Task<ActionResult<IEnumerable<MonthlyCountDto>>> GetMonthly(
-            [FromQuery] string? entity,
-            [FromQuery] DateTime? from,
-            [FromQuery] DateTime? to,
-            [FromQuery] int? months)
-        {
-            var ent = NormalizeEntity(entity);
-            var (f, t) = ResolveRange(from, to, null);
-            var monthsBack = months.HasValue && months.Value > 0 ? months.Value : 6;
-
-            List<(int Year, int Month, int Count)> grouped;
-
-            if (ent == "users")
-            {
-                grouped = await _db.Users
-                    .Where(u => u.CreatedAt >= f && u.CreatedAt <= t)
-                    .GroupBy(u => new { u.CreatedAt.Year, u.CreatedAt.Month })
-                    .Select(g => new ValueTuple<int, int, int>(g.Key.Year, g.Key.Month, g.Count()))
-                    .ToListAsync();
-            }
-            else if (ent == "listings")
-            {
-                grouped = await _db.Listings
-                    .Where(l => l.CreatedAt >= f && l.CreatedAt <= t)
-                    .GroupBy(l => new { l.CreatedAt.Year, l.CreatedAt.Month })
-                    .Select(g => new ValueTuple<int, int, int>(g.Key.Year, g.Key.Month, g.Count()))
-                    .ToListAsync();
-            }
-            else if (ent == "reviews")
-            {
-                grouped = await _db.Reviews
-                    .Where(r => r.CreatedAt >= f && r.CreatedAt <= t)
-                    .GroupBy(r => new { r.CreatedAt.Year, r.CreatedAt.Month })
-                    .Select(g => new ValueTuple<int, int, int>(g.Key.Year, g.Key.Month, g.Count()))
-                    .ToListAsync();
-            }
-            else if (ent == "revenue")
-            {
-                // Not implemented yet
-                grouped = new List<(int Year, int Month, int Count)>();
-            }
-            else // activity
-            {
-                grouped = await _db.ActivityLogs
-                    .Where(a => a.At >= f && a.At <= t)
-                    .GroupBy(a => new { a.At.Year, a.At.Month })
-                    .Select(g => new ValueTuple<int, int, int>(g.Key.Year, g.Key.Month, g.Count()))
-                    .ToListAsync();
-            }
-
-            var map = grouped.ToDictionary(x => (x.Item1, x.Item2), x => x.Item3);
-
-            var filled = LastNMonths(t, monthsBack)
-                .Select(tuple => new MonthlyCountDto
-                {
-                    Year  = tuple.Year,
-                    Month = tuple.Month,
-                    Label = MonthLabel(tuple.Month),
-                    Count = map.GetValueOrDefault((tuple.Year, tuple.Month), 0)
-                })
-                .ToList();
-
-            return Ok(filled);
-        }
+        // Removed duplicate/ambiguous GetMonthly endpoint. Only ActivityMonthly remains for /activity/monthly.
 
         // ==================== Export CSV ====================
         // GET: /api/admin/reports/export/csv
