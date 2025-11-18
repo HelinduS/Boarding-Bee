@@ -101,7 +101,7 @@ export default function RegisterOwnerPage() {
             ) : error}
           </Alert>
         )}
-        {success && <Alert className="mb-4">{success}</Alert>}
+        {success && <Alert className="mb-4"><div>{success}</div></Alert>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input name="username" placeholder="Username" value={form.username} onChange={handleChange} />
           <div className="flex gap-2">
