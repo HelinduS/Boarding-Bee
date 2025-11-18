@@ -44,16 +44,28 @@ export default function Header() {
               </button>
             )}
 
+
             {isAuthenticated && (
-              <button
-                onClick={() => {
-                  if (isOwner) router.push("/create-listing");
-                  else router.push("/register-owner");
-                }}
-                className="bg-indigo-100 text-indigo-800 px-3 py-1.5 rounded-lg shadow hover:bg-indigo-200 transition-all"
-              >
-                Create Listing
-              </button>
+              <>
+                <button
+                  onClick={() => {
+                    if (isOwner) router.push("/create-listing");
+                    else router.push("/register-owner");
+                  }}
+                  className="bg-indigo-100 text-indigo-800 px-3 py-1.5 rounded-lg shadow hover:bg-indigo-200 transition-all"
+                >
+                  Create Listing
+                </button>
+                {/* Show Profile button for simple users only */}
+                {user?.role?.toLowerCase?.() === "user" && !isOwner && (
+                  <button
+                    onClick={() => router.push("/user-profile")}
+                    className="bg-indigo-100 text-indigo-800 px-3 py-1.5 rounded-lg shadow hover:bg-indigo-200 transition-all"
+                  >
+                    Profile
+                  </button>
+                )}
+              </>
             )}
 
             {isAuthenticated ? (
