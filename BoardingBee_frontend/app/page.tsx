@@ -147,7 +147,7 @@ export default function Home() {
   };
 
   return (
-  <div className="min-h-screen flex bg-gradient-to-br from-purple-200 to-blue-200 relative overflow-hidden overflow-y-auto scroll-py-0 px-2 sm:px-0">
+  <div className="min-h-screen flex bg-gradient-to-br from-purple-200 to-blue-200 relative overflow-hidden overflow-y-auto scroll-py-0">
       <div className="pointer-events-none absolute inset-0 opacity-20 [background:radial-gradient(circle_at_1px_1px,_#ffffff_1px,_transparent_1px)] [background-size:16px_16px]" />
       <div className="absolute inset-0 backdrop-blur-xl bg-white/50" />
 
@@ -343,7 +343,7 @@ export default function Home() {
               <p className="text-gray-700 max-w-md">{fetchError}</p>
             </div>
           ) : filteredListings.length > 0 ? (
-            <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-6 sm:gap-8 min-h-[300px]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 gap-8 min-h-[300px]">
               {filteredListings.map((l) => (
                 <ListingCard
                   key={l.id}

@@ -26,8 +26,8 @@ export default function AdminDashboard() {
   }
 
   return (
-  <div className="min-h-screen bg-background px-2 sm:px-0">
-  <main className="container mx-auto px-2 sm:px-4 py-8">
+    <div className="min-h-screen bg-background">
+      <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground mb-2">Admin Dashboard</h1>
           <p className="text-muted-foreground">Manage listings, monitor activity, and view reports</p>

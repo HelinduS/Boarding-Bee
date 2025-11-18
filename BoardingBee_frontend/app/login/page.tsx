@@ -105,7 +105,7 @@ export default function LoginPage() {
   }
 
   return (
-  <div className="min-h-screen flex flex-col bg-gradient-to-br from-purple-200 to-blue-200 relative pt-8 sm:pt-16 px-2 sm:px-0">
+    <div className="min-h-screen flex bg-gradient-to-br from-purple-200 to-blue-200 relative pt-16">
       {/* Glass effect overlay */}
       <div className="absolute inset-0 backdrop-blur-xl bg-white/50" />
 
@@ -125,7 +125,7 @@ export default function LoginPage() {
 
       <div className="relative flex w-full max-w-7xl mx-auto overflow-hidden rounded-3xl m-4 border border-white/30 shadow-2xl bg-white/20 backdrop-blur-xl">
         {/* Left side - Login Form */}
-  <div className="flex w-full items-center justify-center p-4 sm:p-8 md:p-12 md:w-1/2">
+        <div className="flex w-full items-center justify-center p-12 md:w-1/2">
           <div className="w-full max-w-md">
             <div className="mb-8 text-center">
               <h1 className="text-3xl font-bold text-blue-600 mb-4">Boarding Bee</h1>
@@ -188,7 +188,7 @@ export default function LoginPage() {
               </div>
 
               {/* Buttons */}
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+              <div className="flex space-x-4">
                 <Button
                   type="submit"
                   className="flex-1 h-12 rounded-lg bg-blue-600 text-white 
