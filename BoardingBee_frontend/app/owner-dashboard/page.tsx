@@ -224,12 +224,12 @@ function OwnerDashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+  <div className="min-h-screen bg-background px-2 sm:px-0">
       {/* Header with Owner Data and Stats Side by Side */}
-      <div className="container mx-auto px-6 pt-8">
-        <div className="flex flex-col md:flex-row gap-6">
+  <div className="container mx-auto px-2 sm:px-6 pt-8">
+  <div className="flex flex-col md:flex-row gap-4 md:gap-6">
           {/* Owner Data Card */}
-          <div className="flex-1 rounded-2xl shadow-lg bg-gradient-to-r from-indigo-100 via-purple-200 to-indigo-200 text-indigo-900 p-10 flex flex-col justify-between min-h-[340px]">
+          <div className="flex-1 rounded-2xl shadow-lg bg-gradient-to-r from-indigo-100 via-purple-200 to-indigo-200 text-indigo-900 p-4 sm:p-8 flex flex-col justify-between min-h-[340px]">
             <div className="flex flex-col h-full justify-between gap-12">
               <div className="flex items-center gap-10">
                 <Avatar className="h-28 w-28 border-4 border-purple-200">
@@ -265,7 +265,7 @@ function OwnerDashboardPage() {
             </div>
           </div>
           {/* Combined Stats Card - Improved UI, no bg color */}
-          <div className="flex-1 rounded-2xl border border-slate-200 shadow-xl p-8 flex flex-col justify-center">
+          <div className="flex-1 rounded-2xl border border-slate-200 shadow-xl p-4 sm:p-8 flex flex-col justify-center">
             <h2 className="text-xl font-bold text-purple-900 mb-6 tracking-tight text-center">Listing Summary</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {/* Stat Block */}
@@ -519,7 +519,7 @@ function DashboardSkeleton() {
         </div>
       </div>
 
-      <div className="container mx-auto px-6 py-8">
+  <div className="container mx-auto px-2 sm:px-6 py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           {Array.from({ length: 4 }).map((_, i) => (
             <Card key={i}>
