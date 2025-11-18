@@ -109,7 +109,11 @@ export default function CreateListingPage() {
           </ul>
         </Alert>
       )}
-      {success && <Alert className="mb-4">{success}</Alert>}
+      {success && (
+        <Alert className="mb-4">
+          <div>{success}</div>
+        </Alert>
+      )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="title" className="block font-medium mb-1">Title</label>
