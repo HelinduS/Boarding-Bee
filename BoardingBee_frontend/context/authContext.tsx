@@ -31,7 +31,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    console.debug("[AuthContext] User state changed:", user);
   }, [user]);
 
   const login = (user: AuthUser) => {
@@ -42,7 +41,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
   setUser(null);
   localStorage.removeItem("authUser");
-  console.debug("[AuthContext] User after logout:", user, "localStorage:", localStorage.getItem("authUser"));
   router.push("/login");
   };
 
