@@ -4,10 +4,7 @@
 <p align="center">
   <img src="https://github.com/HelinduS/Boarding-Bee/blob/main/Boarding%20Bee.png?raw=true" width="720" alt="Japanese Village VR Preview">
 </p>
-<p align="center">
-  <strong>An immersive VR-like interactive environment built with Unity</strong><br>
-  Explore a stylized Japanese village and restore the sacred Festival of Eternal Light
-</p>
+
 A web platform for students and professionals in Sri Lanka to **find, review, and manage boarding/annex accommodations**.  
 Boarding owners can post and maintain listings, tenants can search and review, and admins oversee the platform for trust and safety.
 
