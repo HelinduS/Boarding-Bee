@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ArrowLeft, MapPin, Phone, Mail, Wifi, Car, Utensils, Shirt, Star, Calendar as CalendarIcon } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { fetchListing } from "@/lib/listingsApi";
+import { resolveImageUrl, resolveImageUrls } from "@/lib/imageUtils";
 import { useAuth } from "@/context/authContext"
 import ReviewsSection from "@/components/ui/ReviewsSection";
 import { Calendar } from "@/components/ui/calendar"
@@ -182,11 +183,11 @@ export default function ListingDetails() {
             <div className="mb-8">
               <div className="flex flex-col items-center gap-4">
                 <div className="w-full max-w-3xl mx-auto cursor-zoom-in" onClick={() => {
-                  setLightboxImg(listing.images?.[0] || "https://boardingbee.blob.core.windows.net/images/boarding.jpeg");
+                  setLightboxImg(resolveImageUrl(listing.images?.[0], "/placeholder.jpg"));
                   setLightboxOpen(true);
                 }}>
                   <img
-                    src={listing.images?.[0] || "https://boardingbee.blob.core.windows.net/images/boarding.jpeg"}
+                    src={resolveImageUrl(listing.images?.[0], "/placeholder.jpg")}
                     alt={listing.title}
                     className="w-full h-[34rem] object-cover rounded-2xl shadow-lg border border-slate-200 transition hover:brightness-90"
                   />
@@ -197,12 +198,12 @@ export default function ListingDetails() {
                       key={image}
                       className="cursor-zoom-in"
                       onClick={() => {
-                        setLightboxImg(image || "https://boardingbee.blob.core.windows.net/images/boarding.jpeg");
+                        setLightboxImg(resolveImageUrl(image, "/placeholder.jpg"));
                         setLightboxOpen(true);
                       }}
                     >
                       <img
-                        src={image || "https://boardingbee.blob.core.windows.net/images/boarding.jpeg"}
+                        src={resolveImageUrl(image, "/placeholder.jpg")}
                         alt={listing.title}
                         className="w-full h-40 object-cover rounded-2xl shadow border border-slate-100 transition hover:brightness-90"
                       />

@@ -16,6 +16,7 @@ namespace BoardingBee_backend.Models
 
 
         public DbSet<Listing> Listings => Set<Listing>();
+        public DbSet<ListingImage> ListingImages => Set<ListingImage>();
         public DbSet<Appointment> Appointments => Set<Appointment>();
 
         // NEW: reviews table
@@ -78,6 +79,12 @@ namespace BoardingBee_backend.Models
                 .Property(l => l.Price)
                 .HasPrecision(18, 2);
 
+            // ListingImage-Listing relationship: One Listing has many Images
+            modelBuilder.Entity<ListingImage>()
+                .HasOne(img => img.Listing)
+                .WithMany(l => l.Images)
+                .HasForeignKey(img => img.ListingId)
+                .OnDelete(DeleteBehavior.Cascade);
                 
                 
         }

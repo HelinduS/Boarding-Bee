@@ -16,7 +16,7 @@ namespace BoardingBee_backend.Controllers.Dto
         public string UserType { get; set; } = "";
         public string InstitutionCompany { get; set; } = "";
         public string Location { get; set; } = "";
-        public string ProfileImage { get; set; } = "";
+        public string? ProfileImage { get; set; }  // URL endpoint to retrieve image
 
         // Notification & privacy settings
         public bool EmailNotifications { get; set; }

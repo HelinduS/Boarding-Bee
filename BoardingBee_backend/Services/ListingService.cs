@@ -24,22 +24,22 @@ namespace BoardingBee_backend.Services
         public async Task<(bool Success, string Message, int? ListingId)> CreateListingAsync(int ownerId, string title, string location, decimal price, string description, string facilities, bool isAvailable, IFormFileCollection images)
         {
             var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
-            var imageUrls = new List<string>();
-                // Azure Blob Storage upload
-                var connectionString = Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING");
-                var containerName = "images";
-                var blobServiceClient = new Azure.Storage.Blobs.BlobServiceClient(connectionString);
-                var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-                await containerClient.CreateIfNotExistsAsync();
-                foreach (var file in images)
+            var listingImages = new List<ListingImage>();
+            
+            // Process images and store as binary data
+            foreach (var img in images)
+            {
+                var ext = Path.GetExtension(img.FileName).ToLowerInvariant();
+                if (!allowedExtensions.Contains(ext))
+                    return (false, $"Invalid file type: {ext}", null);
+                
+                using var memoryStream = new MemoryStream();
+                await img.CopyToAsync(memoryStream);
+                listingImages.Add(new ListingImage
                 {
-                    var fileName = $"l{ownerId}_{Guid.NewGuid():N}{Path.GetExtension(file.FileName)}";
-                    var blobClient = containerClient.GetBlobClient(fileName);
-                    using (var stream = file.OpenReadStream())
-                    {
-                        await blobClient.UploadAsync(stream, overwrite: true);
-                    }
-                    imageUrls.Add(blobClient.Uri.ToString());
+                    ImageData = memoryStream.ToArray(),
+                    ContentType = img.ContentType
+                });
             }
             var listing = new Listing
             {
@@ -49,8 +49,7 @@ namespace BoardingBee_backend.Services
                 Description = description,
                 Facilities = facilities,
                 IsAvailable = isAvailable,
-                ImagesCsv = string.Join(",", imageUrls),
-                ThumbnailUrl = imageUrls.FirstOrDefault(),
+                Images = listingImages,
                 OwnerId = ownerId,
                 Status = ListingStatus.Pending,
                 ExpiresAt = DateTime.UtcNow.AddMonths(6),

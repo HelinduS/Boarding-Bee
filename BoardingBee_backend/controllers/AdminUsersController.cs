@@ -45,7 +45,7 @@ namespace BoardingBee_backend.Controllers
                     name,
                     email = u.Email,
                     phone = u.PhoneNumber,
-                    profileImage = u.ProfileImageUrl,
+                    profileImage = u.ProfileImage != null ? $"/api/users/{u.Id}/profile-image" : null,
                     totalListings = lc,
                     totalReviews = rc,
                     role = u.Role

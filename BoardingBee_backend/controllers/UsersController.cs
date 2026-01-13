@@ -28,6 +28,16 @@ namespace BoardingBee_backend.Controllers
             return Ok(users);
         }
 
+        // Returns profile image for a user
+        [HttpGet("{userId}/profile-image")]
+        public async Task<IActionResult> GetProfileImage(int userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null || user.ProfileImage == null)
+                return NotFound();
+            return File(user.ProfileImage, "image/jpeg"); // Default to JPEG, could store content type
+        }
+
         // Returns a user by ID.
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUser(int id)
@@ -108,19 +118,10 @@ namespace BoardingBee_backend.Controllers
             if (user == null) return NotFound();
             if (file == null || file.Length == 0) return BadRequest("No file uploaded");
 
-            // Azure Blob Storage upload
-            var connectionString = Environment.GetEnvironmentVariable("AZURE_STORAGE_CONNECTION_STRING");
-            var containerName = "images";
-            var blobServiceClient = new Azure.Storage.Blobs.BlobServiceClient(connectionString);
-            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-            await containerClient.CreateIfNotExistsAsync();
-            var fileName = $"u{userId}_{Guid.NewGuid():N}{Path.GetExtension(file.FileName)}";
-            var blobClient = containerClient.GetBlobClient(fileName);
-            using (var stream = file.OpenReadStream())
-            {
-                await blobClient.UploadAsync(stream, overwrite: true);
-            }
-            user.ProfileImageUrl = blobClient.Uri.ToString();
+            // Save image as binary data in database
+            using var memoryStream = new MemoryStream();
+            await file.CopyToAsync(memoryStream);
+            user.ProfileImage = memoryStream.ToArray();
             await _context.SaveChangesAsync();
             return Ok(ToProfileResponse(user));
         }
@@ -141,7 +142,7 @@ namespace BoardingBee_backend.Controllers
                 UserType = user.UserType,
                 InstitutionCompany = user.InstitutionCompany,
                 Location = user.Location,
-                ProfileImage = user.ProfileImageUrl,
+                ProfileImage = user.ProfileImage != null ? $"/api/users/{user.Id}/profile-image" : null,
                 EmailNotifications = s.EmailNotifications,
                 SmsNotifications = s.SmsNotifications,
                 ProfileVisibility = s.ProfileVisibility,

@@ -45,6 +45,19 @@ namespace BoardingBee_backend.Controllers
             return int.TryParse(idStr, out var id) ? id : (int?)null;
         }
 
+        // ----------------- Image Retrieval -----------------
+
+        // GET: api/listings/{listingId}/images/{imageId}
+        [HttpGet("{listingId}/images/{imageId}")]
+        public async Task<IActionResult> GetListingImage(int listingId, int imageId)
+        {
+            var image = await _context.Set<ListingImage>()
+                .FirstOrDefaultAsync(img => img.Id == imageId && img.ListingId == listingId);
+            if (image == null)
+                return NotFound();
+            return File(image.ImageData, image.ContentType ?? "image/jpeg");
+        }
+
         // ----------------- Create (multipart/form-data) -----------------
 
         // POST: api/Listings  (OWNER only)
@@ -107,8 +120,6 @@ namespace BoardingBee_backend.Controllers
                 Facilities = req.Facilities,
                 IsAvailable = string.Equals(req.Availability, "Available", StringComparison.OrdinalIgnoreCase),
                 AmenitiesCsv = (req.Amenities is { Length: > 0 }) ? string.Join(",", req.Amenities) : null,
-                ImagesCsv = (req.Images is { Length: > 0 }) ? string.Join(",", req.Images) : null,
-                ThumbnailUrl = req.Images?.FirstOrDefault(),
                 OwnerId = ownerId,
                 Status = ListingStatus.Pending,
                 ExpiresAt = DateTime.UtcNow.AddMonths(6),
@@ -158,7 +169,7 @@ namespace BoardingBee_backend.Controllers
                     dto.OwnerName = string.IsNullOrWhiteSpace(user.FirstName) && string.IsNullOrWhiteSpace(user.LastName)
                         ? user.Username
                         : $"{user.FirstName} {user.LastName}".Trim();
-                    dto.OwnerAvatar = string.IsNullOrWhiteSpace(user.ProfileImageUrl) ? dto.OwnerAvatar : user.ProfileImageUrl;
+                    dto.OwnerAvatar = user.ProfileImage != null ? $"/api/users/{user.Id}/profile-image" : dto.OwnerAvatar;
                     // prefer listing contact email if present, otherwise user's email
                     if (string.IsNullOrWhiteSpace(dto.ContactEmail) && !string.IsNullOrWhiteSpace(user.Email))
                         dto.ContactEmail = user.Email;
@@ -217,8 +228,6 @@ namespace BoardingBee_backend.Controllers
                     l.ContactPhone = req.ContactPhone;
                     l.ContactEmail = req.ContactEmail;
                     l.AmenitiesCsv = (req.Amenities is { Length: > 0 }) ? string.Join(",", req.Amenities) : l.AmenitiesCsv;
-                    l.ImagesCsv = (req.Images is { Length: > 0 }) ? string.Join(",", req.Images) : l.ImagesCsv;
-                    l.ThumbnailUrl = req.Images?.FirstOrDefault() ?? l.ThumbnailUrl;
                     l.IsAvailable = string.Equals(req.Availability, "Available", StringComparison.OrdinalIgnoreCase);
                 });
                 if (!result.Success) return BadRequest(result.Message);

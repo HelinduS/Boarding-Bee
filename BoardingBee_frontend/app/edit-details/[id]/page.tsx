@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Save, Loader2, X } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { fetchListing, updateListing } from "@/lib/listingsApi";
+import { resolveImageUrl } from "@/lib/imageUtils";
 import { useAuth } from "@/context/authContext";
 
 
@@ -286,7 +287,7 @@ export default function EditListing() {
                     {existingImages.filter(url => !removedImages.includes(url)).map((url, idx) => (
                       <div key={url + idx} className="relative group">
                         <img
-                          src={url}
+                          src={resolveImageUrl(url)}
                           alt={`Listing image ${idx + 1}`}
                           className="h-24 w-32 object-cover rounded border"
                           style={{ background: '#f3f3f3' }}

@@ -39,7 +39,6 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = jwtIssuer,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
         ClockSkew = TimeSpan.Zero,
-        //RoleClaimType = "role" // change to "roles" if your token uses that
     };
     options.RequireHttpsMetadata = false; // for local dev only
 });
@@ -49,7 +48,22 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 
 // DB connection (SQL Server). Set DB_CONNECTION_STRING env var.
 var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING");
-builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
+Console.WriteLine($"[DEBUG] DB_CONNECTION_STRING: {connectionString}");
+if (!string.IsNullOrEmpty(connectionString) && connectionString.Trim().ToLower().Contains("sqlite"))
+{
+    Console.WriteLine("[DEBUG] Using SQLite provider");
+    builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlite(connectionString));
+}
+else if (!string.IsNullOrEmpty(connectionString) && connectionString.Trim().ToLower().Contains("postgres"))
+{
+    Console.WriteLine("[DEBUG] Using PostgreSQL provider");
+    builder.Services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
+}
+else
+{
+    Console.WriteLine("[DEBUG] Using SQL Server provider");
+    builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
+}
 
 // CORS for Next.js dev
 builder.Services.AddCors(options =>

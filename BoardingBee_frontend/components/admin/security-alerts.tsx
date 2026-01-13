@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Phone, Mail, Home, Users } from "lucide-react";
 import { apiGet } from "@/lib/api";
 import { useAuth } from "@/context/authContext";
+import { resolveImageUrl } from "@/lib/imageUtils";
 import type { OwnerSummary, UserSummary, AdminUsersSummaryResponse } from "@/types/admin";
 
 type RawUser = {
@@ -18,10 +19,11 @@ type RawUser = {
 
 // Move Avatar out of parent component
 function Avatar({ url, name }: { readonly url?: string | null; readonly name: string }) {
+  const resolvedUrl = url ? resolveImageUrl(url) : null;
   return (
     <span className="inline-flex items-center">
-      {url ? (
-        <img src={url} alt={name} className="w-6 h-6 rounded-full mr-2" />
+      {resolvedUrl ? (
+        <img src={resolvedUrl} alt={name} className="w-6 h-6 rounded-full mr-2" />
       ) : (
         <span className="w-6 h-6 rounded-full bg-gray-300 flex items-center justify-center mr-2 text-xs font-bold">
           {name.charAt(0).toUpperCase()}

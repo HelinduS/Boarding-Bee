@@ -45,7 +45,7 @@ export default function ListingCard({
     >
       <div className="w-full overflow-hidden rounded-t-lg bg-gray-100">
         <img
-          src={thumbnailUrl || "https://boardingbee.blob.core.windows.net/images/boarding.jpeg"}
+          src={thumbnailUrl || "/placeholder.jpg"}
           alt={title}
           className="object-cover w-full h-40"
           loading="lazy"

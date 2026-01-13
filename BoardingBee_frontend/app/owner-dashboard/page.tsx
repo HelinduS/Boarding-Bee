@@ -21,6 +21,7 @@ import { ListingsTable } from "@/components/listings-table"
 import { EmptyState } from "@/components/empty-state"
 import { fetchCurrentUserData } from "@/lib/storeUserData"
 import { fetchCurrentOwnerListings } from "@/lib/storeListings"
+import { resolveImageUrl } from "@/lib/imageUtils"
 
 import { fetchOwnerAppointments, confirmAppointment, rejectAppointment } from "@/lib/appointmentsOwnerApi"
 import { toast } from "@/components/ui/use-toast"
@@ -233,7 +234,7 @@ function OwnerDashboardPage() {
             <div className="flex flex-col h-full justify-between gap-12">
               <div className="flex items-center gap-10">
                 <Avatar className="h-28 w-28 border-4 border-purple-200">
-                  <AvatarImage src={user?.profileImage || "/placeholder.jpg"} alt={user?.username ?? "User"} />
+                  <AvatarImage src={resolveImageUrl(user?.profileImage, "/placeholder.jpg")} alt={user?.username ?? "User"} />
                   <AvatarFallback className="bg-purple-200 text-purple-700 text-3xl">
                     {user?.firstName || user?.lastName
                       ? `${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`.toUpperCase() || user?.username?.[0] || "U"

@@ -3,6 +3,7 @@ using System;
 using BoardingBee_backend.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BoardingBee_backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260112200253_PostgresUpdate")]
+    partial class PostgresUpdate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -150,6 +153,9 @@ namespace BoardingBee_backend.Migrations
                     b.Property<string>("Facilities")
                         .HasColumnType("text");
 
+                    b.Property<string>("ImagesCsv")
+                        .HasColumnType("text");
+
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("boolean");
 
@@ -178,6 +184,9 @@ namespace BoardingBee_backend.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
+                    b.Property<string>("ThumbnailUrl")
+                        .HasColumnType("text");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text");
@@ -187,31 +196,6 @@ namespace BoardingBee_backend.Migrations
                     b.HasIndex("OwnerId");
 
                     b.ToTable("Listings");
-                });
-
-            modelBuilder.Entity("BoardingBee_backend.Models.ListingImage", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ContentType")
-                        .HasColumnType("text");
-
-                    b.Property<byte[]>("ImageData")
-                        .IsRequired()
-                        .HasColumnType("bytea");
-
-                    b.Property<int>("ListingId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ListingId");
-
-                    b.ToTable("ListingImages");
                 });
 
             modelBuilder.Entity("BoardingBee_backend.Models.Notification", b =>
@@ -455,8 +439,9 @@ namespace BoardingBee_backend.Migrations
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("text");
 
-                    b.Property<byte[]>("ProfileImage")
-                        .HasColumnType("bytea");
+                    b.Property<string>("ProfileImageUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("Role")
                         .IsRequired()
@@ -541,17 +526,6 @@ namespace BoardingBee_backend.Migrations
                     b.Navigation("Owner");
                 });
 
-            modelBuilder.Entity("BoardingBee_backend.Models.ListingImage", b =>
-                {
-                    b.HasOne("BoardingBee_backend.Models.Listing", "Listing")
-                        .WithMany("Images")
-                        .HasForeignKey("ListingId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Listing");
-                });
-
             modelBuilder.Entity("BoardingBee_backend.Models.Notification", b =>
                 {
                     b.HasOne("BoardingBee_backend.Models.User", "User")
@@ -613,11 +587,6 @@ namespace BoardingBee_backend.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("BoardingBee_backend.Models.Listing", b =>
-                {
-                    b.Navigation("Images");
                 });
 
             modelBuilder.Entity("BoardingBee_backend.Models.User", b =>

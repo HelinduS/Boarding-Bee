@@ -14,7 +14,8 @@ namespace BoardingBee_backend.Models
 
         [Required] public bool IsAvailable { get; set; } = true;
 
-        public string? ThumbnailUrl { get; set; }
+        // Navigation property for images
+        public ICollection<ListingImage> Images { get; set; } = new List<ListingImage>();
 
         // Aggregates for reviews
         public double? Rating { get; set; }          // average rating (0–5, can be null if no reviews)
@@ -35,7 +36,7 @@ namespace BoardingBee_backend.Models
         public string? ContactPhone { get; set; }
         public string? ContactEmail { get; set; }
         public string? AmenitiesCsv { get; set; }
-        public string? ImagesCsv { get; set; }
+        // ...existing code...
     }
 
     public enum ListingStatus { Pending, Approved, Expired, Rejected }

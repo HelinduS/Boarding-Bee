@@ -4,6 +4,7 @@ import { useAuth } from "@/context/authContext";
 import { apiGet, apiPost } from "@/lib/api";
 import { Check, X as XIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { resolveImageUrl } from "@/lib/imageUtils";
 import type { ListingDetail } from "@/types/admin";
 import {
   AlertDialog,
@@ -228,7 +229,7 @@ export function ModerationQueue() {
           items.map(l => (
             <div key={l.id} className="w-full rounded-xl border p-4 flex items-center gap-4 transition-shadow duration-150 hover:shadow-md hover:border-gray-200 dark:hover:border-slate-700 bg-white dark:bg-slate-900">
               <div className="w-28 h-20 bg-gray-100 rounded overflow-hidden flex-shrink-0">
-                <img src={l.imagesCsv ? l.imagesCsv.split(',')[0] : '/placeholder.svg'} alt={l.title} className="w-full h-full object-cover" />
+                <img src={l.imagesCsv ? resolveImageUrl(l.imagesCsv.split(',')[0]) : '/placeholder.svg'} alt={l.title} className="w-full h-full object-cover" />
               </div>
               <div className="flex-1">
                 <div className="flex items-start justify-between">
@@ -305,7 +306,7 @@ export function ModerationQueue() {
           {detailDialog.listing ? (
             <div className="space-y-6">
               <div className="w-full h-56 bg-gray-100 rounded-lg overflow-hidden">
-                <img src={detailDialog.listing.images && detailDialog.listing.images.length ? detailDialog.listing.images[0] : '/placeholder.svg'} alt={String(detailDialog.listing.title)} className="w-full h-full object-cover" />
+                <img src={detailDialog.listing.images && detailDialog.listing.images.length ? resolveImageUrl(detailDialog.listing.images[0]) : '/placeholder.svg'} alt={String(detailDialog.listing.title)} className="w-full h-full object-cover" />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

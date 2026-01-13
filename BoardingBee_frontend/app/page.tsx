@@ -6,6 +6,7 @@ import RecentReviews from "@/components/ui/RecentReviews";
 import ListingsLoadingSkeleton from "@/components/ListingsLoadingSkeleton";
 import { useRouter } from "next/navigation";
 import { fetchAllListings } from "@/lib/listingsApi";
+import { resolveImageUrl } from "@/lib/imageUtils";
 
 type Listing = {
   id: number;
@@ -53,7 +54,7 @@ export default function Home() {
             price: Number(l.price),
             availability,
             status: String(l.status || ""),
-            thumbnailUrl: images.length > 0 ? images[0] : "https://boardingbee.blob.core.windows.net/images/boarding.jpeg",
+            thumbnailUrl: resolveImageUrl(images[0], "/placeholder.jpg"),
             rating: typeof l.rating === "number" ? l.rating : null, // from backend DTO
             reviewCount: Number(l.reviewCount ?? 0),                 // from backend DTO
             description: l.description ?? null,

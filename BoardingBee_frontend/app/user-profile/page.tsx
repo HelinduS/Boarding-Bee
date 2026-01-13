@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { AlertTriangle, Bell, Eye, Mail, MessageSquare, Shield, Upload, User, Briefcase, Settings as SettingsIcon, Lock, CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
+import { resolveImageUrl } from "@/lib/imageUtils"
 
 interface UserData {
   firstName: string
@@ -270,7 +271,7 @@ export default function UserProfile() {
               <CardContent className="p-5">
                 <div className="flex flex-col items-center gap-2">
                   <Avatar className="h-14 w-14 border-2 border-white shadow">
-                    <AvatarImage src={userData.profileImage || "/placeholder.jpg"} />
+                    <AvatarImage src={resolveImageUrl(userData.profileImage, "/placeholder.jpg")} />
                   </Avatar>
                   {isEditing && (
                     <div className="mt-2 flex flex-col items-center gap-1">

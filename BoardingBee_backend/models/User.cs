@@ -20,7 +20,8 @@ namespace BoardingBee_backend.Models
         public string UserType { get; set; } = string.Empty;              // "student", "working-professional", "Job-Seeker", "Intern", "other"
         public string InstitutionCompany { get; set; } = string.Empty;
         public string Location { get; set; } = string.Empty;
-        public string ProfileImageUrl { get; set; } = string.Empty;       // where uploaded avatar is stored
+        // Profile image stored as binary data
+        public byte[]? ProfileImage { get; set; }
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
         public UserSettings? UserSettings { get; set; } // Navigation property
