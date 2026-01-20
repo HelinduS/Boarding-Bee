@@ -69,7 +69,7 @@ else
 var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',') ?? new[] {
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://boarding-hjna4k050-helindusenadheera-gmailcoms-projects.vercel.app"
+    "https://boarding-hjna4k050-helindusenadheera-gmailcoms-projects.vercel.app",
     "https://boarding-bee.vercel.app"
 };
 
