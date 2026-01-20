@@ -17,11 +17,11 @@ WORKDIR /app
 # Copy published output
 COPY --from=build /app/publish .
 
-# Expose port (Render uses PORT env variable)
-EXPOSE 8080
+# Expose port (Koyeb uses port 8000)
+EXPOSE 8000
 
 # Set environment variable for ASP.NET Core
-ENV ASPNETCORE_URLS=http://+:8080
+ENV ASPNETCORE_URLS=http://+:8000
 ENV ASPNETCORE_ENVIRONMENT=Production
 
 # Start the application
