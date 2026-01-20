@@ -65,16 +65,17 @@ else
     builder.Services.AddDbContext<AppDbContext>(options => options.UseSqlServer(connectionString));
 }
 
-// CORS for Next.js dev
+// CORS for Next.js (local dev + production)
+var allowedOrigins = Environment.GetEnvironmentVariable("ALLOWED_ORIGINS")?.Split(',') ?? new[] {
+    "http://localhost:3000",
+    "http://127.0.0.1:3000"
+};
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("NextJs", policy =>
     {
-        policy.WithOrigins(
-            "http://localhost:3000",
-            "http://127.0.0.1:3000",
-            "https://delightful-ground-0f0c8b400.3.azurestaticapps.net"
-        )
+        policy.WithOrigins(allowedOrigins)
         .AllowAnyHeader()
         .AllowAnyMethod();
     });

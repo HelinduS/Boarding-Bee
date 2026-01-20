@@ -1,0 +1,16 @@
+# Ignore build outputs
+bin/
+obj/
+publish/
+
+# Ignore local environment files
+.env
+*.local
+
+# Ignore IDE files
+.vs/
+.vscode/
+*.user
+
+# Ignore logs
+*.log
