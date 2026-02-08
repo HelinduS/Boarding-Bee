@@ -422,7 +422,6 @@ export default function Home() {
             <ListingsLoadingSkeleton />
           ) : fetchError ? (
             <div className="flex flex-col items-center justify-center text-center gap-3 bg-white/60 backdrop-blur p-10 rounded-2xl border border-red-200">
-              <div className="text-6xl">😢</div>
               <h3 className="text-xl font-semibold text-red-800">Failed to load listings</h3>
               <p className="text-gray-700 max-w-md">{fetchError}</p>
             </div>
