@@ -183,11 +183,11 @@ export default function ListingDetails() {
             <div className="mb-8">
               <div className="flex flex-col items-center gap-4">
                 <div className="w-full max-w-3xl mx-auto cursor-zoom-in" onClick={() => {
-                  setLightboxImg(resolveImageUrl(listing.images?.[0], "/placeholder.jpg"));
+                  setLightboxImg(resolveImageUrl(Array.isArray(listing.images) && listing.images.length > 0 ? listing.images[0] : undefined, "/placeholder.jpg"));
                   setLightboxOpen(true);
                 }}>
                   <img
-                    src={resolveImageUrl(listing.images?.[0], "/placeholder.jpg")}
+                    src={resolveImageUrl(Array.isArray(listing.images) && listing.images.length > 0 ? listing.images[0] : undefined, "/placeholder.jpg")}
                     alt={listing.title}
                     className="w-full h-[34rem] object-cover rounded-2xl shadow-lg border border-slate-200 transition hover:brightness-90"
                   />

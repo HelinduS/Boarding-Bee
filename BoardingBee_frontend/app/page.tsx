@@ -44,9 +44,9 @@ export default function Home() {
               ? "Available"
               : (String(l.availability || "").toLowerCase() === "occupied" ? "Occupied" : "Unavailable");
 
-          const images: string[] =
-            Array.isArray(l.images) ? l.images : [];
+          const images: string[] = Array.isArray(l.images) ? l.images : [];
 
+          // Always use the first listing image for thumbnail
           return {
             id: Number(l.id),
             title: l.title,
@@ -54,7 +54,7 @@ export default function Home() {
             price: Number(l.price),
             availability,
             status: String(l.status || ""),
-            thumbnailUrl: resolveImageUrl(images[0], "/placeholder.jpg"),
+            thumbnailUrl: resolveImageUrl(images.length > 0 ? images[0] : undefined, "/placeholder.jpg"),
             rating: typeof l.rating === "number" ? l.rating : null, // from backend DTO
             reviewCount: Number(l.reviewCount ?? 0),                 // from backend DTO
             description: l.description ?? null,
@@ -166,7 +166,90 @@ export default function Home() {
               Browse the latest listings and filter by your needs
             </p>
           </div>
+          {/* Hero Section */}
+          <section className="relative w-full overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600/90 to-blue-700/90 p-8 md:p-16 shadow-2xl border border-white/20">
+            {/* Decorative background elements */}
+            <div className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-yellow-400/20 blur-3xl" />
+            <div className="absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-blue-400/20 blur-3xl" />
 
+            <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-12">
+              <div className="flex-1 text-center lg:text-left">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-yellow-300 text-sm font-medium mb-6 backdrop-blur-md">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
+                  </span>
+                  New boardings added today
+                </div>
+
+                <h1 className="text-4xl md:text-6xl font-black text-white leading-tight mb-4 drop-shadow-sm">
+                  <span className="block text-yellow-400">Boarding Bee 🐝</span>
+                  <span className="block">Find Your <span className="text-yellow-300">Perfect Stay</span></span>
+                </h1>
+
+                <p className="text-lg md:text-xl text-blue-50 max-w-xl mb-6 leading-relaxed opacity-90">
+                  Sri Lanka's trusted platform for students and professionals. <span className="font-semibold text-yellow-200">Verified listings</span>, <span className="font-semibold text-yellow-200">authentic reviews</span>, and <span className="font-semibold text-yellow-200">secure bookings</span> — all in one place.
+                </p>
+
+                <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 mb-2">
+                  {/* Primary Action: Scroll to listings */}
+                  <button 
+                    onClick={() => document.getElementById('listings')?.scrollIntoView({ behavior: 'smooth' })}
+                    className="group flex items-center gap-2 bg-yellow-400 hover:bg-yellow-300 text-indigo-950 font-bold px-8 py-4 rounded-2xl shadow-xl transition-all hover:-translate-y-1 active:scale-95"
+                  >
+                    Explore Listings
+                    <svg className="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                  </button>
+
+                  {/* Secondary Action: Info */}
+                  <button
+                    onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
+                    className="px-8 py-4 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-semibold backdrop-blur-md border border-white/10 transition-all"
+                  >
+                    How it works
+                  </button>
+
+                  {/* Tertiary Action: Conversion for Hosts */}
+                  <button
+                    onClick={() => router.push('/create-listing')}
+                    className="px-8 py-4 rounded-2xl bg-indigo-500/40 hover:bg-indigo-500/60 text-white font-semibold backdrop-blur-md border border-indigo-400/30 transition-all shadow-lg"
+                  >
+                    Post a Listing
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-3 justify-center lg:justify-start mt-2">
+                  <span className="inline-flex items-center gap-1 text-green-200 text-sm font-semibold">
+                    <span className="text-lg">✓</span> 100% Secure & Verified
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-yellow-200 text-sm font-semibold">
+                    <span className="text-lg">★</span> Trusted by thousands
+                  </span>
+                </div>
+              </div>
+
+              {/* Right Side: Visual Element (Hidden on mobile or smaller screens) */}
+              <div className="hidden lg:flex flex-1 justify-end relative">
+                <div className="relative w-72 h-72 md:w-80 md:h-80 bg-white/10 rounded-[2.5rem] border border-white/20 backdrop-blur-3xl rotate-3 flex items-center justify-center overflow-hidden shadow-2xl">
+                  <div className="absolute inset-0 bg-gradient-to-tr from-yellow-400/20 to-transparent" />
+                  {/* Animated Bee/House Illustration */}
+                  <div className="text-8xl animate-bounce-slow">🐝</div>
+                  {/* Floating "Trust" Badge */}
+                  <div className="absolute bottom-6 -left-8 bg-white p-4 rounded-2xl shadow-2xl -rotate-6 animate-float">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 bg-green-100 rounded-full flex items-center justify-center text-green-600 font-bold">✓</div>
+                      <div>
+                        <p className="text-xs text-gray-500 font-medium">Verified</p>
+                        <p className="text-sm font-bold text-slate-800">100% Secure</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
           {/* Filter Bar */}
           <section className="sticky top-[88px] z-10 -mx-2 px-2">
             <div className="rounded-xl bg-white/80 backdrop-blur-xl border border-white/60 shadow-lg p-3 md:p-5">
@@ -189,7 +272,7 @@ export default function Home() {
                     />
                   </label>
 
-                  <div className="flex items-center gap-2 self-start md:self-auto">
+                  <div id="listings" className="flex items-center gap-2 self-start md:self-auto">
                     <span className="text-[11px] text-slate-600">Results</span>
                     <span className="px-2 py-0.5 rounded-full bg-slate-900 text-white text-[11px] font-semibold shadow-sm">
                       {filteredListings.length}/{listings.length}

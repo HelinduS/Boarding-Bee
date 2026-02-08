@@ -68,7 +68,9 @@ namespace BoardingBee_backend.Services
         // Browse listings with filters and pagination
         public async Task<(int Total, List<Listing> Listings)> BrowseListingsAsync(string? location, decimal? minPrice, decimal? maxPrice, int page = 1, int pageSize = 10)
         {
-            var query = _context.Listings.AsQueryable();
+            var query = _context.Listings
+                .Include(l => l.Images)
+                .AsQueryable();
             if (!string.IsNullOrWhiteSpace(location))
                 query = query.Where(l => l.Location.ToLower().Contains(location.ToLower()));
             if (minPrice.HasValue)
@@ -86,6 +88,7 @@ namespace BoardingBee_backend.Services
         {
             return await _context.Listings
                 .Include(l => l.Owner)
+                .Include(l => l.Images)
                 .FirstOrDefaultAsync(l => l.Id == id);
         }
 

@@ -1,9 +1,13 @@
 "use client"
+
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,18 +20,26 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Home, Plus, ChevronLeft, ChevronRight, AlertCircle, Building2 } from "lucide-react"
+import { 
+  Home, 
+  Plus, 
+  ChevronLeft, 
+  ChevronRight, 
+  AlertCircle, 
+  Building2, 
+  Calendar as CalendarIcon, 
+  Mail, 
+  Search,
+  Filter
+} from "lucide-react"
 import { ListingsTable } from "@/components/listings-table"
 import { EmptyState } from "@/components/empty-state"
 import { fetchCurrentUserData } from "@/lib/storeUserData"
 import { fetchCurrentOwnerListings } from "@/lib/storeListings"
 import { resolveImageUrl } from "@/lib/imageUtils"
-
 import { fetchOwnerAppointments, confirmAppointment, rejectAppointment } from "@/lib/appointmentsOwnerApi"
 import { toast } from "@/components/ui/use-toast"
-
 import type { Listing } from "@/types/listing.d";
-import { Calendar as CalendarIcon } from "lucide-react";
 
 type Appointment = {
   id: number;
@@ -38,50 +50,65 @@ type Appointment = {
   status: string;
 };
 
-
 function OwnerDashboardPage() {
   const router = useRouter()
   const [user, setUser] = useState<any>(null)
   const [listings, setListings] = useState<Listing[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; listingId: number | null }>({
-    open: false,
-    listingId: null,
-  })
-  const [renewDialog, setRenewDialog] = useState<{ open: boolean; listingId: number | null }>({
-    open: false,
-    listingId: null,
-  })
-
+  
+  // Dialog States
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; listingId: number | null }>({ open: false, listingId: null })
+  const [renewDialog, setRenewDialog] = useState<{ open: boolean; listingId: number | null }>({ open: false, listingId: null })
+  const [appointmentDialog, setAppointmentDialog] = useState<{ open: boolean; appointmentId: number | null; action: 'confirm' | 'reject' | null }>({ open: false, appointmentId: null, action: null });
+  
+  // Data States
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [appointmentsLoading, setAppointmentsLoading] = useState(true);
-  const [appointmentDialog, setAppointmentDialog] = useState<{ open: boolean; appointmentId: number | null; action: 'confirm' | 'reject' | null }>({ open: false, appointmentId: null, action: null });
   const [appointmentActionLoading, setAppointmentActionLoading] = useState(false);
+  
+  // UI States
   const [currentPage, setCurrentPage] = useState(1)
+  const [searchTerm, setSearchTerm] = useState("")
+  const [activeTab, setActiveTab] = useState("listings")
   const itemsPerPage = 10
 
-  // Fetch user, listings, and appointments for owner
+  // Fetch all data
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       setError(null);
       try {
-        // Get token from localStorage for downstream API calls
         const token = typeof window !== 'undefined' ? localStorage.getItem('token') : undefined;
+        
+        // 1. Fetch User
         const userData = await fetchCurrentUserData();
-        // Attach token to user object for downstream API usage
-        setUser({ ...userData, token });
+        const currentUser = { ...userData, token };
+        setUser(currentUser);
+
+        // 2. Fetch Listings
         const ownerListings: any = await fetchCurrentOwnerListings();
         let listingsArray: Listing[] = [];
         if (Array.isArray(ownerListings)) {
           listingsArray = ownerListings;
         } else if (ownerListings && Array.isArray(ownerListings.listings)) {
           listingsArray = ownerListings.listings;
-        } else {
-          listingsArray = [];
         }
         setListings(listingsArray);
+
+        // 3. Fetch Appointments (if user exists)
+        if (currentUser.token) {
+            setAppointmentsLoading(true);
+            try {
+                const appData = await fetchOwnerAppointments(currentUser.token);
+                setAppointments(appData);
+            } catch (e) {
+                console.error("Failed to fetch appointments", e);
+            } finally {
+                setAppointmentsLoading(false);
+            }
+        }
+
       } catch (err: any) {
         setError(err?.message || "Failed to fetch data");
       } finally {
@@ -91,50 +118,30 @@ function OwnerDashboardPage() {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    const fetchAppointments = async () => {
-      setAppointmentsLoading(true);
-      try {
-        const data = await fetchOwnerAppointments(user?.token);
-        setAppointments(data);
-      } catch (err: any) {
-        // Optionally handle error
-      } finally {
-        setAppointmentsLoading(false);
+  // Appointment Actions
+  const handleAppointmentAction = async () => {
+    if (!appointmentDialog.appointmentId || !appointmentDialog.action) return;
+    
+    setAppointmentActionLoading(true);
+    try {
+      if (appointmentDialog.action === 'confirm') {
+        await confirmAppointment(appointmentDialog.appointmentId, user?.token);
+        setAppointments((prev) => prev.map((a) => a.id === appointmentDialog.appointmentId ? { ...a, status: "confirmed" } : a));
+        toast({ title: "Confirmed", description: "Appointment confirmed successfully." });
+      } else {
+        await rejectAppointment(appointmentDialog.appointmentId, user?.token);
+        setAppointments((prev) => prev.map((a) => a.id === appointmentDialog.appointmentId ? { ...a, status: "rejected" } : a));
+        toast({ title: "Rejected", description: "Appointment request rejected." });
       }
-    };
-    if (user) fetchAppointments();
-  }, [user]);
-
-  const handleConfirmAppointment = async (appointmentId: number) => {
-    setAppointmentActionLoading(true);
-    try {
-      await confirmAppointment(appointmentId, user?.token);
-      setAppointments((prev) => prev.map((a) => a.id === appointmentId ? { ...a, status: "confirmed" } : a));
-      toast({ title: "Appointment confirmed", description: "The appointment has been confirmed." });
     } catch (err: any) {
-      toast({ title: "Failed to confirm", description: err?.message || "Please try again.", variant: "destructive" });
+      toast({ title: "Error", description: err?.message || "Action failed", variant: "destructive" });
     } finally {
       setAppointmentActionLoading(false);
       setAppointmentDialog({ open: false, appointmentId: null, action: null });
     }
   };
 
-  const handleRejectAppointment = async (appointmentId: number) => {
-    setAppointmentActionLoading(true);
-    try {
-      await rejectAppointment(appointmentId, user?.token);
-      setAppointments((prev) => prev.map((a) => a.id === appointmentId ? { ...a, status: "rejected" } : a));
-      toast({ title: "Appointment rejected", description: "The user will be notified by email." });
-    } catch (err: any) {
-      toast({ title: "Failed to reject", description: err?.message || "Please try again.", variant: "destructive" });
-    } finally {
-      setAppointmentActionLoading(false);
-      setAppointmentDialog({ open: false, appointmentId: null, action: null });
-    }
-  };
-
-  // Calculate summary stats (safe for non-array listings)
+  // Stats Calculation
   const stats = useMemo(() => {
     const safeListings = Array.isArray(listings) ? listings : [];
     const safeAppointments = Array.isArray(appointments) ? appointments : [];
@@ -144,359 +151,346 @@ function OwnerDashboardPage() {
       pending: safeListings.filter((l) => (l.status || '').toLowerCase() === "pending").length,
       expired: safeListings.filter((l) => (l.status || '').toLowerCase() === "expired").length,
       rejected: safeListings.filter((l) => (l.status || '').toLowerCase() === "rejected").length,
+      pendingAppointments: safeAppointments.filter((a) => (a.status || '').toLowerCase() === "pending").length,
       confirmedAppointments: safeAppointments.filter((a) => (a.status || '').toLowerCase() === "confirmed").length,
     };
   }, [listings, appointments]);
 
-  // Pagination (safe for non-array listings)
+  // Filtering & Pagination
+  const filteredListings = useMemo(() => {
+    return listings.filter(l => 
+      l.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      l.location.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [listings, searchTerm]);
+
   const { totalPages, paginatedListings } = useMemo(() => {
-    const safeListings = Array.isArray(listings) ? listings : [];
     return {
-      totalPages: Math.ceil(safeListings.length / itemsPerPage),
-      paginatedListings: safeListings.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+      totalPages: Math.ceil(filteredListings.length / itemsPerPage),
+      paginatedListings: filteredListings.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
     };
-  }, [listings, currentPage]);
+  }, [filteredListings, currentPage]);
 
-
-
-  // Real backend API call for deleting a listing
+  // Listing Actions
   const handleDelete = async (listingId: number) => {
-    setError(null);
     try {
-      if (!user?.token) throw new Error("No auth token found");
       const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       const res = await fetch(`${API}/api/listings/${listingId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${user.token}` },
       });
-      if (!res.ok) throw new Error("Failed to delete listing");
+      if (!res.ok) throw new Error("Failed to delete");
       setListings((prev) => prev.filter((l) => l.id !== listingId));
-      setDeleteDialog({ open: false, listingId: null });
+      toast({ title: "Deleted", description: "Listing has been removed." });
     } catch (err: any) {
-      console.error("Delete listing error:", err);
-      setError(err?.message || "Failed to delete listing. Please try again.");
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    } finally {
+      setDeleteDialog({ open: false, listingId: null });
     }
   };
 
-
-
-  // Real backend API call for renewing a listing
   const handleRenew = async (listingId: number) => {
-    setError(null);
     try {
-      if (!user?.token) throw new Error("No auth token found");
       const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       const res = await fetch(`${API}/api/listings/${listingId}/renew`, {
         method: "POST",
         headers: { Authorization: `Bearer ${user.token}` },
       });
-      if (!res.ok) throw new Error("Failed to renew listing");
+      if (!res.ok) throw new Error("Failed to renew");
+      toast({ title: "Success", description: "Listing renewed successfully." });
       setRenewDialog({ open: false, listingId: null });
-      // Optionally refetch listings from backend here
-      // const updatedListings = await fetchCurrentOwnerListings();
-      // setListings(updatedListings);
+      // Ideally refetch listings here to update status in UI
     } catch (err: any) {
-      console.error("Renew listing error:", err);
-      setError(err?.message || "Failed to renew listing. Please try again.");
+      toast({ title: "Error", description: err.message, variant: "destructive" });
     }
   };
 
-
-  const handleRetry = () => {
-    setError(null);
-    setLoading(true);
-    // Refetch data from backend
-    // Optionally call fetchData() here
-    setTimeout(() => setLoading(false), 1000);
-  };
-
-  const handleEdit = (listingId: number) => {
-    router.push(`/edit-details/${listingId}`)
-  }
-
-  const handleView = (listingId: number) => {
-    router.push(`/view-details/${listingId}`)
-  }
-
-
-
-  if (loading) {
-    return <DashboardSkeleton />;
-  }
+  if (loading) return <DashboardSkeleton />;
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header with Owner Data and Stats Side by Side */}
-      <div className="container mx-auto px-6 pt-8">
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* Owner Data Card */}
-          <div className="flex-1 rounded-2xl shadow-lg bg-gradient-to-r from-indigo-100 via-purple-200 to-indigo-200 text-indigo-900 p-10 flex flex-col justify-between min-h-[340px]">
-            <div className="flex flex-col h-full justify-between gap-12">
-              <div className="flex items-center gap-10">
-                <Avatar className="h-28 w-28 border-4 border-purple-200">
-                  <AvatarImage src={resolveImageUrl(user?.profileImage, "/placeholder.jpg")} alt={user?.username ?? "User"} />
-                  <AvatarFallback className="bg-purple-200 text-purple-700 text-3xl">
-                    {user?.firstName || user?.lastName
-                      ? `${user?.firstName?.[0] ?? ""}${user?.lastName?.[0] ?? ""}`.toUpperCase() || user?.username?.[0] || "U"
-                      : user?.username?.[0] || "U"}
+    <div className="min-h-screen bg-slate-50/50 pb-12">
+      {/* --- Header Section --- */}
+      <div className="bg-white border-b border-slate-200 shadow-sm">
+        <div className="container mx-auto px-4 py-8">
+            <div className="flex flex-col md:flex-row gap-8 items-start md:items-center">
+                <Avatar className="h-24 w-24 border-4 border-indigo-50 shadow-lg">
+                  <AvatarImage src={resolveImageUrl(user?.profileImage, "/placeholder.jpg")} alt={user?.username} />
+                  <AvatarFallback className="bg-indigo-100 text-indigo-700 text-2xl font-bold">
+                    {user?.username?.[0]?.toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex flex-col gap-4">
-                  <h1 className="text-4xl font-extrabold text-balance leading-tight">
-                    {user?.firstName || user?.lastName
-                      ? `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim()
-                      : user?.username ?? "User"}
-                  </h1>
-                  <p className="text-purple-800 flex items-center gap-3 text-xl font-medium">
-                    <Building2 className="h-6 w-6" />
-                    Boarding Owner Dashboard
-                  </p>
-                  <p className="text-purple-700 text-lg font-normal">
-                    {user?.email ?? user?.username ?? "-"}
-                  </p>
+                
+                <div className="flex-1 space-y-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                        <h1 className="text-3xl font-bold text-slate-900">
+                            Welcome back, {user?.firstName || user?.username}!
+                        </h1>
+                        <Badge variant="outline" className="w-fit bg-indigo-50 text-indigo-700 border-indigo-200">
+                            Owner Account
+                        </Badge>
+                    </div>
+                    <p className="text-slate-500 flex items-center gap-2">
+                        <Building2 className="h-4 w-4" /> Manage your properties and appointments
+                    </p>
                 </div>
-              </div>
-              <div className="self-end mt-10">
-                <a href="/user-profile">
-                  <Button variant="secondary" className="bg-white/60 hover:bg-white/80 text-purple-900 border-purple-200 text-lg px-6 py-2">
-                    Edit Profile
-                  </Button>
-                </a>
-              </div>
+
+                <div className="flex gap-3">
+                    <Button variant="outline" onClick={() => router.push("/user-profile")}>
+                        Edit Profile
+                    </Button>
+                    <Button className="bg-indigo-600 hover:bg-indigo-700" onClick={() => router.push("/create-listing")}>
+                        <Plus className="h-4 w-4 mr-2" /> Post New Listing
+                    </Button>
+                </div>
             </div>
-          </div>
-          {/* Combined Stats Card - Improved UI, no bg color */}
-          <div className="flex-1 rounded-2xl border border-slate-200 shadow-xl p-8 flex flex-col justify-center">
-            <h2 className="text-xl font-bold text-purple-900 mb-6 tracking-tight text-center">Listing Summary</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-              {/* Stat Block */}
-              <div className="flex flex-col items-center gap-1 p-3 rounded-xl border border-slate-100 shadow-sm transition-all duration-200 hover:scale-105 hover:shadow-md hover:border-purple-300 cursor-pointer">
-                <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">Total</span>
-                <span className="text-3xl font-extrabold text-slate-900">{stats.total}</span>
-              </div>
-              <div className="flex flex-col items-center gap-1 p-3 rounded-xl border border-slate-100 shadow-sm transition-all duration-200 hover:scale-105 hover:shadow-md hover:border-purple-300 cursor-pointer">
-                <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">Approved</span>
-                <span className="text-3xl font-extrabold text-green-600">{stats.approved}</span>
-              </div>
-              <div className="flex flex-col items-center gap-1 p-3 rounded-xl border border-slate-100 shadow-sm transition-all duration-200 hover:scale-105 hover:shadow-md hover:border-purple-300 cursor-pointer">
-                <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">Pending</span>
-                <span className="text-3xl font-extrabold text-yellow-600">{stats.pending}</span>
-              </div>
-              <div className="flex flex-col items-center gap-1 p-3 rounded-xl border border-slate-100 shadow-sm transition-all duration-200 hover:scale-105 hover:shadow-md hover:border-purple-300 cursor-pointer">
-                <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">Expired</span>
-                <span className="text-3xl font-extrabold text-red-600">{stats.expired}</span>
-              </div>
-              <div className="flex flex-col items-center gap-1 p-3 rounded-xl border border-slate-100 shadow-sm transition-all duration-200 hover:scale-105 hover:shadow-md hover:border-purple-300 cursor-pointer">
-                <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">Rejected</span>
-                <span className="text-3xl font-extrabold text-red-700">{stats.rejected}</span>
-              </div>
-              <div className="flex flex-col items-center gap-1 p-3 rounded-xl border border-slate-100 shadow-sm transition-all duration-200 hover:scale-105 hover:shadow-md hover:border-blue-300 cursor-pointer">
-                <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">Appointments</span>
-                <span className="text-3xl font-extrabold text-blue-700">{stats.confirmedAppointments}</span>
-              </div>
+
+            {/* Stats Overview */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mt-8">
+                <StatCard label="Total Listings" value={stats.total} />
+                <StatCard label="Live" value={stats.approved} color="text-green-600" />
+                <StatCard label="Pending" value={stats.pending} color="text-amber-600" />
+                <StatCard label="Expired" value={stats.expired} color="text-red-600" />
+                <StatCard label="Requests" value={stats.pendingAppointments} color="text-indigo-600" highlight={stats.pendingAppointments > 0} />
+                <StatCard label="Confirmed" value={stats.confirmedAppointments} color="text-blue-600" />
             </div>
-          </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-6 py-8">
-        {/* Appointment Requests Section */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <CalendarIcon className="h-5 w-5" />
-              Appointment Requests
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {appointmentsLoading ? (
-              <div>Loading appointments...</div>
-            ) : appointments.length === 0 ? (
-              <div className="text-muted-foreground">No appointment requests.</div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="px-2 py-2 text-left">Listing</th>
-                      <th className="px-2 py-2 text-left">User Email</th>
-                      <th className="px-2 py-2 text-left">Date</th>
-                      <th className="px-2 py-2 text-left">Status</th>
-                      <th className="px-2 py-2 text-left">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {appointments.map((a) => (
-                      <tr key={a.id} className="border-b">
-                        <td className="px-2 py-2">{a.listingTitle}</td>
-                        <td className="px-2 py-2">{a.userEmail}</td>
-                        <td className="px-2 py-2">{a.date instanceof Date ? a.date.toLocaleDateString() : new Date(a.date).toLocaleDateString()}</td>
-                        <td className="px-2 py-2 capitalize">{a.status}</td>
-                        <td className="px-2 py-2">
-                          {a.status === "pending" && (
-                            <div className="flex gap-2">
-                              <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => setAppointmentDialog({ open: true, appointmentId: a.id, action: 'confirm' })}>Confirm</Button>
-                              <Button size="sm" className="bg-red-600 hover:bg-red-700" onClick={() => setAppointmentDialog({ open: true, appointmentId: a.id, action: 'reject' })}>Reject</Button>
-                            </div>
-                          )}
-                          {a.status === "confirmed" && <span className="text-green-700">Confirmed</span>}
-                          {a.status === "rejected" && <span className="text-red-700">Rejected</span>}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-        {/* Error Alert */}
+      {/* --- Main Content Tabs --- */}
+      <div className="container mx-auto px-4 py-8">
         {error && (
           <Alert variant="destructive" className="mb-6">
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription className="flex items-center justify-between">
-              {error}
-              <Button variant="outline" size="sm" onClick={handleRetry}>
-                Retry
-              </Button>
-            </AlertDescription>
+            <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
-        {/* ...removed summary cards, now combined in header... */}
-
-        {/* Main Content */}
-        <Card>
-          <CardHeader>
+        <Tabs defaultValue="listings" value={activeTab} onValueChange={setActiveTab} className="w-full space-y-6">
             <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Home className="h-5 w-5" />
-                My Listings
-              </CardTitle>
-              <Button className="bg-primary hover:bg-primary/90" onClick={() => router.push("/create-listing")}>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Listing
-              </Button>
+                <TabsList
+                  className="bg-white border shadow-sm p-1 flex gap-2 rounded-xl overflow-hidden animate-fade-in"
+                  aria-label="Owner dashboard tabs"
+                >
+                  <TabsTrigger
+                    value="listings"
+                    className={`gap-2 px-6 py-2 text-sm font-semibold transition-all duration-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:scale-105 hover:bg-indigo-50 hover:text-indigo-700`}
+                    aria-label="My Listings"
+                  >
+                    <Home className="h-5 w-5" />
+                    <span>Listings</span>
+                    <span className="ml-2 text-xs bg-indigo-100 text-indigo-700 rounded-full px-2 py-0.5 font-bold">{stats.total}</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="appointments"
+                    className={`gap-2 px-6 py-2 text-sm font-semibold transition-all duration-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:scale-105 hover:bg-indigo-50 hover:text-indigo-700 relative`}
+                    aria-label="Appointments"
+                  >
+                    <CalendarIcon className="h-5 w-5" />
+                    <span>Appointments</span>
+                    {stats.pendingAppointments > 0 && (
+                      <span className="absolute top-1 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white animate-pulse">
+                        {stats.pendingAppointments}
+                      </span>
+                    )}
+                  </TabsTrigger>
+                </TabsList>
             </div>
-          </CardHeader>
-          <CardContent>
-            {listings.length === 0 ? (
-              <EmptyState />
-            ) : (
-              <>
-                <ListingsTable
-                  listings={paginatedListings}
-                  onEditAction={handleEdit}
-                  onDeleteAction={(id) => setDeleteDialog({ open: true, listingId: id })}
-                  onViewAction={handleView}
-                  onRenewAction={(id) => setRenewDialog({ open: true, listingId: id })}
-                />
 
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-between mt-6">
-                    <p className="text-sm text-muted-foreground">
-                      Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-                      {Math.min(currentPage * itemsPerPage, listings.length)} of {listings.length} listings
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                        disabled={currentPage === 1}
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                        Previous
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                        disabled={currentPage === totalPages}
-                      >
-                        Next
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-          </CardContent>
-        </Card>
+            {/* LISTINGS TAB */}
+            <TabsContent value="listings" className="space-y-6">
+                <Card>
+                    <CardHeader>
+                        <div className="flex flex-col sm:flex-row justify-between gap-4">
+                            <div>
+                                <CardTitle>Property Listings</CardTitle>
+                                <CardDescription>Manage availability, edits, and renewals.</CardDescription>
+                            </div>
+                            <div className="relative w-full sm:w-72">
+                                <Search className="absolute left-2 top-2.5 h-4 w-4 text-slate-400" />
+                                <Input 
+                                    placeholder="Search by title or location..." 
+                                    className="pl-8"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        {listings.length === 0 ? (
+                            <EmptyState />
+                        ) : (
+                            <>
+                                <ListingsTable
+                                    listings={paginatedListings}
+                                    onEditAction={(id) => router.push(`/edit-details/${id}`)}
+                                    onDeleteAction={(id) => setDeleteDialog({ open: true, listingId: id })}
+                                    onViewAction={(id) => router.push(`/view-details/${id}`)}
+                                    onRenewAction={(id) => setRenewDialog({ open: true, listingId: id })}
+                                />
+                                
+                                {filteredListings.length === 0 && (
+                                    <div className="text-center py-12 text-slate-500">
+                                        No listings match your search.
+                                    </div>
+                                )}
+
+                                {totalPages > 1 && (
+                                    <div className="flex items-center justify-end gap-2 mt-4">
+                                        <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
+                                            <ChevronLeft className="h-4 w-4" />
+                                        </Button>
+                                        <span className="text-sm text-slate-600">Page {currentPage} of {totalPages}</span>
+                                        <Button variant="outline" size="sm" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
+                                            <ChevronRight className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </CardContent>
+                </Card>
+            </TabsContent>
+
+            {/* APPOINTMENTS TAB */}
+            <TabsContent value="appointments">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Appointment Requests</CardTitle>
+                        <CardDescription>Manage viewings requested by potential boarders.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {appointmentsLoading ? (
+                            <div className="space-y-4">
+                                <Skeleton className="h-24 w-full" />
+                                <Skeleton className="h-24 w-full" />
+                            </div>
+                        ) : appointments.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-12 text-slate-500">
+                                <CalendarIcon className="h-12 w-12 mb-2 opacity-20" />
+                                <p>No appointment requests yet.</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                                {appointments.map((appt) => (
+                                    <div key={appt.id} className="group border rounded-xl p-5 bg-white shadow-sm hover:shadow-md transition-all hover:border-indigo-200">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div className="space-y-1">
+                                                <h3 className="font-semibold text-slate-900 line-clamp-1" title={appt.listingTitle}>
+                                                    {appt.listingTitle}
+                                                </h3>
+                                                <div className="flex items-center gap-2 text-xs text-slate-500">
+                                                    <CalendarIcon className="h-3 w-3" />
+                                                    {new Date(appt.date).toLocaleDateString()}
+                                                </div>
+                                            </div>
+                                            <StatusBadge status={appt.status} />
+                                        </div>
+                                        
+                                        <div className="bg-slate-50 rounded-lg p-3 mb-4 text-sm">
+                                            <div className="flex items-center gap-2 text-slate-700 mb-1">
+                                                <Mail className="h-3.5 w-3.5 text-slate-400" />
+                                                <span className="truncate">{appt.userEmail}</span>
+                                            </div>
+                                        </div>
+
+                                        {appt.status.toLowerCase() === "pending" && (
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <Button 
+                                                    size="sm" 
+                                                    variant="outline"
+                                                    className="w-full text-green-600 border-green-200 hover:bg-green-50 hover:text-green-700"
+                                                    onClick={() => setAppointmentDialog({ open: true, appointmentId: appt.id, action: 'confirm' })}
+                                                >
+                                                    Confirm
+                                                </Button>
+                                                <Button 
+                                                    size="sm" 
+                                                    variant="outline"
+                                                    className="w-full text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                                                    onClick={() => setAppointmentDialog({ open: true, appointmentId: appt.id, action: 'reject' })}
+                                                >
+                                                    Reject
+                                                </Button>
+                                            </div>
+                                        )}
+                                        {appt.status.toLowerCase() !== "pending" && (
+                                            <div className="text-center text-xs text-slate-400 italic py-2">
+                                                No actions available
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            </TabsContent>
+        </Tabs>
       </div>
 
-      {/* Appointment Confirm/Reject Dialog */}
-      <AlertDialog open={appointmentDialog.open} onOpenChange={(open: boolean) => setAppointmentDialog({ open, appointmentId: null, action: null })}>
+      {/* --- Dialogs --- */}
+      
+      {/* Appointment Action Dialog */}
+      <AlertDialog open={appointmentDialog.open} onOpenChange={(open) => setAppointmentDialog(prev => ({ ...prev, open }))}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {appointmentDialog.action === 'confirm' ? 'Confirm Appointment' : 'Reject Appointment'}
+                {appointmentDialog.action === 'confirm' ? 'Confirm Appointment' : 'Reject Request'}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {appointmentDialog.action === 'confirm'
-                ? 'Are you sure you want to confirm this appointment?'
-                : 'Are you sure you want to reject this appointment? The user will be notified by email.'}
+                {appointmentDialog.action === 'confirm' 
+                    ? "This will notify the user that their viewing is confirmed." 
+                    : "Are you sure? This will notify the user that the request was declined."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={appointmentActionLoading}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              disabled={appointmentActionLoading}
-              className={appointmentDialog.action === 'confirm' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}
-              onClick={async () => {
-                if (appointmentDialog.appointmentId && appointmentDialog.action === 'confirm') {
-                  await handleConfirmAppointment(appointmentDialog.appointmentId);
-                } else if (appointmentDialog.appointmentId && appointmentDialog.action === 'reject') {
-                  await handleRejectAppointment(appointmentDialog.appointmentId);
-                }
-              }}
+            <AlertDialogAction 
+                onClick={handleAppointmentAction} 
+                disabled={appointmentActionLoading}
+                className={appointmentDialog.action === 'confirm' ? "bg-green-600 hover:bg-green-700" : "bg-red-600 hover:bg-red-700"}
             >
-              {appointmentActionLoading ? (appointmentDialog.action === 'confirm' ? 'Confirming...' : 'Rejecting...') : (appointmentDialog.action === 'confirm' ? 'Confirm' : 'Reject')}
+                {appointmentActionLoading ? "Processing..." : (appointmentDialog.action === 'confirm' ? "Confirm" : "Reject")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialog.open} onOpenChange={(open: boolean) => setDeleteDialog({ open, listingId: null })}>
+      {/* Delete Listing Dialog */}
+      <AlertDialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog(prev => ({ ...prev, open }))}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Listing</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this listing? This action cannot be undone.
+              This action cannot be undone. This will permanently delete your listing and remove the data from our servers.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={async () => {
-                if (deleteDialog.listingId) {
-                  await handleDelete(deleteDialog.listingId);
-                }
-              }}
-              className="bg-destructive hover:bg-destructive/90"
+            <AlertDialogAction 
+                onClick={() => deleteDialog.listingId && handleDelete(deleteDialog.listingId)}
+                className="bg-red-600 hover:bg-red-700"
             >
-              Delete
+                Delete Listing
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Renew Confirmation Dialog */}
-      <AlertDialog open={renewDialog.open} onOpenChange={(open: boolean) => setRenewDialog({ open, listingId: null })}>
+      {/* Renew Listing Dialog */}
+      <AlertDialog open={renewDialog.open} onOpenChange={(open) => setRenewDialog(prev => ({ ...prev, open }))}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Renew Listing</AlertDialogTitle>
             <AlertDialogDescription>
-              This will extend your listing for another 6 months and reactivate it if expired.
+              This listing will be extended for another 6 months and moved to "Approved" status if it was expired.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={() => renewDialog.listingId && handleRenew(renewDialog.listingId)}>
-              Renew Listing
+                Renew
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -505,51 +499,51 @@ function OwnerDashboardPage() {
   )
 }
 
+// --- Sub-components for cleaner code ---
+
+function StatCard({ label, value, color = "text-slate-900", highlight = false }: { label: string, value: number, color?: string, highlight?: boolean }) {
+    return (
+        <div className={`flex flex-col items-center justify-center p-4 rounded-xl border bg-white shadow-sm transition-all hover:shadow-md ${highlight ? 'ring-2 ring-indigo-200 border-indigo-300' : 'border-slate-100'}`}>
+            <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">{label}</span>
+            <span className={`text-2xl font-bold mt-1 ${color}`}>{value}</span>
+        </div>
+    )
+}
+
+function StatusBadge({ status }: { status: string }) {
+    const s = status.toLowerCase();
+    let variant = "outline";
+    let className = "text-slate-600 border-slate-200";
+
+    if (s === "confirmed" || s === "approved") {
+        className = "bg-green-50 text-green-700 border-green-200 hover:bg-green-100";
+    } else if (s === "pending") {
+        className = "bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100";
+    } else if (s === "rejected" || s === "expired") {
+        className = "bg-red-50 text-red-700 border-red-200 hover:bg-red-100";
+    }
+
+    return (
+        <Badge variant="outline" className={`capitalize ${className}`}>
+            {status}
+        </Badge>
+    )
+}
+
 function DashboardSkeleton() {
   return (
-    <div className="min-h-screen bg-background">
-      <div className="gradient-header">
-        <div className="container mx-auto px-6 py-8">
-          <div className="flex items-center gap-4">
-            <Skeleton className="h-16 w-16 rounded-full bg-white/20" />
-            <div className="space-y-2">
-              <Skeleton className="h-6 w-48 bg-white/20" />
-              <Skeleton className="h-4 w-32 bg-white/10" />
-            </div>
-          </div>
+    <div className="min-h-screen bg-slate-50 p-8 space-y-8">
+      <div className="flex items-center gap-4">
+        <Skeleton className="h-20 w-20 rounded-full" />
+        <div className="space-y-2">
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-4 w-32" />
         </div>
       </div>
-
-      <div className="container mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Card key={i}>
-              <CardHeader className="pb-3">
-                <Skeleton className="h-4 w-20" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-8 w-12" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <Skeleton className="h-6 w-32" />
-              <Skeleton className="h-10 w-32" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Skeleton key={i} className="h-16 w-full" />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+        {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
       </div>
+      <Skeleton className="h-[400px] w-full rounded-xl" />
     </div>
   )
 }
