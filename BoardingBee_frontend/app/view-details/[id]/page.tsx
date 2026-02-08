@@ -1,7 +1,7 @@
 
 
 import { fetchListing } from "@/lib/listingsApi";
-import ListingDetailsClient from "../../components/ui/ListingDetailsClient";
+import ListingDetailsClient from "@/components/ui/ListingDetailsClient";
 import { cookies } from "next/headers";
 
 
